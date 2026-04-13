@@ -1,6 +1,8 @@
 # Keng's Landing LLC — Document Index
 
-Texas Series LLC with three series: **360**, **Ironwood**, and **Marlow**.
+Texas Series LLC with three series designated: **360**, **Ironwood**, and **Marlow**.
+
+> **Current status (April 2026):** Only **Series 360** (360 County Road) is actively being transferred into the LLC. Ironwood and Marlow are **on hold** — both properties are under mortgage, and transferring title to the LLC risks triggering the due-on-sale clause. The series designations remain filed but the deed transfers for Ironwood and Marlow have been moved to Archive.
 
 ## Formation/
 
@@ -47,15 +49,13 @@ Texas Series LLC with three series: **360**, **Ironwood**, and **Marlow**.
 
 ## Need-to-File/
 
-Documents pending county recording or state filing.
+Documents pending county recording or state filing — **Series 360 only**.
 
 | Document | Description |
 |----------|-------------|
-| 360_To_Trust_Special_Warranty_Deed.docx | Pending filing |
-| Deed 360 To Trust.pdf | Pending filing |
-| Deed Trust To Series360.pdf | Pending filing |
-| Final Deed Ironwood.pdf | Pending filing |
-| Final Deed Marlow.pdf | Pending filing |
+| 360_To_Trust_Special_Warranty_Deed.docx | Pending filing — 360 to trust |
+| Deed 360 To Trust.pdf | Pending filing — 360 to trust |
+| Deed Trust To Series360.pdf | Pending filing — trust to Series 360 |
 
 ## Insurance/
 
@@ -63,10 +63,12 @@ Documents pending county recording or state filing.
 
 ## Archive/
 
-Superseded documents kept for reference.
+Superseded or on-hold documents kept for reference.
 
 | Document | Description |
 |----------|-------------|
+| Final Deed Ironwood.pdf | **On hold** — deed transfer suspended due to due-on-sale clause risk |
+| Final Deed Marlow.pdf | **On hold** — deed transfer suspended due to due-on-sale clause risk |
 | Kengs Landing Series Operating Agreement - Short.pdf | Earlier short-form operating agreement |
 | Kengs Landing Series Operating Agreement.docx | Editable version of old operating agreement |
 | Series 360 Designation.pdf | Earlier (non-full) Series 360 designation |
@@ -75,9 +77,11 @@ Superseded documents kept for reference.
 
 ## Still Needed
 
+- [ ] **File 360 deeds** — Record the three pending 360 deed documents with the county
 - [ ] Registered Agent appointment letter
 - [ ] Texas franchise tax filings / No Tax Due reports (annual)
 - [ ] Certificate of Good Standing (from TX SOS)
+- [ ] **Future:** Re-evaluate Ironwood/Marlow transfer once mortgages are paid off or refinanced into LLC-friendly loans
 - [ ] Property insurance declarations (per series/property)
 - [ ] Title insurance policies (per property)
 - [ ] Property tax records (county appraisal)
