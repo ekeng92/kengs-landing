@@ -2,27 +2,47 @@
 
 ## What This Repo Is
 
-A private operations repository for **Keng's Landing**, a short-term rental property business. The LLC (Texas Series LLC) currently covers only the 360 County Road property. Ironwood and Marlow are personally held (mortgage due-on-sale clause prevents transfer).
+AI-powered financial operations system for **Keng's Landing**, a short-term rental property business. The core value is turning raw bank/platform CSV exports into organized, tax-ready financial data through an AI agent + browser dashboard.
 
-This is NOT a software project. It contains documents, financial tracking, operational guides, and property management artifacts.
+Also serves as a test domain for a potential product: an STR finance tool any Airbnb/VRBO host could use.
+
+**Entity:** Keng's Landing LLC (Texas Series LLC) — 360 County Road is Series 360. Ironwood and Marlow are personally held (mortgage due-on-sale clause).
+
+## Key System Files
+
+| File | Role |
+|------|------|
+| `finances/kengs-landing-finance-tracker.xlsx` | The database — single source of truth, committed to git |
+| `finances/dashboard.html` | The UI — open in Chrome, reads/writes the Excel file |
+| `finances/TASKS.md` | Living task list for tax prep, review items, imports |
+| `finances/import-*.py` | CSV import scripts (Airbnb, Chase, Robinhood) |
 
 ## Structure
 
 | Folder | Purpose |
 |--------|---------|
-| `docs/` | Guest book, property guides, reference docs |
-| `finances/` | Revenue tracking, expenses, tax preparation, P&L |
-| `photos/` | Property and listing photos |
+| `finances/` | **Core** — tracker, dashboard, import scripts, audit trail |
+| `docs/` | Guest book, property guides |
 | `operations/` | Leases, checklists, house rules, guest comms |
-| `improvements/` | Renovation plans, project tracking, quotes |
-| `signage/` | Printable signs for the property |
+| `improvements/` | Renovation plans, project tracking |
 | `LLC/` | Entity formation, deeds, EIN, governing docs |
+| `signage/` | Printable signs for the property |
+| `photos/` | Property and listing photos |
+
+## Design Principles
+
+When evaluating features or changes, ask: **"Would this be useful to any STR owner, or just to Eric?"**
+
+- Features useful to any host → build generically, document well
+- Features specific to Eric's personal life → still build, but keep isolated
+- The finance system (import → categorize → review → report) is the product-viable core
+- Tax intelligence (Schedule E categories, pre-service classification, depreciation, mileage) is the differentiator
 
 ## Conventions
 
-- Sensitive files use the `*.ignore.*` pattern (covered by `.gitignore`)
-- Financial data with real dollar amounts should use `.ignore.` in the filename
-- PDFs are committed for legal/governing docs; spreadsheets for working data
+- The Excel tracker contains real financial data and IS committed (it's the database)
+- Sensitive personal files still use `*.ignore.*` pattern where appropriate
+- PDFs committed for legal/governing docs
 - Markdown preferred for anything that benefits from version history
 
 ## GitHub Account

@@ -1,73 +1,101 @@
-# Keng's Landing — Finances
+# Keng's Landing — Finance System
 
-Financial tracking for the Keng's Landing short-term rental business.
+The financial engine for Keng's Landing STR operations. Everything flows through the Excel tracker, viewed and edited via the browser dashboard.
 
-> **Property ownership:** 360 County Road is being transferred into the LLC (Series 360). Ironwood and Marlow are personally held (mortgage due-on-sale clause prevents LLC transfer). All three properties are tracked for financial purposes.
-
-## Folder Structure
+## How It Works
 
 ```
-finances/
-├── README.md              ← You are here
-├── templates/             ← Reusable templates (committed — no real data)
-│   ├── booking-log.md     ← Monthly booking log template
-│   ├── expense-log.md     ← Monthly expense log template
-│   └── schedule-e-worksheet.md  ← Annual tax prep worksheet
-├── 2026/                  ← Current year working data
-│   ├── revenue/           ← Monthly booking logs (*.ignore.* files)
-│   ├── expenses/          ← Monthly expense logs (*.ignore.* files)
-│   └── receipts/          ← Receipt images/PDFs by month (*.ignore.* files)
-└── tax/                   ← Year-end tax prep materials (*.ignore.* files)
+Bank CSV exports ──→ Python import scripts ──→ Excel tracker ──→ Browser dashboard
+                                                    ↕
+                                              localStorage (auto-save)
 ```
 
-## Conventions
+1. **Export** a CSV from your bank (Chase, Robinhood, any CC) or platform (Airbnb)
+2. **Run** the matching import script — it categorizes, deduplicates, and writes to the Excel tracker
+3. **Open** `dashboard.html` in Chrome, import the xlsx, and review your data
+4. **Decide** on flagged items in the Review tab (Business / Personal)
+5. **Export** back to xlsx when done — the Excel file is the permanent record
 
-- **No real dollar amounts in committed files.** All files with actual financial data MUST use the `*.ignore.*` naming pattern (e.g., `2026-04-revenue.ignore.csv`). The `.gitignore` excludes these from version control.
-- **Templates are committed.** Column headers, category lists, and empty structures are fine to commit.
-- **Per-property tracking.** Tag every transaction with the property it belongs to: `360`, `Ironwood`, `Marlow`, or `General` for shared costs. Only 360 is under the LLC — Ironwood and Marlow are reported on personal Schedule E.
-- **Schedule E categories.** Expenses are categorized to align directly with IRS Schedule E for tax filing.
+## Key Files
 
-## Expense Categories (Schedule E Aligned)
+| File | Purpose |
+|------|---------|
+| `kengs-landing-finance-tracker.xlsx` | **The database.** Single source of truth. Committed to git. |
+| `dashboard.html` | **The UI.** Open in Chrome. Reads/writes the Excel file. |
+| `TASKS.md` | Living task list — tax prep, review items, data imports |
+| `import-airbnb-csv.py` | Import Airbnb transaction exports |
+| `import-bank-csv.py` | Import Robinhood CC bank statements |
+| `import-chase-accounts.py` | Import Chase checking/CC statements |
+| `generate-mileage-log.py` | Reconstruct mileage log from CC purchase locations |
+| `reconcile-expenses.py` | Process Business/Personal decisions from Review tab |
+| `2026/expenses/all-expenses-audit-trail.csv` | Full export for audit/backup |
+
+## Excel Tracker Sheets
+
+| Sheet | Contents |
+|-------|----------|
+| Bookings | Platform, guest, dates, rates, fees, net payout |
+| Expenses | Date, category, vendor, amount, payment method, receipt status, Status (Business/Personal/Review), Tax Period (Pre-Service/Operational) |
+| Monthly Summary | Auto-computed from Bookings + Expenses |
+| Investment & ROI | Purchase price, computed improvements, target payback |
+| Budget vs Actual | Annual budget by Schedule E category vs actuals |
+| Category Reference | IRS Schedule E category definitions |
+| Mileage Log | Date, origin, destination, miles, purpose, IRS rate, deduction |
+
+## Dashboard Tabs
+
+| Tab | What You See |
+|-----|-------------|
+| **Overview** | KPI cards (revenue, expenses, net profit, occupancy, mileage deduction, investment recovery), monthly P&L table, category breakdown, ROI progress |
+| **Review** | Only items flagged for review. Click Business or Personal to decide. Apply to save. |
+| **Bookings** | Editable booking table. Add/remove bookings. |
+| **Expenses** | Full expense list with Tax Period badges (blue=Pre-Service, green=Operational). Sortable, editable. |
+| **Mileage** | KPI cards (total trips, miles, deduction) + trip log table |
+| **Budget** | Budget vs Actual by category + Investment Quick View sidebar |
+
+## Tax Period Classification
+
+Every expense is tagged based on the **placed-in-service date (March 1, 2026)**:
+
+- **Pre-Service** (before March 1, 2026) — startup costs and capital improvements. These go into two IRS buckets:
+  - Capital improvements → added to cost basis → depreciated 27.5 years
+  - Startup costs → up to $5K deducted in year 1, remainder amortized 15 years (IRC §195)
+- **Operational** (March 1, 2026 forward) — fully deductible on Schedule E in the year incurred
+
+## Expense Categories (IRS Schedule E)
 
 | Category | Examples |
 |----------|----------|
-| Mortgage interest | Monthly payment (interest portion only) |
-| Property taxes | County tax, special assessments |
-| Insurance | Landlord policy, umbrella coverage |
-| Repairs & maintenance | Plumbing, HVAC, pest control, appliance repair |
-| Supplies | Cleaning supplies, toiletries, linens, kitchen items |
+| Repairs & maintenance | Plumbing, HVAC, pest control, appliance repair, contractor work |
+| Supplies | Cleaning supplies, toiletries, linens, kitchen items, furniture |
 | Utilities | Electric, water, propane, Starlink internet, trash |
 | Cleaning & turnover | Professional cleaning between guests |
-| Platform fees | Airbnb/VRBO host fees |
+| Travel | Mileage to property, meals during property work, tolls |
 | Professional services | CPA, attorney, property manager |
+| Platform fees | Airbnb/VRBO host fees |
+| Insurance | Landlord policy, umbrella coverage |
+| Mortgage interest | Monthly payment (interest portion only) |
+| Property taxes | County tax, special assessments |
 | Advertising | Listing boosts, photography |
-| Travel | Mileage to property for maintenance/supplies |
-| Depreciation | Building (27.5yr), furniture/appliances (5-7yr) |
+| Depreciation | Building (27.5yr), furniture/appliances (5-7yr or §179) |
 | Other | Locks, permits, software subscriptions |
 
-## Revenue Sources
+## Receipt Documentation
 
-| Platform | Status |
-|----------|--------|
-| Airbnb | Primary — most bookings |
-| VRBO | Active |
-| Zillow | Active |
-| TurboTenant (Apartments.com) | Active |
+| Receipt Value | Meaning |
+|---------------|---------|
+| `CC` | Credit/debit card statement is the record (sufficient for IRS) |
+| `Y` | Physical/digital receipt saved |
+| `N` | No documentation — flag for follow-up |
 
-## Tax Calendar
+## Adding New Bank Data
 
-| When | What |
-|------|------|
-| Jan–Mar | Gather 1099s, compile annual P&L, prep Schedule E |
-| Apr 15 | Federal tax filing deadline |
-| May 15 | Texas property tax protest deadline |
-| Jun 15, Sep 15 | Estimated quarterly tax payments (if applicable) |
-| Dec | Year-end close, reconcile all months, generate annual summary |
-
-## Getting Started
-
-Use the `@bkeng-str-finance` agent in VS Code to:
-- Create monthly booking/expense logs from templates
-- Categorize and tag transactions
-- Generate P&L summaries
-- Prep Schedule E worksheets at tax time
+```bash
+# 1. Export CSV from bank/platform
+# 2. Place in ~/Downloads/
+# 3. Ask the @bkeng-str-finance agent to import it
+#    OR run the matching script directly:
+python3 finances/import-airbnb-csv.py
+python3 finances/import-bank-csv.py
+python3 finances/import-chase-accounts.py
+```
