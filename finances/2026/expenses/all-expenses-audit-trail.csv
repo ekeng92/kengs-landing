@@ -1,0 +1,136 @@
+Date,Month,Category,Vendor/Payee,Description,Amount,Payment Method,Receipt? (Y/N),Status,Tax Period
+2026-03-30,"=IF(A2="""","""",TEXT(A2,""MMM YYYY""))",Cleaning & turnover,Julie Rose,Airbnb turnover cleaning,50,Cash,N,Business,Operational
+2026-04-06,"=IF(A3="""","""",TEXT(A3,""MMM YYYY""))",Cleaning & turnover,Julie Rose,Airbnb turnover cleaning,60,Cash,N,Business,Operational
+2026-04-08,"=IF(A4="""","""",TEXT(A4,""MMM YYYY""))",Cleaning & turnover,Julie Rose,Airbnb turnover cleaning,60,Cash,N,Business,Operational
+2026-01-01,"=IF(A5="""","""",TEXT(A5,""MMM YYYY""))",Repairs & maintenance,Lowe's,LOWES #00907* 866-483-7521 NC | Dishwasher,323.67,Robinhood CC,CC,Business,Pre-Service
+2026-01-01,"=IF(A6="""","""",TEXT(A6,""MMM YYYY""))",Supplies,Brookshire Brothers,BROOKSHIRE BROS #10 FAIRFIELD TX | Property supplies,12.06,Robinhood CC,CC,Business,Pre-Service
+2026-01-03,"=IF(A7="""","""",TEXT(A7,""MMM YYYY""))",Supplies,Dfw Estate Liquidators,DFW ESTATE LIQUIDATORS WEATHERFORD TX | Furnishing,48.46,Robinhood CC,CC,Business,Pre-Service
+2026-01-03,"=IF(A8="""","""",TEXT(A8,""MMM YYYY""))",Supplies,Dfw Estate Liquidators,DFW ESTATE LIQUIDATORS WEATHERFORD TX | Furnishing,8.4,Robinhood CC,CC,Business,Pre-Service
+2026-01-04,"=IF(A9="""","""",TEXT(A9,""MMM YYYY""))",Repairs & maintenance,Refund: Home Depot,REFUND: THE HOME DEPOT #8517 GRAND PRAIRIETX | VERIFY: GP/Mansfield HD - STR or personal?,-20.92,Robinhood CC,CC,Review,Pre-Service
+2026-01-04,"=IF(A10="""","""",TEXT(A10,""MMM YYYY""))",Repairs & maintenance,Refund: Home Depot,REFUND: THE HOME DEPOT #8517 GRAND PRAIRIETX | VERIFY: GP/Mansfield HD - STR or personal?,-17.47,Robinhood CC,CC,Review,Pre-Service
+2026-01-05,"=IF(A11="""","""",TEXT(A11,""MMM YYYY""))",Repairs & maintenance,Home Depot,THE HOME DEPOT #6817 CORSICANA TX,269.82,Robinhood CC,CC,Business,Pre-Service
+2026-01-06,"=IF(A12="""","""",TEXT(A12,""MMM YYYY""))",Utilities,"Maga Waste, Llc",TRB MAGA WASTE LLC 802-5603595 VT | Trash service,170,Robinhood CC,CC,Business,Pre-Service
+2026-01-07,"=IF(A13="""","""",TEXT(A13,""MMM YYYY""))",Repairs & maintenance,Home Depot,THE HOME DEPOT #6568 MANSFIELD TX | VERIFY: GP/Mansfield HD - STR or personal?,142.7,Robinhood CC,CC,Review,Pre-Service
+2026-01-09,"=IF(A14="""","""",TEXT(A14,""MMM YYYY""))",Travel,Burger King,Travel meals/fuel - Burger King | Trip to Fairfield,20.56,Robinhood CC,CC,Business,Pre-Service
+2026-01-09,"=IF(A15="""","""",TEXT(A15,""MMM YYYY""))",Supplies,Brookshire Brothers,BROOKSHIRE BROS #10 FAIRFIELD TX | Property supplies,43.42,Robinhood CC,CC,Business,Pre-Service
+2026-01-09,"=IF(A16="""","""",TEXT(A16,""MMM YYYY""))",Repairs & maintenance,Home Depot,THE HOME DEPOT #6817 CORSICANA TX,32.02,Robinhood CC,CC,Business,Pre-Service
+2026-01-10,"=IF(A17="""","""",TEXT(A17,""MMM YYYY""))",Repairs & maintenance,Home Depot,THE HOME DEPOT #6817 CORSICANA TX,142.12,Robinhood CC,CC,Business,Pre-Service
+2026-01-10,"=IF(A18="""","""",TEXT(A18,""MMM YYYY""))",Repairs & maintenance,Home Depot,THE HOME DEPOT #6817 CORSICANA TX,17.97,Robinhood CC,CC,Business,Pre-Service
+2026-01-12,"=IF(A19="""","""",TEXT(A19,""MMM YYYY""))",Repairs & maintenance,Refund: Home Depot,REFUND: THE HOME DEPOT #6817 CORSICANA TX,-20.46,Robinhood CC,CC,Business,Pre-Service
+2026-01-12,"=IF(A20="""","""",TEXT(A20,""MMM YYYY""))",Repairs & maintenance,Refund: Home Depot,REFUND: THE HOME DEPOT #6817 CORSICANA TX,-119.92,Robinhood CC,CC,Business,Pre-Service
+2026-01-13,"=IF(A21="""","""",TEXT(A21,""MMM YYYY""))",Repairs & maintenance,Home Depot,HOMEDEPOT.COM 800-430-3376 GA | VERIFY: GP/Mansfield HD - STR or personal?,269,Robinhood CC,CC,Review,Pre-Service
+2026-01-13,"=IF(A22="""","""",TEXT(A22,""MMM YYYY""))",Repairs & maintenance,Home Depot,HOMEDEPOT.COM 800-430-3376 GA | VERIFY: GP/Mansfield HD - STR or personal?,46.12,Robinhood CC,CC,Review,Pre-Service
+2026-01-15,"=IF(A23="""","""",TEXT(A23,""MMM YYYY""))",Repairs & maintenance,Home Depot,THE HOME DEPOT #6817 CORSICANA TX,1066.5,Robinhood CC,CC,Business,Pre-Service
+2026-01-15,"=IF(A24="""","""",TEXT(A24,""MMM YYYY""))",Repairs & maintenance,Brenco,BRENCO FAIRFIELD TX,74.23,Robinhood CC,CC,Business,Pre-Service
+2026-01-16,"=IF(A25="""","""",TEXT(A25,""MMM YYYY""))",Repairs & maintenance,Home Depot,THE HOME DEPOT #6817 CORSICANA TX,486.62,Robinhood CC,CC,Business,Pre-Service
+2026-01-17,"=IF(A26="""","""",TEXT(A26,""MMM YYYY""))",Supplies,Brookshire Brothers,BROOKSHIRE BROS #10 FAIRFIELD TX | Property supplies,102.63,Robinhood CC,CC,Business,Pre-Service
+2026-01-18,"=IF(A27="""","""",TEXT(A27,""MMM YYYY""))",Repairs & maintenance,Ace Home Center,ACE HOME CENTER FAIRFIELD TX,8.65,Robinhood CC,CC,Business,Pre-Service
+2026-01-18,"=IF(A28="""","""",TEXT(A28,""MMM YYYY""))",Travel,Pizza Hut,Travel meals/fuel - Pizza Hut | Trip to Fairfield,24.13,Robinhood CC,CC,Business,Pre-Service
+2026-01-20,"=IF(A29="""","""",TEXT(A29,""MMM YYYY""))",Repairs & maintenance,Home Depot,THE HOME DEPOT #8517 GRAND PRAIRIETX | VERIFY: GP/Mansfield HD - STR or personal?,601,Robinhood CC,CC,Review,Pre-Service
+2026-01-20,"=IF(A30="""","""",TEXT(A30,""MMM YYYY""))",Repairs & maintenance,Refund: Home Depot,REFUND: THE HOME DEPOT #8517 GRAND PRAIRIETX | VERIFY: GP/Mansfield HD - STR or personal?,-269,Robinhood CC,CC,Review,Pre-Service
+2026-01-20,"=IF(A31="""","""",TEXT(A31,""MMM YYYY""))",Repairs & maintenance,Home Depot,THE HOME DEPOT #8517 GRAND PRAIRIETX | VERIFY: GP/Mansfield HD - STR or personal?,14.98,Robinhood CC,CC,Review,Pre-Service
+2026-01-20,"=IF(A32="""","""",TEXT(A32,""MMM YYYY""))",Repairs & maintenance,Home Depot,THE HOME DEPOT #0507 GRAND PRAIRIETX | VERIFY: GP/Mansfield HD - STR or personal?,68.96,Robinhood CC,CC,Review,Pre-Service
+2026-01-26,"=IF(A33="""","""",TEXT(A33,""MMM YYYY""))",Utilities,Gexa Energy,GEXA ENERGY 866-329-4392 TX | Electric,81.89,Robinhood CC,CC,Business,Pre-Service
+2026-02-04,"=IF(A34="""","""",TEXT(A34,""MMM YYYY""))",Repairs & maintenance,Home Depot,THE HOME DEPOT #6568 MANSFIELD TX | VERIFY: GP/Mansfield HD - STR or personal?,3.25,Robinhood CC,CC,Review,Pre-Service
+2026-02-04,"=IF(A35="""","""",TEXT(A35,""MMM YYYY""))",Repairs & maintenance,Refund: Home Depot,REFUND: THE HOME DEPOT #6568 MANSFIELD TX | VERIFY: GP/Mansfield HD - STR or personal?,-35.98,Robinhood CC,CC,Review,Pre-Service
+2026-02-07,"=IF(A36="""","""",TEXT(A36,""MMM YYYY""))",Repairs & maintenance,Capps True Value Hardware and Ag Center,CAPPS TRUE VALUE FAIRFIELD TX,14.07,Robinhood CC,CC,Business,Pre-Service
+2026-02-08,"=IF(A37="""","""",TEXT(A37,""MMM YYYY""))",Repairs & maintenance,Home Depot,HOMEDEPOT.COM 800-430-3376 GA | VERIFY: GP/Mansfield HD - STR or personal?,39.98,Robinhood CC,CC,Review,Pre-Service
+2026-02-10,"=IF(A38="""","""",TEXT(A38,""MMM YYYY""))",Repairs & maintenance,Refund: Home Depot,REFUND: THE HOME DEPOT #6817 CORSICANA TX,-449,Robinhood CC,CC,Business,Pre-Service
+2026-02-10,"=IF(A39="""","""",TEXT(A39,""MMM YYYY""))",Repairs & maintenance,Refund: Home Depot,REFUND: THE HOME DEPOT #6817 CORSICANA TX,-373,Robinhood CC,CC,Business,Pre-Service
+2026-02-10,"=IF(A40="""","""",TEXT(A40,""MMM YYYY""))",Repairs & maintenance,Refund: Home Depot,REFUND: THE HOME DEPOT #6817 CORSICANA TX,-69.96,Robinhood CC,CC,Business,Pre-Service
+2026-02-10,"=IF(A41="""","""",TEXT(A41,""MMM YYYY""))",Repairs & maintenance,Home Depot,THE HOME DEPOT 6817 CORSICANA TX,281.82,Robinhood CC,CC,Business,Pre-Service
+2026-02-14,"=IF(A42="""","""",TEXT(A42,""MMM YYYY""))",Travel,Wendy's,Travel meals/fuel - Wendy's | Trip to Fairfield,18.38,Robinhood CC,CC,Business,Pre-Service
+2026-02-16,"=IF(A43="""","""",TEXT(A43,""MMM YYYY""))",Repairs & maintenance,Refund: Home Depot,REFUND: THE HOME DEPOT #8517 GRAND PRAIRIETX | VERIFY: GP/Mansfield HD - STR or personal?,-111.06,Robinhood CC,CC,Review,Pre-Service
+2026-02-16,"=IF(A44="""","""",TEXT(A44,""MMM YYYY""))",Repairs & maintenance,Refund: Home Depot,REFUND: THE HOME DEPOT #8517 GRAND PRAIRIETX | VERIFY: GP/Mansfield HD - STR or personal?,-159,Robinhood CC,CC,Review,Pre-Service
+2026-02-16,"=IF(A45="""","""",TEXT(A45,""MMM YYYY""))",Repairs & maintenance,Refund: Home Depot,REFUND: THE HOME DEPOT #8517 GRAND PRAIRIETX | VERIFY: GP/Mansfield HD - STR or personal?,-24.82,Robinhood CC,CC,Review,Pre-Service
+2026-02-23,"=IF(A46="""","""",TEXT(A46,""MMM YYYY""))",Utilities,Gexa Energy,GEXA ENERGY 866-329-4392 TX | Electric,94.9,Robinhood CC,CC,Business,Pre-Service
+2026-02-26,"=IF(A47="""","""",TEXT(A47,""MMM YYYY""))",Repairs & maintenance,Home Depot,HOMEDEPOT.COM 800-430-3376 GA | VERIFY: GP/Mansfield HD - STR or personal?,199,Robinhood CC,CC,Review,Pre-Service
+2026-03-03,"=IF(A48="""","""",TEXT(A48,""MMM YYYY""))",Repairs & maintenance,Home Depot,THE HOME DEPOT #8517 GRAND PRAIRIETX | VERIFY: GP/Mansfield HD - STR or personal?,38.7,Robinhood CC,CC,Review,Operational
+2026-03-03,"=IF(A49="""","""",TEXT(A49,""MMM YYYY""))",Repairs & maintenance,Refund: Home Depot,REFUND: THE HOME DEPOT #8517 GRAND PRAIRIETX | VERIFY: GP/Mansfield HD - STR or personal?,-114.21,Robinhood CC,CC,Review,Operational
+2026-03-04,"=IF(A50="""","""",TEXT(A50,""MMM YYYY""))",Travel,Love's Travel Stop,Travel meals/fuel - Love's Travel Stop | Trip to Fairfield,70.43,Robinhood CC,CC,Business,Operational
+2026-03-09,"=IF(A51="""","""",TEXT(A51,""MMM YYYY""))",Supplies,Brookshire Brothers,BROOKSHIRE BROS #10 FAIRFIELD TX | Property supplies,149.49,Robinhood CC,CC,Business,Operational
+2026-03-09,"=IF(A52="""","""",TEXT(A52,""MMM YYYY""))",Repairs & maintenance,Ace Home Center,ACE HOME CENTER FAIRFIELD TX,59.57,Robinhood CC,CC,Business,Operational
+2026-03-17,"=IF(A53="""","""",TEXT(A53,""MMM YYYY""))",Repairs & maintenance,Ace Home Center,ACE HOME CENTER FAIRFIELD TX,19.98,Robinhood CC,CC,Business,Operational
+2026-03-19,"=IF(A54="""","""",TEXT(A54,""MMM YYYY""))",Travel,El Jimador Mexican Grill 7,Travel meals/fuel - El Jimador Mexican Grill 7 | Trip to Fairfield,60,Robinhood CC,CC,Business,Operational
+2026-03-20,"=IF(A55="""","""",TEXT(A55,""MMM YYYY""))",Repairs & maintenance,Refund: Home Depot,REFUND: THE HOME DEPOT #6817 CORSICANA TX,-114.35,Robinhood CC,CC,Business,Operational
+2026-03-20,"=IF(A56="""","""",TEXT(A56,""MMM YYYY""))",Travel,Gulf,Travel meals/fuel - Gulf | Trip to Fairfield,68.84,Robinhood CC,CC,Business,Operational
+2026-03-25,"=IF(A57="""","""",TEXT(A57,""MMM YYYY""))",Travel,Braum's,Travel meals/fuel - Braum's | Trip to Fairfield,3.13,Robinhood CC,CC,Business,Operational
+2026-03-25,"=IF(A58="""","""",TEXT(A58,""MMM YYYY""))",Travel,Braum's,Travel meals/fuel - Braum's | Trip to Fairfield,16.98,Robinhood CC,CC,Business,Operational
+2026-03-26,"=IF(A59="""","""",TEXT(A59,""MMM YYYY""))",Utilities,Gexa Energy,GEXA ENERGY 866-329-4392 TX | Electric,140.3,Robinhood CC,CC,Business,Operational
+2026-03-26,"=IF(A60="""","""",TEXT(A60,""MMM YYYY""))",Travel,North Texas Tollway Authority,NTTA ONLINE 972-818-6882 TX | Tolls for property trips,40,Robinhood CC,CC,Business,Operational
+2026-03-28,"=IF(A61="""","""",TEXT(A61,""MMM YYYY""))",Travel,Discount Tire,DISCOUNT-TIRE-CO TXD-64 MANSFIELD TX | Tire replacement from property trips,214.58,Robinhood CC,CC,Business,Operational
+2026-03-31,"=IF(A62="""","""",TEXT(A62,""MMM YYYY""))",Professional services,Intuit,INTUIT *TURBOTAX 800-446-8848 CA | TurboTax (prorate STR %),159.9,Robinhood CC,CC,Business,Operational
+2026-04-01,"=IF(A63="""","""",TEXT(A63,""MMM YYYY""))",Travel,Taco Bell,Travel meals/fuel - Taco Bell | Trip to Fairfield,16.67,Robinhood CC,CC,Business,Operational
+2026-04-01,"=IF(A64="""","""",TEXT(A64,""MMM YYYY""))",Travel,Shell,Travel meals/fuel - Shell | Trip to Fairfield,61.19,Robinhood CC,CC,Business,Operational
+2026-04-01,"=IF(A65="""","""",TEXT(A65,""MMM YYYY""))",Repairs & maintenance,Home Depot,THE HOME DEPOT #6817 CORSICANA TX,19.74,Robinhood CC,CC,Business,Operational
+2026-04-02,"=IF(A66="""","""",TEXT(A66,""MMM YYYY""))",Supplies,Brookshire Brothers,BROOKSHIRE BROS #10 FAIRFIELD TX | Property supplies,39.44,Robinhood CC,CC,Business,Operational
+2026-04-02,"=IF(A67="""","""",TEXT(A67,""MMM YYYY""))",Supplies,Brookshire Brothers,BROOKSHIRE BROS #10 FAIRFIELD TX | Property supplies,69.77,Robinhood CC,CC,Business,Operational
+2026-04-02,"=IF(A68="""","""",TEXT(A68,""MMM YYYY""))",Supplies,Cooper Farms,COOPER FARMS COUNTRY STORFAIRFIELD TX,1.91,Robinhood CC,CC,Business,Operational
+2026-04-02,"=IF(A69="""","""",TEXT(A69,""MMM YYYY""))",Travel,Burger King,Travel meals/fuel - Burger King | Trip to Fairfield,5.41,Robinhood CC,CC,Business,Operational
+2026-04-06,"=IF(A70="""","""",TEXT(A70,""MMM YYYY""))",Repairs & maintenance,Home Depot,THE HOME DEPOT #8517 GRAND PRAIRIETX | VERIFY: GP/Mansfield HD - STR or personal?,69.75,Robinhood CC,CC,Review,Operational
+2025-12-16,December 2025,Repairs & maintenance,Jeff Yancey,Contractor - property work (Fairfield),510,Zelle (6113),CC,Business,Pre-Service
+2025-12-24,December 2025,Repairs & maintenance,Jeff Yancey,Contractor - property work (Fairfield),700,Zelle (6113),CC,Business,Pre-Service
+2026-01-12,January 2026,Repairs & maintenance,Jeff Yancey,Contractor - property work (Fairfield),775,Zelle (6113),CC,Business,Pre-Service
+2026-02-09,February 2026,Repairs & maintenance,Jerry Yancey,Contractor - property work (Fairfield),1833.33,Zelle (6113),CC,Business,Pre-Service
+2026-03-06,March 2026,Repairs & maintenance,Jerry Yancey,Contractor - small payment,6.82,Zelle (6113),CC,Business,Operational
+2026-01-12,January 2026,Repairs & maintenance,Jacob Hance,Contractor - property work,150,Zelle (6113),CC,Business,Pre-Service
+2026-01-12,January 2026,Repairs & maintenance,Jacob Hance,Contractor - property work,255,Zelle (6113),CC,Business,Pre-Service
+2026-01-12,January 2026,Repairs & maintenance,Jacob Hance,Contractor - property work,40,Zelle (6113),CC,Business,Pre-Service
+2026-01-14,January 2026,Repairs & maintenance,Jacob Hance,Contractor - property work,800,Zelle (6113),CC,Business,Pre-Service
+2026-01-20,January 2026,Repairs & maintenance,Jacob Hance,Contractor - property work,801,Zelle (6113),CC,Business,Pre-Service
+2026-01-20,January 2026,Repairs & maintenance,Jacob Hance,Contractor - property work,60,Zelle (6113),CC,Business,Pre-Service
+2026-01-20,January 2026,Repairs & maintenance,Jacob Hance,Contractor - property work,25,Zelle (6113),CC,Business,Pre-Service
+2026-03-23,March 2026,Repairs & maintenance,Adrian/Chance (contractor),Contractor - property work,400,Zelle (6113),CC,Business,Operational
+2026-03-23,March 2026,Repairs & maintenance,Adrian/Chance (contractor),Contractor - property work,52.91,Zelle (6113),CC,Business,Operational
+2026-03-24,March 2026,Repairs & maintenance,Adrian/Chance (contractor),Contractor - property work,210,Zelle (6113),CC,Business,Operational
+2026-03-31,March 2026,Repairs & maintenance,Adrian/Chance (contractor),Contractor - property work,400,Zelle (6113),CC,Business,Operational
+2026-04-01,April 2026,Repairs & maintenance,Adrian/Chance (contractor),Contractor - property work,400,Zelle (6113),CC,Business,Operational
+2026-02-24,February 2026,Utilities,MAGA Waste LLC,Trash service - 360 CR,85,ACH (6113),CC,Business,Pre-Service
+2026-03-17,March 2026,Utilities,MAGA Waste LLC,Trash service - 360 CR,85,ACH (6113),CC,Business,Operational
+2026-01-20,January 2026,Utilities,Thompson Water,Water service - 360 CR,100,BillPay (6113),CC,Business,Pre-Service
+2026-03-09,March 2026,Utilities,Thompson Water,Water service - 360 CR,101,BillPay (6113),CC,Business,Operational
+2026-04-01,April 2026,Supplies,Moises (FB Marketplace),Furniture/item for STR (probable),60,Zelle (6113),N,Review,Operational
+2026-02-17,February 2026,Supplies,Santiago Medellin (FB Marketplace),Furniture/item for STR (probable),50,Zelle (6113),N,Review,Pre-Service
+2025-11-17,November 2025,Repairs & maintenance,Jerry Yancey,Contractor - startup property work,500,Zelle (3125),CC,Business,Pre-Service
+2026-01-07,January 2026,Repairs & maintenance,Jacob Hance,Contractor - property work,100,Zelle (3125),CC,Business,Pre-Service
+2026-01-08,January 2026,Repairs & maintenance,Jacob Hance,Contractor - property work,145,Zelle (3125),CC,Business,Pre-Service
+2026-02-09,February 2026,Repairs & maintenance,John Lomas,Contractor - property work,75,Zelle (3125),CC,Business,Pre-Service
+2026-02-11,February 2026,Repairs & maintenance,John Lomas,Contractor - property work,275,Zelle (3125),CC,Business,Pre-Service
+2025-12-10,December 2025,Repairs & maintenance,John Flooring,Flooring work - 360 CR,300,Zelle (3125),CC,Business,Pre-Service
+2026-03-24,March 2026,Repairs & maintenance,Adrian/Chance (contractor),Contractor - property work,50.23,Zelle (3125),CC,Business,Operational
+2026-03-25,March 2026,Repairs & maintenance,Adrian/Chance (contractor),Contractor - property work,190,Zelle (3125),CC,Business,Operational
+2026-02-17,February 2026,Supplies,FB Marketplace - Sectionals,Sectional sofa for STR,300,Zelle (3125),N,Business,Pre-Service
+2026-02-17,February 2026,Supplies,FB Marketplace - Sectionals,Sectional sofa for STR (2nd),100,Zelle (3125),N,Business,Pre-Service
+2026-02-17,February 2026,Supplies,FB Marketplace - Hutch,Hutch for STR,125,Zelle (3125),N,Business,Pre-Service
+2026-02-17,February 2026,Supplies,FB Marketplace - Chairs,Chairs for STR,25,Zelle (3125),N,Business,Pre-Service
+2026-02-17,February 2026,Supplies,FB Marketplace - Patio Chairs,Patio chairs for STR,20,Zelle (3125),N,Business,Pre-Service
+2026-02-17,February 2026,Supplies,FB Marketplace - Caulk,Caulk/supplies for STR,16,Zelle (3125),N,Business,Pre-Service
+2025-12-22,December 2025,Supplies,FB Marketplace - Whirlpool,Whirlpool appliance for STR,20,Zelle (3125),N,Business,Pre-Service
+2025-12-24,December 2025,Supplies,FB Marketplace - Whirlpool,Whirlpool appliance for STR,230,Zelle (3125),N,Business,Pre-Service
+2025-12-24,December 2025,Supplies,FB Marketplace - Dyson,Dyson vacuum for STR,120,Zelle (3125),N,Business,Pre-Service
+2026-03-02,March 2026,Supplies,Keng Bed,Bed for STR,200,Zelle (3125),N,Business,Operational
+2026-04-06,April 2026,Supplies,Brandon Conway (FB Marketplace),Furniture for STR (probable),100,Zelle (3125),N,Review,Operational
+2026-02-05,February 2026,Supplies,John Neel (FB Marketplace),Furniture for STR (probable),25,Zelle (3125),N,Review,Pre-Service
+2026-02-12,February 2026,Supplies,John Neel (FB Marketplace),Furniture for STR (probable),25,Zelle (3125),N,Review,Pre-Service
+2026-01-20,January 2026,Supplies,Lindsey McCoy (FB Marketplace),Furniture for STR (probable),70,Zelle (3125),N,Review,Pre-Service
+2026-02-25,February 2026,Supplies,FB Frozen Jeep Mobile,Item for STR (probable),20,Zelle (3125),N,Review,Pre-Service
+2026-02-10,February 2026,Supplies,Ez Go Wheels,Golf cart for STR property,140,Zelle (3125),N,Business,Pre-Service
+2026-02-23,February 2026,Utilities,Brio Water,Water delivery - STR,70,Zelle (3125),N,Business,Pre-Service
+2025-11-24,November 2025,Repairs & maintenance,Jeff Yancey (cash),Cash payment for contractor work — text messages as evidence,1200,Cash,N,Business,Pre-Service
+2025-11-24,November 2025,Repairs & maintenance,Jeff Yancey (cash probable),"ATM cash — probably Jeff Yancey payment, text msg evidence",500,Cash,N,Review,Pre-Service
+2025-10-12,October 2025,Utilities,Starlink,Starlink dish/equipment purchase,455.81,Chase CC (1047),CC,Business,Pre-Service
+2025-10-21,October 2025,Utilities,Starlink,Starlink refund/adjustment,-63.75,Chase CC (1047),CC,Business,Pre-Service
+2025-10-17,October 2025,Utilities,Starlink,Starlink Internet - monthly,120,Chase CC (1047),CC,Business,Pre-Service
+2025-11-16,November 2025,Utilities,Starlink,Starlink Internet - monthly,44.45,Chase CC (1047),CC,Business,Pre-Service
+2025-11-16,November 2025,Utilities,Starlink,Starlink Internet - additional charge,5,Chase CC (1047),CC,Business,Pre-Service
+2025-12-16,December 2025,Utilities,Starlink,Starlink Internet - monthly,50,Chase CC (1047),CC,Business,Pre-Service
+2026-01-16,January 2026,Utilities,Starlink,Starlink Internet - monthly,50,Chase CC (1047),CC,Business,Pre-Service
+2026-02-11,February 2026,Utilities,Starlink,Starlink Internet - adjustment,11.3,Chase CC (1047),CC,Business,Pre-Service
+2026-02-16,February 2026,Utilities,Starlink,Starlink Internet - monthly,50,Chase CC (1047),CC,Business,Pre-Service
+2026-02-27,February 2026,Utilities,Starlink,Starlink Internet - monthly,41.04,Chase CC (1047),CC,Business,Pre-Service
+2026-03-16,March 2026,Utilities,Starlink,Starlink Internet - monthly,120,Chase CC (1047),CC,Business,Operational
+2026-04-03,April 2026,Utilities,Starlink,Starlink Internet - monthly,47.58,Chase CC (1047),CC,Business,Operational
+2025-10-14,October 2025,Repairs & maintenance,Home Depot #6817,"Repairs/supplies (Chase CC, Oct pre-rental)",186.78,Chase CC (1047),CC,Review,Pre-Service
+2025-10-28,October 2025,Repairs & maintenance,Lowe's #01511,"Repairs/supplies (Chase CC, Oct)",18.91,Chase CC (1047),CC,Review,Pre-Service
+2025-11-24,November 2025,Supplies,Golf Carts (2x),Two golf carts for STR property — PENDING: need bill of sale to deduct,2400,Cash,N,Review,Pre-Service
+2025-11-24,November 2025,Other,Unaccounted Cash,"Remaining from $7,500 cash withdrawal — INVESTIGATE: $1,200 Jeff + $2,400 carts + $500 ATM = $4,100 accounted. This $3,400 is unaccounted. Do NOT report until documented.",3400,Cash,N,Review,Pre-Service
