@@ -272,7 +272,7 @@ const state = {
   mileage: [],
   mileage: [],
   budgets: {},
-  investment: { propertyPurchase: 87000, improvements: 10000, targetYears: 7 },
+  investment: { propertyPurchase: 87000, targetYears: 7 },
   fileHandle: null,
   dirty: false,
   activeTab: 'overview',
@@ -470,10 +470,9 @@ function parseXlsx(buf) {
   const wsROI = wb.Sheets['Investment & ROI'];
   if (wsROI) {
     const pp = wsROI[XLSX.utils.encode_cell({r: 3, c: 1})];
-    const imp = wsROI[XLSX.utils.encode_cell({r: 4, c: 1})];
     const tgt = wsROI[XLSX.utils.encode_cell({r: 8, c: 1})];
     if (pp && typeof pp.v === 'number') state.investment.propertyPurchase = pp.v;
-    if (imp && typeof imp.v === 'number') state.investment.improvements = imp.v;
+    // improvements now computed from expenses, not read from sheet
     if (tgt && typeof tgt.v === 'number') state.investment.targetYears = tgt.v;
   }
 
@@ -532,14 +531,15 @@ async function saveFile() {
 
   // Investment & ROI — write key/value pairs in correct positions for Python compatibility
   const inv = state.investment;
-  const totalInv = inv.propertyPurchase + inv.improvements;
+  const improv = computedImprovements();
+  const totalInv = inv.propertyPurchase + improv;
   const netProfit = ytdRevenue() - ytdExpenses();
   const roiData = [
     ["Keng's Landing — Investment Recovery Tracker"],
     [],
     ['INITIAL INVESTMENT'],
     ['Property Purchase (4 acres + house, hot tub, pond)', inv.propertyPurchase],
-    ['Improvements', inv.improvements],
+    ['Improvements (computed from expenses)', improv],
     ['Total Investment', totalInv],
     [],
     ['ROI TARGET'],
@@ -590,6 +590,18 @@ function ytdExpenses() {
 }
 function ytdExpenseByCategory(cat) {
   return state.expenses.filter(e => e.category === cat && e.status !== 'Personal').reduce((s, e) => s + (e.amount || 0), 0);
+}
+function computedImprovements() {
+  // Total improvements = all Business-status expenses (the actual money spent getting the property rental-ready)
+  return state.expenses.filter(e => e.status === 'Business').reduce((s, e) => s + (e.amount || 0), 0);
+}
+function documentedImprovements() {
+  // Only fully documented (Business status, receipt CC or Y)
+  return state.expenses.filter(e => e.status === 'Business' && (e.receipt === 'CC' || e.receipt === 'Y')).reduce((s, e) => s + (e.amount || 0), 0);
+}
+function undocumentedImprovements() {
+  // Review items — money probably spent but not yet confirmed/documented
+  return state.expenses.filter(e => e.status === 'Review').reduce((s, e) => s + (e.amount || 0), 0);
 }
 
 function monthlySummary() {
@@ -643,10 +655,12 @@ function renderOverview() {
   const totalDays = summary.reduce((s, m) => s + m.daysInMonth, 0);
   const activeMonths = summary.filter(m => m.revenue > 0).length;
   const inv = state.investment;
-  const totalInv = inv.propertyPurchase + inv.improvements;
+  const improvements = computedImprovements();
+  const totalInv = inv.propertyPurchase + improvements;
   const roiPct = totalInv > 0 ? net / totalInv : 0;
   const mileageDeduction = state.mileage.reduce((s, t) => s + t.deduction, 0);
   const reviewCount = state.expenses.filter(e => e.status === 'Review').length;
+  const pendingDocs = undocumentedImprovements();
 
   $('kpi-cards').innerHTML = `
     <div class="kpi-card">
@@ -679,10 +693,15 @@ function renderOverview() {
       <div class="value ${roiPct >= 0 ? 'positive' : 'negative'}">${fmtPct(Math.max(0, roiPct))}</div>
       <div class="sub">${fmtMoney(Math.max(0, totalInv - net))} remaining of ${fmtMoney(totalInv)}</div>
     </div>
+    <div class="kpi-card">
+      <div class="label">Total Invested</div>
+      <div class="value neutral">${fmtMoney(totalInv)}</div>
+      <div class="sub">$87K purchase + ${fmtMoney(improvements)} improvements</div>
+    </div>
     ${reviewCount > 0 ? `<div class="kpi-card" style="border-color:var(--warning);cursor:pointer" onclick="switchTab('review')">
       <div class="label" style="color:var(--warning)">Needs Review</div>
       <div class="value" style="color:var(--warning)">${reviewCount}</div>
-      <div class="sub">expenses awaiting decision</div>
+      <div class="sub">${fmtMoney(pendingDocs)} pending documentation</div>
     </div>` : ''}
   `;
 
@@ -1055,7 +1074,10 @@ function renderBudget() {
 
   // ROI sidebar
   const inv = state.investment;
-  const totalInv = inv.propertyPurchase + inv.improvements;
+  const improv = computedImprovements();
+  const documented = documentedImprovements();
+  const pending = undocumentedImprovements();
+  const totalInv = inv.propertyPurchase + improv;
   const netProfit = ytdRevenue() - ytdExpenses();
   const reqMonthly = totalInv / inv.targetYears / 12;
 
@@ -1064,7 +1086,8 @@ function renderBudget() {
       <h3 style="margin-bottom:16px;color:var(--accent-light)">Investment Quick View</h3>
       <table style="width:100%"><tbody>
         <tr><td style="color:var(--text-muted);padding:6px 0">Property purchase</td><td class="money">${fmtMoney(inv.propertyPurchase)}</td></tr>
-        <tr><td style="color:var(--text-muted);padding:6px 0">Improvements</td><td class="money">${fmtMoney(inv.improvements)}</td></tr>
+        <tr><td style="color:var(--text-muted);padding:6px 0">Improvements (documented)</td><td class="money">${fmtMoney(documented)}</td></tr>
+        ${pending > 0 ? `<tr><td style="color:var(--warning);padding:6px 0">⚠ Pending docs</td><td class="money" style="color:var(--warning)">${fmtMoney(pending)}</td></tr>` : ''}
         <tr style="font-weight:700"><td style="padding:6px 0">Total Investment</td><td class="money">${fmtMoney(totalInv)}</td></tr>
         <tr><td colspan="2" style="padding:12px 0 6px;border-top:1px solid var(--border)"></td></tr>
         <tr><td style="color:var(--text-muted);padding:6px 0">Target payback</td><td class="money">${inv.targetYears} years</td></tr>
