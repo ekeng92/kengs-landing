@@ -4,10 +4,10 @@
 
 ## Priority — Tax Prep / Depreciation
 
-- [ ] **Determine placed-in-service date for 360 CR** — when was property first listed/available for rent? (likely May 2026 based on tax preparer guidance). This date anchors depreciation start AND 2025 startup cost deduction timing
+- [x] **Placed-in-service date: March 1, 2026** — based on first VRBO booking (Mar 2026). Tax Period column added to tracker: 94 Pre-Service, 41 Operational
 - [ ] **Pull Freestone County tax assessment** — need land vs building value split for 27.5-year depreciation calculation. Check Freestone County CAD website or 2025 property tax statement
 - [ ] **Get golf cart bill of sale** — need documentation for Section 179 election ($2,400). Check texts/FB Marketplace messages
-- [ ] **Categorize 2025 pre-service expenses** — once placed-in-service date confirmed, split 2025 costs into: (1) capital improvements (add to basis, depreciate), (2) startup costs (up to $5K deducted year 1, remainder amortized 15 years). See Tax Notes below
+- [ ] **Categorize pre-service expenses into tax buckets** — 94 expenses tagged Pre-Service ($18K+). Need to split into: (1) capital improvements (add to basis, depreciate 27.5yr), (2) startup costs (up to $5K deducted year 1, remainder amortized 15yr). See Tax Notes below
 - [ ] **Build Depreciation Schedule sheet** — add to Excel tracker once assessment data and placed-in-service date are confirmed
 
 ## Review Items (31 pending)
@@ -39,6 +39,9 @@
 - [x] $7.5K cash withdrawal broken into components
 - [x] Category normalization (56 entries)
 - [x] Financial snapshot generated
+- [x] Tax Period column added (Pre-Service/Operational, PIS: 2026-03-01)
+- [x] Dashboard bugs fixed (category casing, Investment Recovery, localStorage migration)
+- [x] Audit trail CSV exported to finances/2026/expenses/
 
 ---
 
