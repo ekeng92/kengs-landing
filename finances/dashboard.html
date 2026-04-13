@@ -50,6 +50,25 @@ main{flex:1;padding:24px;max-width:1400px;width:100%;margin:0 auto}
 .btn-add{background:var(--accent-dim);border-color:var(--accent);color:var(--accent-light)}
 .btn-add:hover{background:var(--accent)}
 
+/* Review items */
+.review-row{background:rgba(251,191,36,.08)!important}
+.review-row:hover{background:rgba(251,191,36,.14)!important}
+.status-btn{padding:6px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;font-size:0.8rem;transition:all .15s;margin:0 3px}
+.status-btn:hover{border-color:var(--border2)}
+.status-btn.biz{color:var(--positive);border-color:var(--positive)}
+.status-btn.biz:hover{background:rgba(74,222,128,.1)}
+.status-btn.personal{color:var(--negative);border-color:var(--negative)}
+.status-btn.personal:hover{background:rgba(248,113,113,.1)}
+.status-btn.active-biz{background:rgba(74,222,128,.2);border-color:var(--positive);color:var(--positive);font-weight:600}
+.status-btn.active-personal{background:rgba(248,113,113,.2);border-color:var(--negative);color:var(--negative);font-weight:600}
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:0.75rem;font-weight:600}
+.badge-review{background:rgba(251,191,36,.15);color:var(--warning)}
+.badge-business{background:rgba(74,222,128,.15);color:var(--positive)}
+.badge-personal{background:rgba(248,113,113,.15);color:var(--negative)}
+
+/* Mileage */
+.mileage-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px}
+
 /* Cards */
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:28px}
 .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
@@ -129,8 +148,10 @@ table select{min-width:100px;cursor:pointer}
 
   <nav class="tabs" id="tab-nav" style="display:none">
     <button class="active" data-tab="overview">Overview</button>
+    <button data-tab="review">Review <span id="review-badge" class="badge badge-review" style="margin-left:4px;display:none">0</span></button>
     <button data-tab="bookings">Bookings</button>
     <button data-tab="expenses">Expenses</button>
+    <button data-tab="mileage">Mileage</button>
     <button data-tab="budget">Budget</button>
   </nav>
 
@@ -156,6 +177,37 @@ table select{min-width:100px;cursor:pointer}
       <div id="roi-section"></div>
     </section>
 
+    <!-- Review Tab -->
+    <section id="tab-review" class="tab-content">
+      <div class="tab-header">
+        <h2>Expense Review <span class="count" id="review-count"></span></h2>
+        <div>
+          <button class="btn btn-sm" onclick="markAllReviewBusiness()" style="margin-right:8px">✓ All Business</button>
+          <button class="btn btn-primary btn-sm" onclick="applyReviewDecisions()">Apply & Remove Personal</button>
+        </div>
+      </div>
+      <p style="color:var(--text-muted);margin-bottom:16px;font-size:0.85rem">These items need your decision. Click <strong>Business</strong> or <strong>Personal</strong> for each, then hit <strong>Apply</strong> to finalize. Personal items will be removed from expenses.</p>
+      <div class="table-wrap"><table><thead><tr>
+        <th>Date</th><th>Vendor</th><th>Description</th><th>Amount</th><th>Category</th><th style="width:200px">Decision</th>
+      </tr></thead><tbody id="review-body"></tbody></table></div>
+      <div id="review-empty" style="text-align:center;color:var(--text-dim);padding:40px;display:none">
+        <div style="font-size:2rem;margin-bottom:8px">✓</div>
+        <div>No items to review. All expenses are categorized.</div>
+      </div>
+    </section>
+
+    <!-- Mileage Tab -->
+    <section id="tab-mileage" class="tab-content">
+      <div class="tab-header">
+        <h2>Mileage Log <span class="count" id="mileage-count"></span></h2>
+      </div>
+      <div class="mileage-summary" id="mileage-kpis"></div>
+      <div class="table-wrap"><table class="summary-table"><thead><tr>
+        <th>Date</th><th>Origin</th><th>Destination</th><th>Miles</th><th>Purpose</th><th>Stops / Evidence</th><th>Deduction</th>
+      </tr></thead><tbody id="mileage-body"></tbody><tfoot id="mileage-foot"></tfoot></table></div>
+      <p style="color:var(--text-muted);margin-top:12px;font-size:0.8rem">⚠ If claiming IRS standard mileage rate, do NOT also deduct gas/fuel as separate expenses — it's one method or the other. Travel meals (50% deductible) can stack with mileage.</p>
+    </section>
+
     <!-- Bookings Tab -->
     <section id="tab-bookings" class="tab-content">
       <div class="tab-header">
@@ -177,7 +229,7 @@ table select{min-width:100px;cursor:pointer}
       </div>
       <div class="table-wrap"><table><thead><tr>
         <th>Date</th><th>Category</th><th>Vendor</th><th>Description</th>
-        <th>Amount</th><th>Payment</th><th>Receipt</th><th>Notes</th><th style="width:36px"></th>
+        <th>Amount</th><th>Payment</th><th>Receipt</th><th>Status</th><th style="width:36px"></th>
       </tr></thead><tbody id="expenses-body"></tbody><tfoot id="expenses-foot"></tfoot></table></div>
     </section>
 
@@ -211,9 +263,14 @@ const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov
 const DAYS_IN_MONTH = [31,28,31,30,31,30,31,31,30,31,30,31];
 
 /* ── State ────────────────────────────────────────────────────────── */
+const RECEIPT_VALUES = ['CC','Y','N'];
+const STATUS_VALUES = ['Business','Personal','Review'];
+
 const state = {
   bookings: [],
   expenses: [],
+  mileage: [],
+  mileage: [],
   budgets: {},
   investment: { propertyPurchase: 87000, improvements: 10000, targetYears: 7 },
   fileHandle: null,
@@ -366,10 +423,32 @@ function parseXlsx(buf) {
         amount: Number(cv(5)) || 0,
         paymentMethod: String(cv(6) || ''),
         receipt: String(cv(7) || ''),
-        notes: String(cv(8) || ''),
+        status: String(cv(8) || 'Business'),
       };
       e.month = dateToMonth(e.date);
       state.expenses.push(e);
+    }
+  }
+
+  // Mileage Log
+  state.mileage = [];
+  const wsMl = wb.Sheets['Mileage Log'];
+  if (wsMl) {
+    const range = XLSX.utils.decode_range(wsMl['!ref'] || 'A1');
+    for (let r = 1; r <= range.e.r; r++) {
+      const cv = (c) => { const cell = wsMl[XLSX.utils.encode_cell({r, c})]; return cell ? cell.v : null; };
+      const date = cv(0);
+      if (date == null || String(date) === 'TOTAL') break;
+      state.mileage.push({
+        date: normalizeDate(date),
+        origin: String(cv(1) || ''),
+        destination: String(cv(2) || ''),
+        miles: Number(cv(3)) || 0,
+        purpose: String(cv(4) || ''),
+        stops: String(cv(5) || ''),
+        rate: Number(cv(6)) || 0.70,
+        deduction: Number(cv(7)) || 0,
+      });
     }
   }
 
@@ -416,12 +495,25 @@ async function saveFile() {
   XLSX.utils.book_append_sheet(wb, wsBk, 'Bookings');
 
   // Expenses sheet
-  const exData = [['Date','Month','Category','Vendor/Payee','Description','Amount','Payment Method','Receipt? (Y/N)','Notes']];
+  const exData = [['Date','Month','Category','Vendor/Payee','Description','Amount','Payment Method','Receipt? (Y/N)','Status']];
   state.expenses.forEach(e => {
-    exData.push([e.date, e.month, e.category, e.vendor, e.description, e.amount, e.paymentMethod, e.receipt, e.notes]);
+    exData.push([e.date, e.month, e.category, e.vendor, e.description, e.amount, e.paymentMethod, e.receipt, e.status || 'Business']);
   });
   const wsEx = XLSX.utils.aoa_to_sheet(exData);
   XLSX.utils.book_append_sheet(wb, wsEx, 'Expenses');
+
+  // Mileage Log — preserve existing mileage data
+  if (state.mileage.length > 0) {
+    const mlData = [['Date','Origin','Destination','Round Trip Miles','Purpose','Stops/Evidence','IRS Rate ($/mi)','Deduction ($)']];
+    state.mileage.forEach(t => {
+      mlData.push([t.date, t.origin, t.destination, t.miles, t.purpose, t.stops, t.rate, t.deduction]);
+    });
+    const totalMiles = state.mileage.reduce((s, t) => s + t.miles, 0);
+    const totalDeduction = state.mileage.reduce((s, t) => s + t.deduction, 0);
+    mlData.push(['TOTAL','','',totalMiles,'','','',totalDeduction]);
+    const wsMl = XLSX.utils.aoa_to_sheet(mlData);
+    XLSX.utils.book_append_sheet(wb, wsMl, 'Mileage Log');
+  }
 
   // Budget vs Actual — row 1-3 are headers/title, row 4 is header, rows 5+ are data
   const bgtData = [
@@ -494,10 +586,10 @@ function ytdRevenue() {
   return state.bookings.reduce((s, b) => s + (b.netPayout || 0), 0);
 }
 function ytdExpenses() {
-  return state.expenses.reduce((s, e) => s + (e.amount || 0), 0);
+  return state.expenses.filter(e => e.status !== 'Personal').reduce((s, e) => s + (e.amount || 0), 0);
 }
 function ytdExpenseByCategory(cat) {
-  return state.expenses.filter(e => e.category === cat).reduce((s, e) => s + (e.amount || 0), 0);
+  return state.expenses.filter(e => e.category === cat && e.status !== 'Personal').reduce((s, e) => s + (e.amount || 0), 0);
 }
 
 function monthlySummary() {
@@ -505,7 +597,7 @@ function monthlySummary() {
   return MONTHS.map((m, i) => {
     const label = `${m} ${year}`;
     const bks = state.bookings.filter(b => b.month === label);
-    const exps = state.expenses.filter(e => e.month === label);
+    const exps = state.expenses.filter(e => e.month === label && e.status !== 'Personal');
     const revenue = bks.reduce((s, b) => s + (b.netPayout || 0), 0);
     const expenses = exps.reduce((s, e) => s + (e.amount || 0), 0);
     return {
@@ -530,6 +622,8 @@ function switchTab(tab) {
   const btn = document.querySelector(`nav.tabs button[data-tab="${tab}"]`);
   if (btn) btn.classList.add('active');
   if (tab === 'overview') renderOverview();
+  if (tab === 'review') renderReview();
+  if (tab === 'mileage') renderMileage();
   if (tab === 'budget') renderBudget();
 }
 
@@ -551,6 +645,8 @@ function renderOverview() {
   const inv = state.investment;
   const totalInv = inv.propertyPurchase + inv.improvements;
   const roiPct = totalInv > 0 ? net / totalInv : 0;
+  const mileageDeduction = state.mileage.reduce((s, t) => s + t.deduction, 0);
+  const reviewCount = state.expenses.filter(e => e.status === 'Review').length;
 
   $('kpi-cards').innerHTML = `
     <div class="kpi-card">
@@ -561,7 +657,7 @@ function renderOverview() {
     <div class="kpi-card">
       <div class="label">YTD Expenses</div>
       <div class="value neutral">${fmtMoney(exp)}</div>
-      <div class="sub">${state.expenses.length} transactions</div>
+      <div class="sub">${state.expenses.filter(e=>e.status !== 'Personal').length} transactions</div>
     </div>
     <div class="kpi-card">
       <div class="label">Net Profit</div>
@@ -574,10 +670,20 @@ function renderOverview() {
       <div class="sub">${totalNights} of ${totalDays} days</div>
     </div>
     <div class="kpi-card">
+      <div class="label">Mileage Deduction</div>
+      <div class="value positive">${fmtMoney(mileageDeduction)}</div>
+      <div class="sub">${state.mileage.length} trips · ${state.mileage.reduce((s,t)=>s+t.miles,0).toLocaleString()} mi</div>
+    </div>
+    <div class="kpi-card">
       <div class="label">Investment Recovery</div>
       <div class="value ${roiPct >= 0 ? 'positive' : 'negative'}">${fmtPct(Math.max(0, roiPct))}</div>
       <div class="sub">${fmtMoney(Math.max(0, totalInv - net))} remaining of ${fmtMoney(totalInv)}</div>
     </div>
+    ${reviewCount > 0 ? `<div class="kpi-card" style="border-color:var(--warning);cursor:pointer" onclick="switchTab('review')">
+      <div class="label" style="color:var(--warning)">Needs Review</div>
+      <div class="value" style="color:var(--warning)">${reviewCount}</div>
+      <div class="sub">expenses awaiting decision</div>
+    </div>` : ''}
   `;
 
   // Monthly table
@@ -729,8 +835,8 @@ function renderExpenses() {
     <td><input type="text" value="${esc(e.description)}" onchange="updEx(${i},'description',this.value)" placeholder="Description" style="min-width:140px"></td>
     <td><input type="number" value="${e.amount || ''}" step="0.01" onchange="updExNum(${i},'amount',this.value)" placeholder="0.00"></td>
     <td><select onchange="updEx(${i},'paymentMethod',this.value)"><option value="">—</option>${makeOptions(PAYMENTS, e.paymentMethod)}</select></td>
-    <td><select onchange="updEx(${i},'receipt',this.value)" style="min-width:60px"><option value="">—</option><option${e.receipt==='Y'?' selected':''}>Y</option><option${e.receipt==='N'?' selected':''}>N</option></select></td>
-    <td><input type="text" value="${esc(e.notes)}" onchange="updEx(${i},'notes',this.value)" placeholder="Notes"></td>
+    <td><select onchange="updEx(${i},'receipt',this.value)" style="min-width:60px"><option value="">—</option>${makeOptions(RECEIPT_VALUES, e.receipt)}</select></td>
+    <td><span class="badge ${e.status==='Review'?'badge-review':e.status==='Personal'?'badge-personal':'badge-business'}">${e.status||'Business'}</span></td>
     <td><button class="btn btn-danger btn-sm" onclick="delEx(${i})" title="Delete">✕</button></td>
   </tr>`).join('');
 
@@ -768,6 +874,153 @@ function delEx(i) {
   state.expenses.splice(i, 1);
   markDirty();
   renderExpenses();
+}
+
+/* ── Render: Review ────────────────────────────────────────────────── */
+function renderReview() {
+  const reviewItems = state.expenses
+    .map((e, i) => ({...e, idx: i}))
+    .filter(e => e.status === 'Review');
+
+  $('review-count').textContent = `(${reviewItems.length} items)`;
+
+  // Update badge in nav
+  const badge = $('review-badge');
+  if (reviewItems.length > 0) {
+    badge.textContent = reviewItems.length;
+    badge.style.display = 'inline-block';
+  } else {
+    badge.style.display = 'none';
+  }
+
+  if (reviewItems.length === 0) {
+    $('review-body').innerHTML = '';
+    $('review-empty').style.display = 'block';
+    return;
+  }
+  $('review-empty').style.display = 'none';
+
+  $('review-body').innerHTML = reviewItems.map(e => `<tr class="review-row">
+    <td>${e.date}</td>
+    <td>${esc(e.vendor)}</td>
+    <td style="max-width:300px;font-size:0.8rem;color:var(--text-muted)">${esc(e.description)}</td>
+    <td class="money">${fmtMoney(e.amount)}</td>
+    <td>${esc(e.category)}</td>
+    <td style="white-space:nowrap">
+      <button class="status-btn biz ${state.expenses[e.idx]._decision==='Business'?'active-biz':''}" onclick="setReviewDecision(${e.idx},'Business',this)">✓ Business</button>
+      <button class="status-btn personal ${state.expenses[e.idx]._decision==='Personal'?'active-personal':''}" onclick="setReviewDecision(${e.idx},'Personal',this)">✕ Personal</button>
+    </td>
+  </tr>`).join('');
+}
+
+function setReviewDecision(idx, decision, btnEl) {
+  state.expenses[idx]._decision = decision;
+  // Update button states in row
+  const row = btnEl.closest('tr');
+  row.querySelectorAll('.status-btn').forEach(b => {
+    b.classList.remove('active-biz', 'active-personal');
+  });
+  if (decision === 'Business') btnEl.classList.add('active-biz');
+  else btnEl.classList.add('active-personal');
+}
+
+function markAllReviewBusiness() {
+  state.expenses.forEach((e, i) => {
+    if (e.status === 'Review') e._decision = 'Business';
+  });
+  renderReview();
+}
+
+function applyReviewDecisions() {
+  let applied = 0;
+  let removed = 0;
+  const toRemove = [];
+
+  state.expenses.forEach((e, i) => {
+    if (e._decision) {
+      e.status = e._decision;
+      delete e._decision;
+      applied++;
+      if (e.status === 'Personal') toRemove.push(i);
+    }
+  });
+
+  // Remove personal items (reverse order to preserve indices)
+  toRemove.sort((a, b) => b - a).forEach(i => {
+    state.expenses.splice(i, 1);
+    removed++;
+  });
+
+  if (applied === 0) {
+    toast('No decisions to apply — click Business or Personal first');
+    return;
+  }
+
+  markDirty();
+  renderReview();
+  renderExpenses();
+  toast(`Applied ${applied} decisions, removed ${removed} personal items`);
+}
+
+function updateReviewBadge() {
+  const count = state.expenses.filter(e => e.status === 'Review').length;
+  const badge = $('review-badge');
+  if (count > 0) {
+    badge.textContent = count;
+    badge.style.display = 'inline-block';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+/* ── Render: Mileage ──────────────────────────────────────────────── */
+function renderMileage() {
+  const trips = state.mileage;
+  const totalMiles = trips.reduce((s, t) => s + t.miles, 0);
+  const totalDeduction = trips.reduce((s, t) => s + t.deduction, 0);
+  const rate = trips.length > 0 ? trips[0].rate : 0.70;
+
+  $('mileage-count').textContent = `(${trips.length} trips)`;
+
+  $('mileage-kpis').innerHTML = `
+    <div class="kpi-card">
+      <div class="label">Total Trips</div>
+      <div class="value neutral">${trips.length}</div>
+      <div class="sub">Jan — ${MONTHS[new Date().getMonth()]} ${new Date().getFullYear()}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Total Miles</div>
+      <div class="value neutral">${totalMiles.toLocaleString()}</div>
+      <div class="sub">~120 mi round trip</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Mileage Deduction</div>
+      <div class="value positive">${fmtMoney(totalDeduction)}</div>
+      <div class="sub">@ ${fmtMoney(rate)}/mile (IRS standard)</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Avg Trips/Month</div>
+      <div class="value neutral">${trips.length > 0 ? (trips.length / Math.max(1, new Date().getMonth() + 1)).toFixed(1) : '0'}</div>
+      <div class="sub">${fmtMoney(totalDeduction / Math.max(1, new Date().getMonth() + 1))}/mo deduction</div>
+    </div>
+  `;
+
+  $('mileage-body').innerHTML = trips.map(t => `<tr>
+    <td>${t.date}</td>
+    <td>${esc(t.origin)}</td>
+    <td>${esc(t.destination)}</td>
+    <td class="center">${t.miles}</td>
+    <td>${esc(t.purpose)}</td>
+    <td style="font-size:0.8rem;color:var(--text-muted)">${esc(t.stops)}</td>
+    <td class="money" style="color:var(--positive)">${fmtMoney(t.deduction)}</td>
+  </tr>`).join('');
+
+  $('mileage-foot').innerHTML = `<tr class="total-row">
+    <td colspan="3">TOTAL</td>
+    <td class="center">${totalMiles.toLocaleString()}</td>
+    <td colspan="2">${trips.length} trips</td>
+    <td class="money" style="color:var(--positive)">${fmtMoney(totalDeduction)}</td>
+  </tr>`;
 }
 
 /* ── Render: Budget ───────────────────────────────────────────────── */
@@ -831,9 +1084,12 @@ function updBudget(cat, val) {
 /* ── Render All ───────────────────────────────────────────────────── */
 function renderAll() {
   renderOverview();
+  renderReview();
   renderBookings();
   renderExpenses();
+  renderMileage();
   renderBudget();
+  updateReviewBadge();
 }
 
 /* ── Keyboard shortcut: Cmd+S to save ─────────────────────────────── */
@@ -857,6 +1113,7 @@ function persistToLocal() {
     const data = {
       bookings: state.bookings,
       expenses: state.expenses,
+      mileage: state.mileage,
       budgets: state.budgets,
       investment: state.investment,
       savedAt: new Date().toISOString(),
@@ -875,6 +1132,7 @@ function loadFromLocal() {
     if (!data.bookings) return false;
     state.bookings = data.bookings || [];
     state.expenses = data.expenses || [];
+    state.mileage = data.mileage || [];
     if (data.budgets) state.budgets = data.budgets;
     if (data.investment) Object.assign(state.investment, data.investment);
     return true;
