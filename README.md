@@ -31,5 +31,6 @@ LLC/            — Entity formation, deeds, EIN, governing docs
 - [ ] **Listing optimization** — Photos, descriptions, pricing strategy across platforms
 - [ ] **Property website** — Eventually turn this repo into a guest-facing site
 - [x] **Expense tracking** — Finance system established (`finances/README.md`, templates, Schedule E worksheet)
+- [x] **Finance dashboard** — Browser-based UI for viewing/editing the tracker (`finances/dashboard.html` — open in Chrome)
 - [ ] **Maintenance schedule** — Recurring tasks (HVAC filters, septic, hot tub chemicals, etc.)
 - [ ] **Guest communication templates** — Check-in/check-out messages, house rules, FAQ responses
