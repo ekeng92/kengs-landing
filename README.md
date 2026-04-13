@@ -21,6 +21,7 @@ LLC/            — Entity formation, deeds, EIN, governing docs
 ## Agents
 
 - **`@bkeng-str-finance`** — STR finance agent for revenue tracking, expense categorization, P&L, tax prep (Schedule E), and occupancy analysis
+- **`@bkeng-legal-counsel`** — Legal operations agent for LLC management, asset protection, compliance tracking, document drafting, deed filings, and attorney prep
 
 ## Active Projects
 
