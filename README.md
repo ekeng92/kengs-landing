@@ -72,9 +72,9 @@ photos/           ← Property and listing photos
 2. Click **Import xlsx** and select `finances/kengs-landing-finance-tracker.xlsx`
 3. Browse tabs: Overview shows KPIs, Review shows items needing decisions, Expenses shows all transactions with Tax Period badges
 
-To import new bank data, use the `@bkeng-str-finance` agent in VS Code.
+To import new bank data, use the `@str-finance` agent in VS Code.
 
 ## Agents
 
-- **`@bkeng-str-finance`** — Financial operations: CSV import, expense categorization, tax strategy, P&L, Schedule E prep
-- **`@bkeng-legal-counsel`** — LLC management, asset protection, compliance, document drafting
+- **`@str-finance`** — Financial operations: CSV import, expense categorization, tax strategy, P&L, Schedule E prep
+- **`@str-legal-counsel`** — LLC management, asset protection, compliance, document drafting
