@@ -93,7 +93,7 @@ Every expense is tagged based on the **placed-in-service date (March 1, 2026)**:
 ```bash
 # 1. Export CSV from bank/platform
 # 2. Place in ~/Downloads/
-# 3. Ask the @bkeng-str-finance agent to import it
+# 3. Ask the @str-finance agent to import it
 #    OR run the matching script directly:
 python3 finances/import-airbnb-csv.py
 python3 finances/import-bank-csv.py
