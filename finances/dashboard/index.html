@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Keng's Landing — Finance Tracker</title>
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <h1>Keng's Landing<span>Finance Tracker</span></h1>
+        <div class="file-controls">
+          <span class="dirty-dot" id="dirty-dot" title="Unsaved changes"></span>
+          <span class="filename" id="filename"></span>
+          <button
+            class="btn"
+            onclick="openFile()"
+            title="Import from .xlsx file"
+          >
+            Import xlsx
+          </button>
+          <button
+            class="btn btn-primary"
+            onclick="saveFile()"
+            id="btn-save"
+            style="display: none"
+          >
+            Export xlsx
+          </button>
+          <span
+            id="auto-save-status"
+            style="font-size: 0.75rem; color: var(--text-dim)"
+          ></span>
+        </div>
+      </header>
+
+      <nav class="tabs" id="tab-nav" style="display: none">
+        <button class="active" data-tab="overview">Overview</button>
+        <button data-tab="review">
+          Review
+          <span
+            id="review-badge"
+            class="badge badge-review"
+            style="margin-left: 4px; display: none"
+            >0</span
+          >
+        </button>
+        <button data-tab="bookings">Bookings</button>
+        <button data-tab="expenses">Expenses</button>
+        <button data-tab="mileage">Mileage</button>
+        <button data-tab="budget">Budget</button>
+      </nav>
+
+      <main>
+        <div id="empty-state">
+          <h2>Keng's Landing Finance Tracker</h2>
+          <p>
+            Open your spreadsheet to load bookings, expenses, budget, and
+            investment tracking. Your data is saved in the browser automatically
+            after that.
+          </p>
+          <button
+            class="btn btn-primary"
+            onclick="openFile()"
+            style="padding: 12px 32px; font-size: 1rem"
+          >
+            Open Tracker (.xlsx)
+          </button>
+        </div>
+
+        <!-- Overview Tab -->
+        <section id="tab-overview" class="tab-content">
+          <div class="kpi-grid" id="kpi-cards"></div>
+          <div class="charts-grid" id="charts-section">
+            <div class="chart-card">
+              <h3 class="chart-title">Monthly Revenue vs Expenses</h3>
+              <canvas id="chart-monthly-trend"></canvas>
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">Expense Breakdown</h3>
+              <canvas id="chart-category"></canvas>
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">Monthly Occupancy</h3>
+              <canvas id="chart-occupancy"></canvas>
+            </div>
+          </div>
+          <h3 class="section-title">Monthly Summary</h3>
+          <div class="table-wrap">
+            <table class="summary-table">
+              <thead>
+                <tr>
+                  <th>Month</th>
+                  <th>Revenue</th>
+                  <th>Expenses</th>
+                  <th>Net P&L</th>
+                  <th>Bookings</th>
+                  <th>Nights</th>
+                  <th>Occupancy</th>
+                </tr>
+              </thead>
+              <tbody id="monthly-body"></tbody>
+              <tfoot id="monthly-foot"></tfoot>
+            </table>
+          </div>
+          <h3 class="section-title">Expense Breakdown by Category</h3>
+          <div class="table-wrap">
+            <table class="summary-table">
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  <th>YTD Total</th>
+                  <th>% of Total</th>
+                </tr>
+              </thead>
+              <tbody id="category-body"></tbody>
+            </table>
+          </div>
+          <h3 class="section-title">Investment Recovery</h3>
+          <div id="roi-section"></div>
+        </section>
+
+        <!-- Review Tab -->
+        <section id="tab-review" class="tab-content">
+          <div class="tab-header">
+            <h2>
+              Expense Review <span class="count" id="review-count"></span>
+            </h2>
+            <div>
+              <button
+                class="btn btn-sm"
+                onclick="markAllReviewBusiness()"
+                style="margin-right: 8px"
+              >
+                ✓ All Business
+              </button>
+              <button
+                class="btn btn-primary btn-sm"
+                onclick="applyReviewDecisions()"
+              >
+                Apply & Remove Personal
+              </button>
+            </div>
+          </div>
+          <p
+            style="
+              color: var(--text-muted);
+              margin-bottom: 16px;
+              font-size: 0.85rem;
+            "
+          >
+            These items need your decision. Click <strong>Business</strong> or
+            <strong>Personal</strong> for each, then hit
+            <strong>Apply</strong> to finalize. Personal items will be removed
+            from expenses.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Vendor</th>
+                  <th>Description</th>
+                  <th>Amount</th>
+                  <th>Category</th>
+                  <th style="width: 200px">Decision</th>
+                </tr>
+              </thead>
+              <tbody id="review-body"></tbody>
+            </table>
+          </div>
+          <div
+            id="review-empty"
+            style="
+              text-align: center;
+              color: var(--text-dim);
+              padding: 40px;
+              display: none;
+            "
+          >
+            <div style="font-size: 2rem; margin-bottom: 8px">✓</div>
+            <div>No items to review. All expenses are categorized.</div>
+          </div>
+        </section>
+
+        <!-- Mileage Tab -->
+        <section id="tab-mileage" class="tab-content">
+          <div class="tab-header">
+            <h2>Mileage Log <span class="count" id="mileage-count"></span></h2>
+          </div>
+          <div class="mileage-summary" id="mileage-kpis"></div>
+          <div class="table-wrap">
+            <table class="summary-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Origin</th>
+                  <th>Destination</th>
+                  <th>Miles</th>
+                  <th>Purpose</th>
+                  <th>Stops / Evidence</th>
+                  <th>Deduction</th>
+                </tr>
+              </thead>
+              <tbody id="mileage-body"></tbody>
+              <tfoot id="mileage-foot"></tfoot>
+            </table>
+          </div>
+          <p
+            style="
+              color: var(--text-muted);
+              margin-top: 12px;
+              font-size: 0.8rem;
+            "
+          >
+            ⚠ If claiming IRS standard mileage rate, do NOT also deduct gas/fuel
+            as separate expenses — it's one method or the other. Travel meals
+            (50% deductible) can stack with mileage.
+          </p>
+        </section>
+
+        <!-- Bookings Tab -->
+        <section id="tab-bookings" class="tab-content">
+          <div class="tab-header">
+            <h2>Bookings <span class="count" id="booking-count"></span></h2>
+            <button class="btn btn-add" onclick="addBooking()">
+              + Add Booking
+            </button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Platform</th>
+                  <th>Guest</th>
+                  <th>Check-In</th>
+                  <th>Check-Out</th>
+                  <th>Nights</th>
+                  <th>Rate</th>
+                  <th>Cleaning</th>
+                  <th>Gross</th>
+                  <th>Fees</th>
+                  <th>Net Payout</th>
+                  <th>Notes</th>
+                  <th style="width: 36px"></th>
+                </tr>
+              </thead>
+              <tbody id="bookings-body"></tbody>
+              <tfoot id="bookings-foot"></tfoot>
+            </table>
+          </div>
+        </section>
+
+        <!-- Expenses Tab -->
+        <section id="tab-expenses" class="tab-content">
+          <div class="tab-header">
+            <h2>Expenses <span class="count" id="expense-count"></span></h2>
+            <button class="btn btn-add" onclick="addExpense()">
+              + Add Expense
+            </button>
+          </div>
+          <div class="filter-bar" id="expense-filters">
+            <input type="text" id="expense-search" class="filter-input" placeholder="Search vendor, description..." oninput="filterExpenses()">
+            <select id="expense-cat-filter" class="filter-select" onchange="filterExpenses()">
+              <option value="">All Categories</option>
+            </select>
+            <select id="expense-status-filter" class="filter-select" onchange="filterExpenses()">
+              <option value="">All Statuses</option>
+              <option value="Business">Business</option>
+              <option value="Personal">Personal</option>
+              <option value="Review">Review</option>
+            </select>
+            <div class="filter-dates">
+              <input type="date" id="expense-date-from" class="filter-input" onchange="filterExpenses()" title="From date">
+              <span style="color:var(--text-dim)">—</span>
+              <input type="date" id="expense-date-to" class="filter-input" onchange="filterExpenses()" title="To date">
+            </div>
+            <button class="btn btn-sm" onclick="clearExpenseFilters()">Clear</button>
+            <span class="filter-count" id="filter-count"></span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead id="expenses-head">
+                <tr>
+                  <th>Date</th>
+                  <th>Category</th>
+                  <th>Vendor</th>
+                  <th>Description</th>
+                  <th>Amount</th>
+                  <th>Payment</th>
+                  <th>Receipt</th>
+                  <th>Status</th>
+                  <th>Period</th>
+                  <th style="width: 36px"></th>
+                </tr>
+              </thead>
+              <tbody id="expenses-body"></tbody>
+              <tfoot id="expenses-foot"></tfoot>
+            </table>
+          </div>
+        </section>
+
+        <!-- Budget Tab -->
+        <section id="tab-budget" class="tab-content">
+          <div class="tab-header"><h2>Budget vs Actual</h2></div>
+          <div class="budget-grid">
+            <div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Category</th>
+                      <th>Annual Budget</th>
+                      <th>Monthly</th>
+                      <th>YTD Actual</th>
+                      <th>Variance</th>
+                      <th>% Used</th>
+                    </tr>
+                  </thead>
+                  <tbody id="budget-body"></tbody>
+                  <tfoot id="budget-foot"></tfoot>
+                </table>
+              </div>
+            </div>
+            <div id="budget-roi"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="toast"></div>
+
+    <script type="module" src="/js/main.js"></script>
+  </body>
+</html>
