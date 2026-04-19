@@ -12,3 +12,7 @@ Thumbs.db
 
 # Sensitive
 *.ignore.*
+
+# Dashboard build output
+finances/dashboard/node_modules/
+finances/dashboard/dist/

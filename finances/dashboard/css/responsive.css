@@ -1,0 +1,124 @@
+/* ── Responsive: Mobile & Tablet ──────────────────────────────────── */
+
+/* ── Tablet: KPI Cards 2-column ──────────────────────────────────── */
+@media (max-width: 1024px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+}
+
+/* ── Mobile: < 768px ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+
+  /* Header */
+  header {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+  header h1 { font-size: 1.1rem; }
+  .file-controls { width: 100%; justify-content: flex-end; }
+  main { padding: 12px; }
+
+  /* Tab Navigation — horizontal scroll */
+  nav.tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 0;
+    padding: 0 8px;
+  }
+  nav.tabs button {
+    white-space: nowrap;
+    padding: 10px 14px;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+  }
+
+  /* Tab Header — stack title + button */
+  .tab-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  /* KPI Cards — single column */
+  .kpi-grid { grid-template-columns: 1fr; gap: 10px; }
+  .kpi-card { padding: 14px; }
+  .kpi-card .value { font-size: 1.4rem; }
+
+  /* Charts Grid — stack vertically (Thread 2 compatibility) */
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+  .charts-grid .chart-card:first-child,
+  .charts-grid .chart-card:nth-child(2),
+  .charts-grid .chart-card:nth-child(3) {
+    grid-column: 1;
+  }
+
+  /* Tables → Card Layout on Mobile */
+  .table-wrap table thead { display: none; }
+
+  .table-wrap table tbody tr {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 12px;
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+
+  .table-wrap table tbody td {
+    border: none;
+    padding: 2px 0;
+    font-size: 0.85rem;
+  }
+
+  /* Use data-label attribute for mobile labels */
+  .table-wrap table tbody td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  /* Form Inputs — touch-friendly */
+  table input, table select {
+    font-size: 16px;  /* Prevents iOS zoom on focus */
+    padding: 10px;
+    min-height: 44px; /* Apple's minimum touch target */
+  }
+  table input[type="number"] { width: 100%; }
+  table input[type="date"] { width: 100%; }
+  table select { width: 100%; }
+
+  /* Mileage summary KPI row */
+  .mileage-summary {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* Import zone — Thread 5 compatibility */
+  .import-zone {
+    padding: 20px;
+    font-size: 0.9rem;
+  }
+}
+
+/* ── Budget Grid — stacks below 900px (already in styles.css, reinforced here) */
+@media (max-width: 900px) {
+  .budget-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Filter bar — Thread 4 compatibility ─────────────────────────── */
+@media (max-width: 768px) {
+  .filter-bar {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .filter-bar input,
+  .filter-bar select {
+    width: 100%;
+    min-height: 44px;
+    font-size: 16px;
+  }
+}
