@@ -144,7 +144,11 @@ All legal documents live in `/Users/ekeng/IdeaProjects/kengs-landing/LLC/`:
 
 ## Cross-Agent Coordination
 
+<<<<<<<< HEAD:.github/agents/str-legal-counsel.agent.md
 - **STR Finance Agent** (`@str-finance`) handles revenue, expenses, P&L, and tax prep
+========
+- **STR Finance Agent** (`@ekeng-str-finance`) handles revenue, expenses, P&L, and tax prep
+>>>>>>>> 5fb7e61 (refactor: rename bkeng- agents to ekeng- prefix):.github/agents/ekeng-legal-counsel.agent.md
 - This agent handles entity structure, compliance, documents, and legal strategy
 - Handoff points: entity changes that affect tax reporting, insurance coverage changes, property transfers
 
