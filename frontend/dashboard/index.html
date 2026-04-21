@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<!-- author: AEON Dev | created: 2026-04-21 | last updated: 2026-04-21 -->
+<!-- STR Finance Dashboard — API-backed, replaces Excel-based prototype -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Keng's Landing — Dashboard</title>
+  <style>
+    :root {
+      --bg: #0f1117; --surface: #1a1d27; --surface2: #222633; --surface3: #2a2e3b;
+      --border: #2e3345; --border2: #3d4255;
+      --text: #e2e4ea; --text-muted: #8b90a0; --text-dim: #5a5f72;
+      --accent: #2f7c55; --accent-light: #4ade80; --accent-dim: #1e4a35;
+      --positive: #4ade80; --negative: #f87171; --warning: #fbbf24; --info: #60a5fa;
+      --radius: 10px; --radius-sm: 6px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; min-height: 100vh; }
+    header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    header h1 { font-size: 1.15rem; color: var(--accent-light); font-weight: 600; }
+    header h1 span { color: var(--text-muted); font-weight: 400; font-size: 0.8rem; margin-left: 8px; }
+    .header-actions { display: flex; gap: 8px; align-items: center; }
+    nav.tabs { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; gap: 0; position: sticky; top: 49px; z-index: 99; }
+    nav.tabs button { background: none; border: none; color: var(--text-muted); padding: 11px 18px; font-size: 0.85rem; cursor: pointer; border-bottom: 2px solid transparent; transition: all .15s; }
+    nav.tabs button:hover { color: var(--text); background: var(--surface2); }
+    nav.tabs button.active { color: var(--accent-light); border-bottom-color: var(--accent-light); }
+    main { flex: 1; padding: 24px; max-width: 1300px; width: 100%; margin: 0 auto; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .btn { padding: 7px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface2); color: var(--text); cursor: pointer; font-size: 0.82rem; transition: all .15s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+    .btn:hover { background: var(--surface3); border-color: var(--border2); }
+    .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-light); color: #000; }
+    .btn-sm { padding: 4px 10px; font-size: 0.78rem; }
+    select { padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-size: 0.82rem; cursor: pointer; }
+    select:focus { outline: 1px solid var(--accent); }
+
+    /* KPI Cards */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px; }
+    .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; }
+    .kpi-card .label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .kpi-card .value { font-size: 1.5rem; font-weight: 700; }
+    .kpi-card .value.positive { color: var(--positive); }
+    .kpi-card .value.negative { color: var(--negative); }
+    .kpi-card .value.neutral { color: var(--text); }
+
+    /* Tables */
+    .table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    th { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text-muted); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.4px; background: var(--surface2); }
+    td { padding: 10px 14px; border-bottom: 1px solid var(--border); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover { background: var(--surface2); }
+
+    /* Section */
+    .section-title { font-size: 0.95rem; font-weight: 600; margin: 24px 0 12px; color: var(--text); }
+    .section-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .filter-row { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
+    .empty-state { text-align: center; padding: 48px 24px; color: var(--text-muted); }
+    .empty-state h3 { margin-bottom: 8px; color: var(--text-dim); }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.7rem; font-weight: 600; }
+    .badge-biz { background: rgba(74,222,128,.15); color: var(--positive); }
+    .badge-personal { background: rgba(248,113,113,.15); color: var(--negative); }
+    .badge-review { background: rgba(251,191,36,.15); color: var(--warning); }
+    .loading { color: var(--text-dim); padding: 24px; text-align: center; }
+    .toast { position: fixed; bottom: 24px; right: 24px; background: var(--surface3); border: 1px solid var(--border2); border-radius: var(--radius); padding: 12px 20px; font-size: 0.85rem; z-index: 1000; display: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Keng's Landing <span>Finance Dashboard</span></h1>
+    <div class="header-actions">
+      <select id="property-select" title="Select property"></select>
+      <select id="date-range" title="Date range">
+        <option value="ytd">Year to Date</option>
+        <option value="q1">Q1 2026</option>
+        <option value="q2">Q2 2026</option>
+        <option value="2025">Full Year 2025</option>
+        <option value="all">All Time</option>
+      </select>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tab-nav">
+    <button class="active" data-tab="overview">Overview</button>
+    <button data-tab="expenses">Expenses</button>
+    <button data-tab="bookings">Bookings</button>
+    <button data-tab="import">Import Data</button>
+  </nav>
+
+  <main>
+    <!-- Overview Tab -->
+    <section id="tab-overview" class="tab-content active">
+      <div class="kpi-grid" id="kpi-cards"></div>
+      <h3 class="section-title">Recent Expenses</h3>
+      <div class="table-wrap" id="recent-expenses-table"></div>
+      <h3 class="section-title">Recent Bookings</h3>
+      <div class="table-wrap" id="recent-bookings-table"></div>
+    </section>
+
+    <!-- Expenses Tab -->
+    <section id="tab-expenses" class="tab-content">
+      <div class="section-bar">
+        <h3 class="section-title" style="margin:0">All Expenses</h3>
+        <button class="btn btn-sm" onclick="exportExpensesCsv()">Export CSV</button>
+      </div>
+      <div class="filter-row">
+        <select id="expense-status-filter"><option value="">All States</option><option value="Business">Business</option><option value="Personal">Personal</option><option value="Review">Review</option></select>
+        <select id="expense-category-filter"><option value="">All Categories</option></select>
+      </div>
+      <div class="table-wrap" id="expenses-table"><div class="loading">Loading...</div></div>
+    </section>
+
+    <!-- Bookings Tab -->
+    <section id="tab-bookings" class="tab-content">
+      <div class="section-bar">
+        <h3 class="section-title" style="margin:0">All Bookings</h3>
+        <button class="btn btn-sm" onclick="exportBookingsCsv()">Export CSV</button>
+      </div>
+      <div class="table-wrap" id="bookings-table"><div class="loading">Loading...</div></div>
+    </section>
+
+    <!-- Import Tab -->
+    <section id="tab-import" class="tab-content">
+      <h3 class="section-title">Import New Data</h3>
+      <p style="color: var(--text-muted); margin-bottom: 20px;">Upload bank CSVs for expense import or Airbnb CSVs for booking import. Each import creates a review queue where you classify and approve records before they become committed data.</p>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 700px;">
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px;">
+          <h4 style="margin-bottom: 8px;">Expense Import</h4>
+          <p style="color: var(--text-muted); font-size: 0.82rem; margin-bottom: 16px;">Upload a bank CSV (Chase, etc.) to import and classify transactions as business or personal expenses.</p>
+          <a class="btn btn-primary" href="/expense-review/" target="_blank">Open Expense Review →</a>
+        </div>
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px;">
+          <h4 style="margin-bottom: 8px;">Booking Import</h4>
+          <p style="color: var(--text-muted); font-size: 0.82rem; margin-bottom: 16px;">Upload an Airbnb CSV to import bookings with revenue, fees, and guest details.</p>
+          <a class="btn btn-primary" href="/booking-review/" target="_blank">Open Booking Review →</a>
+        </div>
+      </div>
+      <h3 class="section-title" style="margin-top: 32px;">Recent Import Jobs</h3>
+      <div class="table-wrap" id="import-jobs-table"><div class="loading">Loading...</div></div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ── Config ──────────────────────────────────────────────────────────
+    const API = 'http://localhost:8787';
+    const WS_ID = 'b0604861-b7ae-4f1e-a7cb-fe066d57c623';
+
+    // ── State ───────────────────────────────────────────────────────────
+    let properties = [];
+    let selectedPropertyId = '';
+    let expenses = [];
+    let bookings = [];
+
+    // ── Init ────────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', async () => {
+      wireTabs();
+      await loadProperties();
+      await refreshAll();
+      document.getElementById('property-select').addEventListener('change', (e) => {
+        selectedPropertyId = e.target.value;
+        refreshAll();
+      });
+      document.getElementById('date-range').addEventListener('change', () => refreshAll());
+    });
+
+    // ── Tabs ────────────────────────────────────────────────────────────
+    function wireTabs() {
+      document.querySelectorAll('#tab-nav button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#tab-nav button').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+          btn.classList.add('active');
+          document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+        });
+      });
+    }
+
+    // ── API helpers ─────────────────────────────────────────────────────
+    async function apiFetch(path) {
+      const res = await fetch(API + path);
+      if (!res.ok) throw new Error(`API ${res.status}: ${await res.text()}`);
+      return res.json();
+    }
+
+    function getDateRange() {
+      const sel = document.getElementById('date-range').value;
+      const now = new Date();
+      const year = now.getFullYear();
+      switch (sel) {
+        case 'ytd': return { from: `${year}-01-01`, to: now.toISOString().slice(0, 10) };
+        case 'q1': return { from: `${year}-01-01`, to: `${year}-03-31` };
+        case 'q2': return { from: `${year}-04-01`, to: `${year}-06-30` };
+        case '2025': return { from: '2025-01-01', to: '2025-12-31' };
+        case 'all': return { from: '2020-01-01', to: now.toISOString().slice(0, 10) };
+        default: return { from: `${year}-01-01`, to: now.toISOString().slice(0, 10) };
+      }
+    }
+
+    // ── Load properties ─────────────────────────────────────────────────
+    async function loadProperties() {
+      const res = await apiFetch(`/properties?workspace_id=${WS_ID}`);
+      properties = res.data || [];
+      const sel = document.getElementById('property-select');
+      sel.innerHTML = '<option value="">All Properties</option>';
+      properties.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = `${p.code} — ${p.name}`;
+        sel.appendChild(opt);
+      });
+    }
+
+    // ── Refresh all data ────────────────────────────────────────────────
+    async function refreshAll() {
+      await Promise.all([loadExpenses(), loadBookings()]);
+      renderKPIs();
+      renderRecentExpenses();
+      renderRecentBookings();
+      renderExpensesTable();
+      renderBookingsTable();
+      loadImportJobs();
+    }
+
+    async function loadExpenses() {
+      let url = `/expenses?workspace_id=${WS_ID}`;
+      if (selectedPropertyId) url += `&property_id=${selectedPropertyId}`;
+      const res = await apiFetch(url);
+      expenses = res.data || [];
+    }
+
+    async function loadBookings() {
+      let url = `/bookings?workspace_id=${WS_ID}`;
+      if (selectedPropertyId) url += `&property_id=${selectedPropertyId}`;
+      const res = await apiFetch(url);
+      bookings = res.data || [];
+    }
+
+    // ── KPI Cards ───────────────────────────────────────────────────────
+    function renderKPIs() {
+      const { from, to } = getDateRange();
+      const filteredBookings = bookings.filter(b => b.status === 'committed' && b.check_in_date >= from && b.check_in_date <= to);
+      const filteredExpenses = expenses.filter(e => e.status === 'committed' && e.transaction_date >= from && e.transaction_date <= to);
+
+      const grossRev = filteredBookings.reduce((s, b) => s + (b.gross_revenue_amount || 0), 0);
+      const netPayout = filteredBookings.reduce((s, b) => s + (b.net_payout_amount || 0), 0);
+      const platformFees = filteredBookings.reduce((s, b) => s + (b.platform_fee_amount || 0), 0);
+      const opExpenses = filteredExpenses.filter(e => e.review_state === 'Business' && e.tax_period === 'Operational').reduce((s, e) => s + (e.amount || 0), 0);
+      const preServiceExp = filteredExpenses.filter(e => e.review_state === 'Business' && e.tax_period === 'Pre-Service').reduce((s, e) => s + (e.amount || 0), 0);
+      const netResult = netPayout - opExpenses;
+      const nights = filteredBookings.reduce((s, b) => s + (b.nights || 0), 0);
+      const days = Math.max(1, (new Date(to) - new Date(from)) / 86400000 + 1);
+      const occupancy = Math.round((nights / days) * 1000) / 10;
+      const reviewCount = expenses.filter(e => e.status === 'draft' || e.review_state === 'Review').length;
+
+      const kpis = [
+        { label: 'Gross Revenue', value: fmt(grossRev), cls: 'positive' },
+        { label: 'Net Payout', value: fmt(netPayout), cls: 'positive' },
+        { label: 'Platform Fees', value: fmt(platformFees), cls: 'neutral' },
+        { label: 'Operating Expenses', value: fmt(opExpenses), cls: 'negative' },
+        { label: 'Net Operating Result', value: fmt(netResult), cls: netResult >= 0 ? 'positive' : 'negative' },
+        { label: 'Pre-Service Expenses', value: fmt(preServiceExp), cls: 'neutral' },
+        { label: 'Nights Booked', value: nights, cls: 'neutral' },
+        { label: 'Occupancy Rate', value: occupancy + '%', cls: 'neutral' },
+        { label: 'Needs Review', value: reviewCount, cls: reviewCount > 0 ? 'negative' : 'neutral' },
+      ];
+
+      document.getElementById('kpi-cards').innerHTML = kpis.map(k => `
+        <div class="kpi-card">
+          <div class="label">${k.label}</div>
+          <div class="value ${k.cls}">${k.value}</div>
+        </div>
+      `).join('');
+    }
+
+    // ── Recent tables (overview) ────────────────────────────────────────
+    function renderRecentExpenses() {
+      const recent = [...expenses].sort((a, b) => (b.transaction_date || '').localeCompare(a.transaction_date || '')).slice(0, 8);
+      if (!recent.length) {
+        document.getElementById('recent-expenses-table').innerHTML = '<div class="empty-state"><h3>No expenses yet</h3><p>Import a bank CSV to get started</p></div>';
+        return;
+      }
+      document.getElementById('recent-expenses-table').innerHTML = `<table>
+        <thead><tr><th>Date</th><th>Merchant</th><th>Category</th><th>Amount</th><th>State</th></tr></thead>
+        <tbody>${recent.map(e => `<tr>
+          <td>${e.transaction_date || '—'}</td>
+          <td>${esc(e.merchant_name || e.description || '—')}</td>
+          <td>${esc(e.category || '—')}</td>
+          <td>${fmt(e.amount)}</td>
+          <td><span class="badge badge-${(e.review_state || 'review').toLowerCase()}">${e.review_state || 'Review'}</span></td>
+        </tr>`).join('')}</tbody></table>`;
+    }
+
+    function renderRecentBookings() {
+      const recent = [...bookings].sort((a, b) => (b.check_in_date || '').localeCompare(a.check_in_date || '')).slice(0, 8);
+      if (!recent.length) {
+        document.getElementById('recent-bookings-table').innerHTML = '<div class="empty-state"><h3>No bookings yet</h3><p>Import an Airbnb CSV to get started</p></div>';
+        return;
+      }
+      document.getElementById('recent-bookings-table').innerHTML = `<table>
+        <thead><tr><th>Check-in</th><th>Guest</th><th>Nights</th><th>Gross Revenue</th><th>Net Payout</th><th>Platform</th></tr></thead>
+        <tbody>${recent.map(b => `<tr>
+          <td>${b.check_in_date || '—'}</td>
+          <td>${esc(b.guest_name || '—')}</td>
+          <td>${b.nights || '—'}</td>
+          <td>${fmt(b.gross_revenue_amount)}</td>
+          <td>${fmt(b.net_payout_amount)}</td>
+          <td>${esc(b.source_platform || '—')}</td>
+        </tr>`).join('')}</tbody></table>`;
+    }
+
+    // ── Full expense table ──────────────────────────────────────────────
+    function renderExpensesTable() {
+      const stateFilter = document.getElementById('expense-status-filter')?.value;
+      const catFilter = document.getElementById('expense-category-filter')?.value;
+      let filtered = expenses;
+      if (stateFilter) filtered = filtered.filter(e => e.review_state === stateFilter);
+      if (catFilter) filtered = filtered.filter(e => e.category === catFilter);
+      filtered.sort((a, b) => (b.transaction_date || '').localeCompare(a.transaction_date || ''));
+
+      if (!filtered.length) {
+        document.getElementById('expenses-table').innerHTML = '<div class="empty-state"><h3>No expenses found</h3></div>';
+        return;
+      }
+      document.getElementById('expenses-table').innerHTML = `<table>
+        <thead><tr><th>Date</th><th>Merchant</th><th>Description</th><th>Category</th><th>Amount</th><th>Payment</th><th>State</th><th>Property</th><th>Actions</th></tr></thead>
+        <tbody>${filtered.map(e => `<tr>
+          <td>${e.transaction_date || '—'}</td>
+          <td>${esc(e.merchant_name || '—')}</td>
+          <td>${esc(e.description || '—')}</td>
+          <td>${esc(e.category || '—')}</td>
+          <td>${fmt(e.amount)}</td>
+          <td>${esc(e.payment_method || '—')}</td>
+          <td><span class="badge badge-${(e.review_state || 'review').toLowerCase()}">${e.review_state || '—'}</span></td>
+          <td>${propCode(e.property_id)}</td>
+          <td>${e.review_state === 'Review' ? `<button class="btn btn-sm" style="background:#1e4a35;color:#4ade80;border:none;margin-right:4px" data-review-action="Business" data-expense-id="${e.id}">Biz</button><button class="btn btn-sm" style="background:#4a1525;color:#f87171;border:none" data-review-action="Personal" data-expense-id="${e.id}">Personal</button>` : ''}</td>
+        </tr>`).join('')}</tbody></table>`;
+
+      // Populate category filter
+      const cats = [...new Set(expenses.map(e => e.category).filter(Boolean))].sort();
+      const catSel = document.getElementById('expense-category-filter');
+      const curVal = catSel.value;
+      catSel.innerHTML = '<option value="">All Categories</option>' + cats.map(c => `<option value="${c}" ${c === curVal ? 'selected' : ''}>${c}</option>`).join('');
+    }
+
+    // ── Full bookings table ─────────────────────────────────────────────
+    function renderBookingsTable() {
+      const sorted = [...bookings].sort((a, b) => (b.check_in_date || '').localeCompare(a.check_in_date || ''));
+      if (!sorted.length) {
+        document.getElementById('bookings-table').innerHTML = '<div class="empty-state"><h3>No bookings found</h3></div>';
+        return;
+      }
+      document.getElementById('bookings-table').innerHTML = `<table>
+        <thead><tr><th>Confirmation</th><th>Check-in</th><th>Check-out</th><th>Guest</th><th>Nights</th><th>Gross</th><th>Cleaning</th><th>Fees</th><th>Net</th><th>Platform</th></tr></thead>
+        <tbody>${sorted.map(b => `<tr>
+          <td>${esc(b.source_confirmation_code || '—')}</td>
+          <td>${b.check_in_date || '—'}</td>
+          <td>${b.check_out_date || '—'}</td>
+          <td>${esc(b.guest_name || '—')}</td>
+          <td>${b.nights || '—'}</td>
+          <td>${fmt(b.gross_revenue_amount)}</td>
+          <td>${fmt(b.cleaning_fee_amount)}</td>
+          <td>${fmt(b.platform_fee_amount)}</td>
+          <td>${fmt(b.net_payout_amount)}</td>
+          <td>${esc(b.source_platform || '—')}</td>
+        </tr>`).join('')}</tbody></table>`;
+    }
+
+    // ── Export CSV ───────────────────────────────────────────────────────
+    function exportExpensesCsv() {
+      const headers = ['transaction_date','merchant_name','description','category','amount','payment_method','review_state','property_code'];
+      const rows = expenses.map(e => [e.transaction_date, e.merchant_name, e.description, e.category, e.amount, e.payment_method, e.review_state, propCode(e.property_id)]);
+      downloadCsv('expenses-export.csv', headers, rows);
+    }
+
+    function exportBookingsCsv() {
+      const headers = ['confirmation_code','check_in','check_out','guest','nights','gross_revenue','cleaning_fee','platform_fee','net_payout','platform'];
+      const rows = bookings.map(b => [b.source_confirmation_code, b.check_in_date, b.check_out_date, b.guest_name, b.nights, b.gross_revenue_amount, b.cleaning_fee_amount, b.platform_fee_amount, b.net_payout_amount, b.source_platform]);
+      downloadCsv('bookings-export.csv', headers, rows);
+    }
+
+    function downloadCsv(filename, headers, rows) {
+      const csvContent = [headers.join(','), ...rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','))].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────────────
+    function fmt(v) { return v == null ? '$0.00' : '$' + Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+    function propCode(id) { const p = properties.find(p => p.id === id); return p ? p.code : '—'; }
+
+    // Wire filter changes
+    document.addEventListener('change', (e) => {
+      if (e.target.id === 'expense-status-filter' || e.target.id === 'expense-category-filter') renderExpensesTable();
+    });
+
+    // ── Inline review actions ───────────────────────────────────────────
+    document.addEventListener('click', async (e) => {
+      const btn = e.target.closest('[data-review-action]');
+      if (!btn) return;
+      const expenseId = btn.dataset.expenseId;
+      const newState = btn.dataset.reviewAction;
+      if (!expenseId || !newState) return;
+      btn.disabled = true;
+      try {
+        const res = await fetch(`${API}/imports/expenses/${expenseId}/reclassify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ workspace_id: WS_ID, review_state: newState }),
+        });
+        if (res.ok) {
+          const expense = expenses.find(ex => ex.id === expenseId);
+          if (expense) {
+            expense.review_state = newState;
+            expense.status = 'committed';
+          }
+          renderExpensesTable();
+          renderKPIs();
+        }
+      } catch (err) { console.error(err); }
+      btn.disabled = false;
+    });
+
+    // ── Import job history ──────────────────────────────────────────────
+    async function loadImportJobs() {
+      try {
+        const res = await fetch(`${API}/imports?workspace_id=${WS_ID}`);
+        if (!res.ok) { document.getElementById('import-jobs-table').innerHTML = '<div class="empty-state">Could not load import jobs</div>'; return; }
+        const result = await res.json();
+        const jobs = result.data || [];
+        if (!jobs.length) {
+          document.getElementById('import-jobs-table').innerHTML = '<div class="empty-state"><h3>No imports yet</h3></div>';
+          return;
+        }
+        document.getElementById('import-jobs-table').innerHTML = `<table>
+          <thead><tr><th>File</th><th>Type</th><th>Status</th><th>Rows</th><th>Created</th></tr></thead>
+          <tbody>${jobs.map(j => `<tr>
+            <td>${esc(j.original_filename || '—')}</td>
+            <td>${esc(j.import_type || '—')}</td>
+            <td>${esc(j.status || '—')}</td>
+            <td>${j.row_count ?? '—'}</td>
+            <td>${j.created_at ? new Date(j.created_at).toLocaleDateString() : '—'}</td>
+          </tr>`).join('')}</tbody></table>`;
+      } catch {
+        document.getElementById('import-jobs-table').innerHTML = '<div class="empty-state">Could not load import jobs</div>';
+      }
+    }
+  </script>
+</body>
+</html>

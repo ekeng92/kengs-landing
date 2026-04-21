@@ -1,0 +1,4 @@
+# Local dev vars for Wrangler — copy to .dev.vars and fill in values.
+# .dev.vars is git-ignored. Never commit real credentials.
+SUPABASE_URL=https://<project-ref>.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=<service-role-key-from-supabase-dashboard>

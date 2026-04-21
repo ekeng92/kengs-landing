@@ -1,0 +1,12 @@
+name = "kengs-landing-api"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+# Non-secret runtime config. Safe to commit with empty value — set real value in dashboard or .dev.vars.
+[vars]
+SUPABASE_URL = ""
+
+# Bind secrets via:
+#   wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+# For local dev, add both vars to .dev.vars (git-ignored).
