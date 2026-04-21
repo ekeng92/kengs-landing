@@ -1,0 +1,21 @@
+{
+  "name": "kengs-landing-api",
+  "version": "0.0.1",
+  "private": true,
+  "description": "STR Finance API — Keng's Landing backend (Hono + Cloudflare Workers + Supabase)",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "hono": "^4.12.14"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240806.0",
+    "postgres": "^3.4.9",
+    "typescript": "^5.5.0",
+    "wrangler": "^3.65.0"
+  }
+}

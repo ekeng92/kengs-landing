@@ -12,7 +12,18 @@ Thumbs.db
 
 # Sensitive
 *.ignore.*
+*-ignore*
+*.ignore*
 
 # Dashboard build output
 finances/dashboard/node_modules/
 finances/dashboard/dist/
+
+# Backend
+backend/node_modules/
+backend/.wrangler/
+backend/.dev.vars
+backend/supabase/.temp/
+
+# Backup files
+*.bak

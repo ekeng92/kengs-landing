@@ -34,6 +34,7 @@ This is a draft schema, not a migration file. Its job is to stabilize data meani
 | user_id | uuid | auth user reference |
 | role | text | owner, reviewer, accountant per access-control model |
 | created_at | timestamptz | membership creation timestamp |
+| updated_at | timestamptz | last modification timestamp |
 
 ### properties
 
@@ -90,6 +91,7 @@ This is a draft schema, not a migration file. Its job is to stabilize data meani
 | tax_period | text | snapshot at commit time: Pre-Service or Operational |
 | documentation_status | text | CC, Y, N |
 | needs_receipt_followup | boolean | optional helper for ops |
+| status | text | draft, committed, voided — controls reporting eligibility |
 | source_import_row_id | uuid | optional promotion trace |
 | created_at | timestamptz | creation timestamp |
 | updated_at | timestamptz | last modification timestamp |
@@ -172,6 +174,7 @@ This is a draft schema, not a migration file. Its job is to stabilize data meani
 | storage_path | text | object storage pointer |
 | uploaded_by_user_id | uuid | actor |
 | created_at | timestamptz | creation timestamp |
+| updated_at | timestamptz | last modification timestamp |
 
 ### audit_events
 
@@ -200,14 +203,25 @@ This is a draft schema, not a migration file. Its job is to stabilize data meani
 ## Suggested Indexes
 
 - `properties(workspace_id, code)` unique within workspace
+- `workspace_memberships(workspace_id, user_id)` unique pair
 - `bookings(property_id, check_in_date)`
-- `bookings(source_platform, source_confirmation_code)`
+- `bookings(workspace_id, check_in_date)` for workspace-scope dashboard queries
+- `bookings(source_platform, source_confirmation_code)` partial: where source_confirmation_code is not null
 - `expenses(property_id, transaction_date)`
+- `expenses(workspace_id, transaction_date)` for workspace-scope dashboard queries
 - `expenses(category, review_state)`
 - `import_rows(import_job_id, review_status)`
+- `import_rows(dedupe_key, promoted_entity_type)` unique partial: where dedupe_key is not null — idempotent promotion guard
+- `mileage_trips(property_id, trip_date)`
 - `audit_events(workspace_id, entity_type, entity_id, created_at desc)`
 
 ## Open Questions
 
-- whether review state belongs only to expenses or should generalize to other imported entity types later
-- whether workspace-level overhead should be allocated later or remain explicitly unallocated
+- whether review state should generalize to other imported entity types later — deferred; expenses are the only first-class reviewed entity in MVP
+- whether workspace-level expenses should be allocated across properties later — deferred; they remain explicitly unallocated in MVP
+- `import_jobs.status` starts at `uploaded` in this schema; the domain model listed `draft` as the first value — resolved as `uploaded` here because it more clearly describes the initial state of an ingestion run
+
+## T2 / T3 Coordination Notes
+
+- T2 (expense import spec): the `expenses.status` field (draft/committed/voided) and `import_rows.dedupe_key` idempotency are the primary schema surface for the import promotion workflow — do not alter these without coordination
+- T3 (booking/revenue spec): the `bookings` table is complete for MVP; `source_confirmation_code` is the dedup anchor for Airbnb imports — T3 spec should confirm this is sufficient or raise a schema change request
