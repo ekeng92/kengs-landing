@@ -253,7 +253,7 @@
       const netResult = netPayout - opExpenses;
       const nights = filteredBookings.reduce((s, b) => s + (b.nights || 0), 0);
       const days = Math.max(1, (new Date(to) - new Date(from)) / 86400000 + 1);
-      const occupancy = Math.round((nights / days) * 1000) / 10;
+      const occupancy = Math.min(100, Math.round((nights / days) * 1000) / 10);
       const reviewCount = expenses.filter(e => e.status === 'draft' || e.review_state === 'Review').length;
 
       const kpis = [

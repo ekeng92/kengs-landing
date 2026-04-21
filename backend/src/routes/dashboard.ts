@@ -51,18 +51,19 @@ dashboardRouter.get('/metrics', async (c: any) => {
     .select('*')
     .eq('workspace_id', workspaceId)
     .eq('property_id', propertyId)
-    .gte('date', dateFrom)
-    .lte('date', dateTo)
+    .gte('trip_date', dateFrom)
+    .lte('trip_date', dateTo)
   if (mileageErr) return c.json({ error: mileageErr.message }, 500)
   // Metrics
   const gross_booking_revenue = bookings.reduce((sum: number, b: any) => sum + (b.gross_revenue_amount || 0), 0)
   const net_payout_revenue = bookings.reduce((sum: number, b: any) => sum + (b.net_payout_amount || 0), 0)
   const platform_fees = bookings.reduce((sum: number, b: any) => sum + (b.platform_fee_amount || 0), 0)
-  const business_operating_expenses = expenses.filter((e: any) => e.review_state === 'Business').reduce((sum: number, e: any) => sum + (e.amount || 0), 0)
+  const business_operating_expenses = expenses.filter((e: any) => e.review_state === 'Business' && e.tax_period === 'Operational').reduce((sum: number, e: any) => sum + (e.amount || 0), 0)
+  const pre_service_expenses = expenses.filter((e: any) => e.review_state === 'Business' && e.tax_period === 'Pre-Service').reduce((sum: number, e: any) => sum + (e.amount || 0), 0)
   const net_operating_result = net_payout_revenue - business_operating_expenses
   const nights_booked = bookings.reduce((sum: number, b: any) => sum + (b.nights || 0), 0)
   const daysInRange = (new Date(dateTo).getTime() - new Date(dateFrom).getTime()) / (1000 * 60 * 60 * 24) + 1
-  const occupancy_rate = daysInRange > 0 ? Math.round((nights_booked / daysInRange) * 1000) / 10 : 0
+  const occupancy_rate = daysInRange > 0 ? Math.min(100, Math.round((nights_booked / daysInRange) * 1000) / 10) : 0
   const mileage_total = mileage.reduce((sum: number, m: any) => sum + (m.miles || 0), 0)
   return c.json({
     gross_booking_revenue,
@@ -72,6 +73,7 @@ dashboardRouter.get('/metrics', async (c: any) => {
     net_operating_result,
     nights_booked,
     occupancy_rate,
+    pre_service_expenses,
     mileage_total
   })
 })
