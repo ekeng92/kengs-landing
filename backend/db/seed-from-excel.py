@@ -247,6 +247,17 @@ def parse_bookings(ws):
 
         source_platform = str(platform).strip() if platform else "Unknown"
 
+        # Compute nights from dates — don't trust Excel column
+        computed_nights = nights
+        try:
+            ci_dt = datetime.strptime(check_in_str, "%Y-%m-%d")
+            co_dt = datetime.strptime(check_out_str, "%Y-%m-%d")
+            computed_nights = max(1, (co_dt - ci_dt).days)
+            if nights and nights != computed_nights:
+                print(f"  FIX: nights {nights} → {computed_nights} for {guest_name} ({check_in_str} to {check_out_str})")
+        except (ValueError, TypeError):
+            pass
+
         rows.append({
             "workspace_id": WORKSPACE_ID,
             "property_id": PROPERTY_360CR,
@@ -255,7 +266,7 @@ def parse_bookings(ws):
             "guest_name": str(guest_name).strip() if guest_name else None,
             "check_in_date": check_in_str,
             "check_out_date": check_out_str,
-            "nights": nights,
+            "nights": computed_nights,
             "gross_revenue_amount": gross_revenue,
             "cleaning_fee_amount": cleaning_fee,
             "platform_fee_amount": platform_fees,
