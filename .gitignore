@@ -15,9 +15,9 @@ Thumbs.db
 *-ignore*
 *.ignore*
 
-# Dashboard build output
-finances/dashboard/node_modules/
-finances/dashboard/dist/
+# Dashboard build output (legacy prototype)
+business/finances/dashboard/node_modules/
+business/finances/dashboard/dist/
 
 # Backend
 backend/node_modules/

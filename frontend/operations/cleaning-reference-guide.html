@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Keng's Landing — Cleaning Reference Guide</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 12px;
+      color: #1a1a1a;
+      background: #f4f4f4;
+      padding: 24px;
+    }
+
+    .page {
+      max-width: 820px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+      padding: 32px 40px 48px;
+    }
+
+    /* HEADER */
+    .header {
+      border-bottom: 3px solid #1a3a2a;
+      padding-bottom: 14px;
+      margin-bottom: 8px;
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1a3a2a;
+    }
+
+    .header .subtitle {
+      font-size: 12px;
+      color: #666;
+      margin-top: 3px;
+    }
+
+    .intro-box {
+      background: #e8f5e9;
+      border-left: 4px solid #1a3a2a;
+      padding: 10px 14px;
+      font-size: 11.5px;
+      color: #333;
+      margin: 14px 0 20px;
+      border-radius: 0 4px 4px 0;
+      line-height: 1.6;
+    }
+
+    /* SECTION */
+    .section {
+      margin-bottom: 28px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .badge {
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    .badge-turnover { background: #e8f5e9; color: #1b5e20; border: 1px solid #a5d6a7; }
+    .badge-weekly   { background: #e3f2fd; color: #0d47a1; border: 1px solid #90caf9; }
+    .badge-monthly  { background: #fff8e1; color: #795548; border: 1px solid #ffcc80; }
+    .badge-owner    { background: #fce4ec; color: #880e4f; border: 1px solid #f48fb1; }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a3a2a;
+    }
+
+    /* TASK CARDS */
+    .task-card {
+      border: 1px solid #e8e8e8;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+
+    .task-card-header {
+      background: #f7f7f7;
+      padding: 8px 14px;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #1a1a1a;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .task-card-header .tag {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #999;
+      background: #efefef;
+      border-radius: 3px;
+      padding: 1px 6px;
+    }
+
+    .task-card-body {
+      padding: 10px 14px;
+      font-size: 11.5px;
+      color: #333;
+      line-height: 1.7;
+    }
+
+    .task-card-body ul {
+      margin: 4px 0 0 16px;
+    }
+
+    .task-card-body li {
+      margin-bottom: 3px;
+    }
+
+    .task-card-body .tip {
+      background: #fff8e1;
+      border-left: 3px solid #f5c400;
+      padding: 5px 10px;
+      margin-top: 8px;
+      border-radius: 0 3px 3px 0;
+      font-size: 11px;
+      color: #555;
+    }
+
+    .task-card-body .warn {
+      background: #fff3e0;
+      border-left: 3px solid #ff9800;
+      padding: 5px 10px;
+      margin-top: 8px;
+      border-radius: 0 3px 3px 0;
+      font-size: 11px;
+      color: #555;
+    }
+
+    /* PRINT */
+    @media print {
+      body { background: white; padding: 0; }
+      .page { box-shadow: none; padding: 20px 28px 40px; }
+      .no-print { display: none !important; }
+      .task-card { break-inside: avoid; }
+      .section { break-inside: avoid; }
+    }
+
+    .print-bar {
+      max-width: 820px;
+      margin: 0 auto 16px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      padding: 7px 16px;
+      font-size: 11px;
+      font-weight: 600;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-family: inherit;
+      background: #1a3a2a;
+      color: #fff;
+    }
+
+    .btn:hover { background: #14502a; }
+
+    .doc-footer {
+      margin-top: 24px;
+      font-size: 10px;
+      color: #ccc;
+      text-align: right;
+      border-top: 1px solid #eee;
+      padding-top: 10px;
+    }
+
+    hr.divider {
+      border: none;
+      border-top: 1.5px solid #eee;
+      margin: 22px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="print-bar no-print">
+    <button class="btn" onclick="window.print()">🖨 Print</button>
+  </div>
+
+  <div class="page">
+
+    <div class="header">
+      <h1>Keng's Landing — Cleaning Reference Guide</h1>
+      <div class="subtitle">360 County Road · How to do each task · Keep this as your training reference</div>
+    </div>
+
+    <div class="intro-box">
+      <strong>What this is:</strong> This guide explains how to do each task on the cleaning checklist. Use it when you're unsure about a task, or hand it to someone new so they can get up to speed quickly. The checklist is for everyday use — this is the "why and how" behind it.<br/><br/>
+      <strong>Goal for each cleaning visit:</strong> 2–3 hours max. The monthly tasks are designed to be spread out — pick 1 or 2 each visit rather than doing them all at once.
+    </div>
+
+
+    <!-- =============================
+         TURNOVER TASKS
+    ============================== -->
+    <div class="section">
+      <div class="section-header">
+        <span class="badge badge-turnover">Every Turnover</span>
+        <span class="section-title">Between-Guest Cleaning</span>
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">⭐ Laundry — Start This First <span class="tag">Do Before Anything Else</span></div>
+        <div class="task-card-body">
+          The moment you walk in, strip all the beds — sheets and pillowcases — and get them in the washer. This is the most important step because laundry takes time and it runs in the background while you clean everything else. Use hot water when possible to kill bacteria. Fresh linens go on the beds as soon as the old ones are done.
+          <div class="tip">💡 If there are two sets of linens, swap them immediately so the wash can run while you remake beds with the clean set.</div>
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">Towels &amp; Kitchen Linens</div>
+        <div class="task-card-body">
+          Replace all bath towels, hand towels, and washcloths in every bathroom with fresh ones. Replace kitchen towels. Wash the used ones with the bed linens or in a separate load. Inspect linens for stains before putting them back into rotation — set aside anything that needs extra attention.
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">Bedrooms</div>
+        <div class="task-card-body">
+          After remaking beds with fresh linens, do a quick dust of nightstands, dressers, and ceiling fans. Check under the beds for anything guests may have left behind. Make the room look welcoming — pillows straight, blankets neat.
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">Bathrooms</div>
+        <div class="task-card-body">
+          Do each bathroom completely before moving to the next one.
+          <ul>
+            <li><strong>Toilet:</strong> Use toilet bowl cleaner inside the bowl, let it sit while you clean other surfaces, then scrub. Wipe the outside of the bowl, the seat (top and bottom), lid, tank, and the handle with a disinfectant cloth or spray.</li>
+            <li><strong>Sink &amp; faucet:</strong> Spray and wipe the basin, faucet handles, and drain area. Wipe the countertop and any soap residue.</li>
+            <li><strong>Mirror:</strong> Windex or glass cleaner — wipe in a circular motion, then buff dry. No streaks.</li>
+            <li><strong>Shower/tub:</strong> These are fiberglass (not tile), so no need to scrub grout. Wipe down the walls, the floor of the shower, and the door or curtain. A daily shower spray helps but a full wipe-down each turnover is needed.</li>
+            <li><strong>Restock:</strong> At least one roll of toilet paper on the holder plus one spare. Check soap, shampoo, conditioner, and body wash levels — refill or replace if low.</li>
+          </ul>
+          <div class="tip">💡 The Roborock handles the main floor area. You don't need to mop — just spot clean behind the toilet and in any tight corners once a month.</div>
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">Kitchen</div>
+        <div class="task-card-body">
+          <ul>
+            <li><strong>Countertops &amp; backsplash:</strong> Spray and wipe everything. Clear off any items guests left out.</li>
+            <li><strong>Stovetop:</strong> Wipe down burner area and the range hood underneath. Grease can build up here.</li>
+            <li><strong>Microwave:</strong> Wipe inside the ceiling, walls, and turntable. Wipe the outside door and handle.</li>
+            <li><strong>Fridge:</strong> Pull out any food guests left behind and throw it away. Wipe down shelves and drawers if anything spilled.</li>
+            <li><strong>Dishes:</strong> Run the dishwasher if there are dishes, or hand wash if it's just a few items. Everything should be put away before you leave.</li>
+            <li><strong>Restock:</strong> Paper towels, dish soap, sponge (replace if worn), trash bags.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">Trash</div>
+        <div class="task-card-body">
+          Empty every trash can in the home — bedrooms, bathrooms, kitchen, and any others. Replace all liners. Tie off and take all bags out to the bin outside.
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">Roborock — Mop Water Bins</div>
+        <div class="task-card-body">
+          The Roborock runs automatically on a timer and handles vacuuming and mopping. You don't need to run it manually. Each visit, check both water bins on the robot:
+          <ul>
+            <li><strong>Dirty water bin</strong> (dark/gray tank): dump and rinse it out.</li>
+            <li><strong>Clean water bin</strong> (clear tank): refill with fresh water before you leave so it's ready for the next scheduled run.</li>
+          </ul>
+          <div class="tip">💡 The bins are labeled or color-coded on the Roborock dock. When in doubt, the one that smells or has discolored water is the dirty one.</div>
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">Thermostat</div>
+        <div class="task-card-body">
+          Make sure the thermostat is set back to its default setting before you leave. The default is already programmed in — just verify it hasn't been changed significantly by guests. If it looks very different from normal, set it back.
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">Final Walk-Through</div>
+        <div class="task-card-body">
+          Before leaving, do a slow walk through every room. Look for anything out of the ordinary — damage to furniture or walls, anything broken, anything left behind by guests, supplies that need restocking. Write anything you notice in the notes section of the checklist so the owners are aware.
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">Patio &amp; Outdoor Area</div>
+        <div class="task-card-body">
+          Clear off any trash, bottles, or items guests left on the patio. Wipe down the outdoor furniture — table, chairs, and any other surfaces. Make sure the patio looks neat and welcoming for the next guest.
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">Hot Tub — Every Visit</div>
+        <div class="task-card-body">
+          <ul>
+            <li><strong>Bromine floater:</strong> Open the cover and check the floating dispenser. There should always be at least 2 solid bromine tablets in it at all times. If there are fewer than 2, or if the existing tablets are more than halfway dissolved, add 1 or 2 fresh tablets. The goal is to always have 2 solid ones working. Example: if you see 2 half-dissolved tablets, add 1 fresh one to stay ahead.</li>
+            <li><strong>Skim the surface:</strong> Use the skimmer net to remove any debris, leaves, or foam from the water surface.</li>
+            <li><strong>Water level:</strong> Check that the water is at the normal level (above the jets but not overflowing). If it looks low, add water with the garden hose.</li>
+            <li><strong>Cover:</strong> Wipe down the cover and make sure it's fully secured when done.</li>
+          </ul>
+          <div class="tip">💡 Bromine tablets dissolve slowly over time. The floater's purpose is to keep a steady level of sanitizer in the water so guests can use the hot tub safely.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <hr class="divider" />
+
+    <!-- =============================
+         WEEKLY TASKS
+    ============================== -->
+    <div class="section">
+      <div class="section-header">
+        <span class="badge badge-weekly">Weekly</span>
+        <span class="section-title">Weekly Tasks</span>
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">Hot Tub — Shock Treatment</div>
+        <div class="task-card-body">
+          Add one dose of hot tub shock (oxidizer) to the water once a week. Also add a dose after every guest checkout — this helps clear out anything left in the water and keeps the chemistry balanced. Follow the dosage instructions on the shock container. Add it to the water with the cover open and jets running if possible.
+          <div class="warn">⚠️ Do not let guests use the hot tub for at least 30 minutes after adding shock.</div>
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">Hot Tub — Scrub Sides &amp; Waterline</div>
+        <div class="task-card-body">
+          Using the hot tub brush, lightly scrub the inside walls and around the waterline. This prevents a ring of buildup (oils, minerals, residue from guests) from forming. A light pass is all that's needed — no heavy scrubbing required.
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">Shower Walls &amp; Floor (All Bathrooms)</div>
+        <div class="task-card-body">
+          The showers are fiberglass — not tile. There is no grout to scrub. Use a soft scrub brush or sponge with bathroom cleaner. Scrub the walls and the shower floor to remove any soap scum or body oil buildup. Rinse thoroughly. A weekly deep scrub keeps them from getting grimy and makes each turnover clean much faster.
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">Roborock — Dirt Bag Check</div>
+        <div class="task-card-body">
+          Check the Roborock's dirt collection bag. If it appears more than half full, replace it now. There are always spare bags available. The bag goes in the trash — just drop in the fresh replacement.
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">5-Gallon Water Jugs</div>
+        <div class="task-card-body">
+          Check the filtered water supply. There should always be at least one full 5-gallon jug in reserve. If you're running low, let the owners know so they can get refills. The jugs are for drinking water and coffee.
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">Supplies Check</div>
+        <div class="task-card-body">
+          Once a week, do a quick scan of the following supplies and note anything that needs restocking:
+          <ul>
+            <li>☕ Coffee, creamer, Stevia</li>
+            <li>🧴 White vinegar (for cleaning)</li>
+            <li>🧻 Toilet paper, paper towels</li>
+            <li>🚿 Hand soap, shampoo, conditioner, body wash</li>
+            <li>🍽️ Dish soap, sponges</li>
+            <li>🧺 Laundry detergent, dryer sheets</li>
+            <li>🗑️ Trash bags (kitchen &amp; small)</li>
+            <li>🛁 Hot tub: bromine tablets, shock (oxidizer)</li>
+          </ul>
+          Write any low items in the notes on the checklist.
+        </div>
+      </div>
+
+    </div>
+
+    <hr class="divider" />
+
+    <!-- =============================
+         MONTHLY TASKS
+    ============================== -->
+    <div class="section">
+      <div class="section-header">
+        <span class="badge badge-monthly">Monthly</span>
+        <span class="section-title">Monthly Tasks — Spread These Out</span>
+      </div>
+
+      <div class="intro-box" style="background:#fff8e1; border-color:#f5c400;">
+        Monthly tasks don't all need to be done in one visit. Pick 1 or 2 each time you come. By the end of the month, they'll all be done. This keeps each visit to 2–3 hours.
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">Roborock — Mop Tray</div>
+        <div class="task-card-body">
+          Remove the mop tray from the robot dock. Rinse it out in the sink with water. Put it back. That's it — quick and easy.
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">Roborock — Mop Pads</div>
+        <div class="task-card-body">
+          There is always a clean, dry spare set of mop pads available. Swap the dirty pads off the robot for the clean spare set. The dirty pads go in the washer — wash them on a regular cycle, let them fully dry before storing as the next spare.
+          <div class="tip">💡 There should always be one clean dry set ready to go. If the spare is already dirty, both sets need to be washed before the next swap.</div>
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">Roborock — Robot Filter</div>
+        <div class="task-card-body">
+          There is always a clean spare filter available. Remove the dirty filter from the robot and replace it with the clean spare. For the dirty filter:
+          <ul>
+            <li>Tap it gently over the trash to knock out loose dust.</li>
+            <li>Rinse it in the sink under running water.</li>
+            <li>Place it on the top rack of the dishwasher and run a light cycle.</li>
+            <li>Let it dry completely before storing it as the next spare.</li>
+          </ul>
+          <div class="warn">⚠️ Never put a damp filter back in the robot. It must be fully dry.</div>
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">Roborock — Brush &amp; Sensor Check</div>
+        <div class="task-card-body">
+          Remove the main brush roll from the bottom of the robot and clear any tangled hair or debris. Do the same for the small side brushes. Use scissors if needed to cut hair free. Wipe the sensors on the bottom of the robot with a dry cloth — these help it navigate.
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">Bathroom Floors — Spot Clean Behind Toilets &amp; Corners</div>
+        <div class="task-card-body">
+          The Roborock can't reach the area directly behind toilets and tight corners. Once a month, use a mop or damp cloth to get those spots. It's a small area and takes just a few minutes per bathroom.
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">Light Switches &amp; Door Handles</div>
+        <div class="task-card-body">
+          Wipe down all light switches, outlet plates, and door handles throughout the home with a disinfectant spray or wipe. These are the most-touched surfaces in the house and rarely get attention during a regular turnover clean.
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">Patio — Blow Off &amp; Cushions</div>
+        <div class="task-card-body">
+          Use the leaf blower (or broom) to clear the patio and any steps of leaves, debris, and dirt. For the outdoor furniture cushions, vacuum them with the vacuum attachment or wipe them down with a damp cloth if they have any stains or grime.
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">Baseboards</div>
+        <div class="task-card-body">
+          Wipe down the baseboards in all rooms and hallways with a damp cloth. Dust and hair collect along baseboards and it makes the whole place feel cleaner when they're done.
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">Ceiling Fans &amp; Light Fixtures</div>
+        <div class="task-card-body">
+          Use a microfiber duster or damp cloth to wipe down the ceiling fan blades and any overhead light fixtures. Dust builds up quickly and you can see it from below when it's bad.
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">Oven — Deep Clean</div>
+        <div class="task-card-body">
+          Use oven cleaner or baking soda + vinegar paste on the inside of the oven. Let it sit for the recommended time, then wipe out with damp cloths. Clean the oven racks separately in the sink if needed. This only needs a thorough scrub once a month.
+        </div>
+      </div>
+
+    </div>
+
+    <hr class="divider" />
+
+    <!-- =============================
+         QUICK TIPS
+    ============================== -->
+    <div class="section">
+      <div class="section-header">
+        <span class="badge badge-owner">General Tips</span>
+        <span class="section-title">Good to Know</span>
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">Order of Operations</div>
+        <div class="task-card-body">
+          <ul>
+            <li>Always start laundry first.</li>
+            <li>Work top-down in each room — dust and wipe high surfaces before doing floors.</li>
+            <li>Do bathrooms completely before moving to the next one.</li>
+            <li>Kitchen last so you can run the dishwasher as you finish up.</li>
+            <li>Do your outdoor / hot tub check last before leaving.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">If Something Looks Damaged or Wrong</div>
+        <div class="task-card-body">
+          Don't try to fix it — just note it on the checklist and let the owners know. If it's urgent (water leak, something broken that affects guests), text the owner directly. A photo is always helpful.
+        </div>
+      </div>
+
+      <div class="task-card">
+        <div class="task-card-header">Supplies — Where Things Are</div>
+        <div class="task-card-body">
+          All cleaning supplies, spare linens, paper goods, and hot tub chemicals are stored in the designated supply area. If you use the last of anything, write it in the notes. Spare Roborock filters and mop pads are kept near the robot dock.
+          <div class="tip">💡 If you're ever unsure where something is or how to do a task, text or call — the owners would rather answer a quick question than have something go wrong.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="doc-footer">
+      Keng's Landing LLC · Cleaning Reference Guide v1.0 · April 2026 · This document is confidential and for internal use only.
+    </div>
+
+  </div>
+
+</body>
+</html>
