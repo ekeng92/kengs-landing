@@ -7,24 +7,24 @@
   <style>
     @page {
       size: letter portrait;
-      margin: 0.45in;
+      margin: 0.25in;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
-      font-size: 10.5px;
+      font-size: 9px;
       color: #111;
       background: #f2f2f2;
-      padding: 18px;
+      padding: 10px;
     }
 
     .page {
       max-width: 7.5in;
       margin: 0 auto;
       background: #fff;
-      padding: 18px 22px 14px;
+      padding: 10px 14px 8px;
       border-radius: 6px;
       box-shadow: 0 2px 12px rgba(0,0,0,.10);
     }
@@ -35,18 +35,18 @@
       align-items: center;
       justify-content: space-between;
       border-bottom: 2.5px solid #6a1a2a;
-      padding-bottom: 7px;
-      margin-bottom: 10px;
+      padding-bottom: 4px;
+      margin-bottom: 5px;
       gap: 12px;
     }
 
     .header h1 {
-      font-size: 15px;
+      font-size: 12px;
       font-weight: 700;
       color: #6a1a2a;
     }
 
-    .header-sub { font-size: 10px; color: #666; margin-top: 1px; }
+    .header-sub { font-size: 8.5px; color: #666; margin-top: 1px; }
 
     .header-fields { display: flex; gap: 14px; align-items: center; }
 
@@ -65,15 +65,15 @@
 
     /* SECTION LABELS */
     .section-label {
-      font-size: 9.5px;
+      font-size: 8.5px;
       font-weight: 700;
       letter-spacing: 0.8px;
       text-transform: uppercase;
       color: #fff;
-      padding: 3px 10px;
+      padding: 2px 8px;
       border-radius: 3px;
-      margin-bottom: 6px;
-      margin-top: 10px;
+      margin-bottom: 3px;
+      margin-top: 5px;
     }
 
     .sl-monthly  { background: #795548; }
@@ -84,30 +84,30 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 4px;
+      margin-bottom: 2px;
     }
 
     thead th {
-      font-size: 9px;
+      font-size: 8px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       color: #999;
       text-align: left;
-      padding: 3px 6px;
+      padding: 2px 4px;
       border-bottom: 1.5px solid #ddd;
     }
 
-    th.c-done  { width: 30px; text-align: center; }
+    th.c-done  { width: 26px; text-align: center; }
     th.c-task  { }
-    th.c-who   { width: 80px; }
-    th.c-date  { width: 90px; }
-    th.c-notes { width: 130px; }
+    th.c-who   { width: 65px; }
+    th.c-date  { width: 75px; }
+    th.c-notes { width: 105px; }
 
     tbody tr { border-bottom: 1px solid #f0f0f0; }
     tbody tr:hover { background: #fdf8f8; }
 
-    tbody td { padding: 4.5px 6px; vertical-align: middle; }
+    tbody td { padding: 2px 4px; vertical-align: middle; }
     td.c-done { text-align: center; }
 
     input[type="checkbox"] {
@@ -116,16 +116,16 @@
       cursor: pointer;
     }
 
-    .task-name { font-size: 10.5px; font-weight: 500; }
-    .task-hint { font-size: 9px; color: #888; }
+    .task-name { font-size: 9px; font-weight: 500; }
+    .task-hint { font-size: 7.5px; color: #888; }
 
     .cat-row td {
-      font-size: 9px;
+      font-size: 8px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       color: #bbb;
-      padding: 7px 6px 2px;
+      padding: 3px 4px 1px;
       border-bottom: none;
       background: transparent;
     }
@@ -145,17 +145,17 @@
     /* NOTES */
     .notes-section {
       border-top: 1.5px solid #eee;
-      padding-top: 6px;
-      margin-top: 8px;
+      padding-top: 4px;
+      margin-top: 5px;
     }
     .notes-label {
-      font-size: 9px; font-weight: 700;
+      font-size: 8px; font-weight: 700;
       text-transform: uppercase; letter-spacing: 0.5px;
-      color: #999; margin-bottom: 3px;
+      color: #999; margin-bottom: 2px;
     }
-    .notes-line { border-bottom: 1px solid #ddd; height: 18px; margin-bottom: 3px; }
+    .notes-line { border-bottom: 1px solid #ddd; height: 14px; margin-bottom: 2px; }
 
-    .doc-footer { font-size: 8.5px; color: #ccc; text-align: right; margin-top: 6px; }
+    .doc-footer { font-size: 8px; color: #ccc; text-align: right; margin-top: 3px; }
 
     /* PRINT */
     @media print {
