@@ -6,6 +6,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Keng's Landing — Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../js/auth.js"></script>
   <style>
     :root {
       --bg: #0f1117; --surface: #1a1d27; --surface2: #222633; --surface3: #2a2e3b;
@@ -71,6 +73,8 @@
   <header>
     <h1>Keng's Landing <span>Finance Dashboard</span></h1>
     <div class="header-actions">
+      <span id="user-email" style="font-size:0.78rem;color:var(--text-muted);"></span>
+      <button class="btn btn-sm" onclick="Auth.signOut()" style="color:var(--text-muted);">Sign Out</button>
       <select id="property-select" title="Select property"></select>
       <select id="date-range" title="Date range">
         <option value="ytd">Year to Date</option>
@@ -157,6 +161,9 @@
 
     // ── Init ────────────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', async () => {
+      const session = await Auth.requireLogin();
+      if (!session) return;
+      document.getElementById('user-email').textContent = session.user.email;
       wireTabs();
       await loadProperties();
       await refreshAll();
@@ -181,7 +188,8 @@
 
     // ── API helpers ─────────────────────────────────────────────────────
     async function apiFetch(path) {
-      const res = await fetch(API + path);
+      const headers = await Auth.getHeaders();
+      const res = await fetch(API + path, { headers });
       if (!res.ok) throw new Error(`API ${res.status}: ${await res.text()}`);
       return res.json();
     }
@@ -412,7 +420,7 @@
       try {
         const res = await fetch(`${API}/imports/expenses/${expenseId}/reclassify`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: await Auth.jsonHeaders(),
           body: JSON.stringify({ workspace_id: WS_ID, review_state: newState }),
         });
         if (res.ok) {
@@ -431,7 +439,7 @@
     // ── Import job history ──────────────────────────────────────────────
     async function loadImportJobs() {
       try {
-        const res = await fetch(`${API}/imports?workspace_id=${WS_ID}`);
+        const res = await fetch(`${API}/imports?workspace_id=${WS_ID}`, { headers: await Auth.getHeaders() });
         if (!res.ok) { document.getElementById('import-jobs-table').innerHTML = '<div class="empty-state">Could not load import jobs</div>'; return; }
         const result = await res.json();
         const jobs = result.data || [];

@@ -28,7 +28,8 @@ const $ = (id) => document.getElementById(id);
 // ---------------------------------------------------------------------------
 // Init
 // ---------------------------------------------------------------------------
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await Auth.requireLogin();
   populateCategoryFilter();
   wireUploadZone();
   wireFilters();
@@ -69,7 +70,7 @@ async function uploadFile(file) {
   try {
     const jobRes = await fetch(`${API}/imports`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await Auth.jsonHeaders(),
       body: JSON.stringify({ workspace_id: WS_ID, import_type: 'expense', original_filename: file.name }),
     });
     const jobData = await jobRes.json();
@@ -81,7 +82,7 @@ async function uploadFile(file) {
     const csvText = await file.text();
     const parseRes = await fetch(`${API}/imports/${state.jobId}/parse-expenses`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await Auth.jsonHeaders(),
       body: JSON.stringify({ csv: csvText }),
     });
     const parseData = await parseRes.json();
@@ -104,7 +105,7 @@ async function uploadFile(file) {
 async function loadReviewQueue() {
   if (!state.jobId) return;
   try {
-    const res = await fetch(`${API}/imports/${state.jobId}/rows`);
+    const res = await fetch(`${API}/imports/${state.jobId}/rows`, { headers: await Auth.getHeaders() });
     if (res.ok) { state.rows = (await res.json()).data || []; }
     else { toast('Could not load review rows.', 'error'); state.rows = []; }
   } catch { toast('Network error loading rows.', 'error'); state.rows = []; }
@@ -270,7 +271,7 @@ document.addEventListener('click', async (e) => {
     if (action === 'classify') {
       const res = await fetch(`${API}/imports/${state.jobId}/rows/${rowId}/classify`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await Auth.jsonHeaders(),
         body: JSON.stringify({
           review_state: reviewState, category,
           property_id: PROPERTY_360CR,
@@ -288,7 +289,7 @@ document.addEventListener('click', async (e) => {
     } else if (action === 'reject') {
       const res = await fetch(`${API}/imports/${state.jobId}/rows/${rowId}/reject`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await Auth.jsonHeaders(),
         body: JSON.stringify({}),
       });
       if (!res.ok) { const d = await res.json(); toast(d.error || 'Reject failed.', 'error'); return; }
@@ -316,7 +317,7 @@ async function promoteAllApproved() {
 
   try {
     const res = await fetch(`${API}/imports/${state.jobId}/promote-expenses`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: await Auth.jsonHeaders(),
     });
     const data = await res.json();
     if (!res.ok) { toast(data.error || 'Commit failed.', 'error'); return; }

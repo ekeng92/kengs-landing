@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In — Keng's Landing</title>
+  <style>
+    :root {
+      --bg: #0f1117; --surface: #1a1d27; --surface2: #222633;
+      --border: #2e3345; --border2: #3d4255;
+      --text: #e2e4ea; --text-muted: #8b90a0; --text-dim: #5a5f72;
+      --accent: #2f7c55; --accent-light: #4ade80;
+      --negative: #f87171;
+      --radius: 10px; --radius-sm: 6px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg); color: var(--text);
+      font-size: 14px; line-height: 1.5;
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 40px 36px; width: 100%; max-width: 400px;
+    }
+    .logo {
+      font-size: 1.25rem; font-weight: 700; color: var(--accent-light);
+      margin-bottom: 4px;
+    }
+    .subtitle {
+      font-size: 0.82rem; color: var(--text-muted); margin-bottom: 32px;
+    }
+    .tabs {
+      display: flex; gap: 0; margin-bottom: 28px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab-btn {
+      flex: 1; background: none; border: none; border-bottom: 2px solid transparent;
+      color: var(--text-muted); padding: 8px 12px; font-size: 0.85rem; cursor: pointer;
+      transition: all .15s; margin-bottom: -1px;
+    }
+    .tab-btn.active { color: var(--accent-light); border-bottom-color: var(--accent-light); }
+    label {
+      display: block; font-size: 0.78rem; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; margin-top: 16px;
+    }
+    label:first-of-type { margin-top: 0; }
+    input[type="email"], input[type="password"] {
+      width: 100%; padding: 9px 12px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: var(--surface2);
+      color: var(--text); font-size: 0.9rem; outline: none;
+      transition: border-color .15s;
+    }
+    input:focus { border-color: var(--accent); }
+    .btn-primary {
+      width: 100%; margin-top: 24px; padding: 10px 16px;
+      background: var(--accent); border: none; border-radius: var(--radius-sm);
+      color: #fff; font-size: 0.9rem; font-weight: 600; cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-primary:hover { background: var(--accent-light); color: #000; }
+    .btn-primary:disabled { opacity: 0.6; cursor: default; }
+    .error-msg {
+      margin-top: 16px; padding: 10px 14px;
+      background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.3);
+      border-radius: var(--radius-sm); color: var(--negative); font-size: 0.83rem;
+      display: none;
+    }
+    .success-msg {
+      margin-top: 16px; padding: 10px 14px;
+      background: rgba(74,222,128,.1); border: 1px solid rgba(74,222,128,.3);
+      border-radius: var(--radius-sm); color: var(--accent-light); font-size: 0.83rem;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">Keng's Landing</div>
+    <div class="subtitle">STR Finance Operations</div>
+
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-signin" onclick="showTab('signin')">Sign In</button>
+      <button class="tab-btn" id="tab-signup" onclick="showTab('signup')">Create Account</button>
+    </div>
+
+    <!-- Sign In -->
+    <div id="form-signin">
+      <label for="si-email">Email</label>
+      <input type="email" id="si-email" placeholder="you@example.com" autocomplete="email" />
+      <label for="si-password">Password</label>
+      <input type="password" id="si-password" placeholder="••••••••" autocomplete="current-password" />
+      <button class="btn-primary" id="si-btn" onclick="handleSignIn()">Sign In</button>
+    </div>
+
+    <!-- Sign Up -->
+    <div id="form-signup" style="display:none;">
+      <label for="su-email">Email</label>
+      <input type="email" id="su-email" placeholder="you@example.com" autocomplete="email" />
+      <label for="su-password">Password</label>
+      <input type="password" id="su-password" placeholder="min 6 characters" autocomplete="new-password" />
+      <button class="btn-primary" id="su-btn" onclick="handleSignUp()">Create Account</button>
+    </div>
+
+    <div class="error-msg" id="error-msg"></div>
+    <div class="success-msg" id="success-msg"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    // Redirect if already logged in
+    Auth.getSession().then(session => {
+      if (session) location.href = '/';
+    });
+
+    function showTab(tab) {
+      document.getElementById('form-signin').style.display = tab === 'signin' ? '' : 'none';
+      document.getElementById('form-signup').style.display = tab === 'signup' ? '' : 'none';
+      document.getElementById('tab-signin').classList.toggle('active', tab === 'signin');
+      document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
+      hideMessages();
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('error-msg');
+      el.textContent = msg; el.style.display = 'block';
+      document.getElementById('success-msg').style.display = 'none';
+    }
+
+    function showSuccess(msg) {
+      const el = document.getElementById('success-msg');
+      el.textContent = msg; el.style.display = 'block';
+      document.getElementById('error-msg').style.display = 'none';
+    }
+
+    function hideMessages() {
+      document.getElementById('error-msg').style.display = 'none';
+      document.getElementById('success-msg').style.display = 'none';
+    }
+
+    async function handleSignIn() {
+      const email = document.getElementById('si-email').value.trim();
+      const password = document.getElementById('si-password').value;
+      if (!email || !password) { showError('Email and password are required.'); return; }
+
+      const btn = document.getElementById('si-btn');
+      btn.disabled = true; btn.textContent = 'Signing in…';
+
+      const { error } = await Auth.signIn(email, password);
+      if (error) {
+        showError(error.message);
+        btn.disabled = false; btn.textContent = 'Sign In';
+      } else {
+        location.href = '/';
+      }
+    }
+
+    async function handleSignUp() {
+      const email = document.getElementById('su-email').value.trim();
+      const password = document.getElementById('su-password').value;
+      if (!email || !password) { showError('Email and password are required.'); return; }
+      if (password.length < 6) { showError('Password must be at least 6 characters.'); return; }
+
+      const btn = document.getElementById('su-btn');
+      btn.disabled = true; btn.textContent = 'Creating account…';
+
+      const { error } = await Auth.signUp(email, password);
+      if (error) {
+        showError(error.message);
+        btn.disabled = false; btn.textContent = 'Create Account';
+      } else {
+        showSuccess('Account created! Check your email to confirm, then sign in.');
+        btn.disabled = false; btn.textContent = 'Create Account';
+      }
+    }
+
+    // Allow Enter key to submit
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      const signinVisible = document.getElementById('form-signin').style.display !== 'none';
+      if (signinVisible) handleSignIn();
+      else handleSignUp();
+    });
+  </script>
+</body>
+</html>

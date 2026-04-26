@@ -58,7 +58,7 @@ async function uploadFile(file) {
   try {
     const jobRes = await fetch(`${API}/imports`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await Auth.jsonHeaders(),
       body: JSON.stringify({ workspace_id: WS_ID, import_type: 'booking', original_filename: file.name }),
     });
     const jobData = await jobRes.json();
@@ -68,7 +68,7 @@ async function uploadFile(file) {
     const csvText = await file.text();
     const parseRes = await fetch(`${API}/imports/${jobId}/parse-bookings`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await Auth.jsonHeaders(),
       body: JSON.stringify({ property_id: PROPERTY_360CR, csv: csvText }),
     });
     const parseData = await parseRes.json();
@@ -88,7 +88,7 @@ async function uploadFile(file) {
 
 async function loadRows() {
   if (!jobId) return;
-  const res = await fetch(`${API}/imports/${jobId}/rows`);
+  const res = await fetch(`${API}/imports/${jobId}/rows`, { headers: await Auth.getHeaders() });
   if (res.ok) { rows = (await res.json()).data || []; }
   else { rows = []; }
 }
@@ -178,7 +178,7 @@ async function approveRow(id) {
   try {
     const res = await fetch(`${API}/imports/${jobId}/rows/${id}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await Auth.jsonHeaders(),
       body: JSON.stringify({ review_status: 'approved' }),
     });
     if (!res.ok) { const d = await res.json(); showToast(d.error || 'Approve failed.'); return; }
@@ -195,7 +195,7 @@ async function rejectRow(id) {
   try {
     const res = await fetch(`${API}/imports/${jobId}/rows/${id}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await Auth.jsonHeaders(),
       body: JSON.stringify({ review_status: 'rejected' }),
     });
     if (!res.ok) { const d = await res.json(); showToast(d.error || 'Reject failed.'); return; }
@@ -211,7 +211,7 @@ async function promoteAll() {
   if (btn) btn.disabled = true;
   try {
     const res = await fetch(`${API}/imports/${jobId}/promote-bookings`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: await Auth.jsonHeaders(),
     });
     const data = await res.json();
     if (!res.ok) { showToast(data.error || 'Commit failed.'); return; }
@@ -259,7 +259,9 @@ function checkCompletion() {
 // ---------------------------------------------------------------------------
 // Init
 // ---------------------------------------------------------------------------
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await Auth.requireLogin();
+
   const zone = document.getElementById('upload-zone');
   const input = document.getElementById('csv-file-input');
 
