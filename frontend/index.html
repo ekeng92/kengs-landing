@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Keng's Landing — Operations Hub</title>
+  <style>
+    :root {
+      --bg: #0f1117; --surface: #1a1d27; --surface2: #222633; --surface3: #2a2e3b;
+      --border: #2e3345; --border2: #3d4255;
+      --text: #e2e4ea; --text-muted: #8b90a0; --text-dim: #5a5f72;
+      --accent: #2f7c55; --accent-light: #4ade80; --accent-dim: #1e4a35;
+      --blue: #2563eb; --blue-light: #60a5fa;
+      --purple: #7c3aed; --purple-light: #a78bfa;
+      --orange: #d97706; --orange-light: #fbbf24;
+      --radius: 12px; --radius-sm: 6px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg); color: var(--text);
+      font-size: 14px; line-height: 1.5; min-height: 100vh;
+    }
+    header {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 14px 32px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo { font-size: 1.1rem; font-weight: 700; color: var(--accent-light); }
+    .logo span { color: var(--text-muted); font-weight: 400; font-size: 0.8rem; margin-left: 8px; }
+    .header-right { display: flex; align-items: center; gap: 16px; }
+    #user-email { color: var(--text-muted); font-size: 0.82rem; }
+    .btn-signout {
+      padding: 6px 14px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: none;
+      color: var(--text-muted); cursor: pointer; font-size: 0.8rem;
+      transition: all .15s;
+    }
+    .btn-signout:hover { color: var(--text); border-color: var(--border2); background: var(--surface2); }
+
+    main { max-width: 1100px; margin: 0 auto; padding: 48px 32px; }
+    .hero { margin-bottom: 48px; }
+    .hero h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 8px; }
+    .hero p { color: var(--text-muted); font-size: 0.92rem; max-width: 540px; }
+
+    .section-label {
+      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;
+      color: var(--text-dim); font-weight: 600; margin-bottom: 16px;
+    }
+
+    .card-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px; margin-bottom: 48px;
+    }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px;
+      text-decoration: none; color: inherit;
+      transition: border-color .15s, background .15s;
+      display: flex; flex-direction: column; gap: 10px;
+      cursor: pointer;
+    }
+    .card:hover { border-color: var(--border2); background: var(--surface2); }
+    .card-icon {
+      width: 40px; height: 40px; border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+    }
+    .card-icon.green { background: var(--accent-dim); }
+    .card-icon.blue { background: rgba(37,99,235,.2); }
+    .card-icon.purple { background: rgba(124,58,237,.2); }
+    .card-icon.orange { background: rgba(217,119,6,.2); }
+    .card-title { font-weight: 600; font-size: 0.95rem; }
+    .card-desc { font-size: 0.82rem; color: var(--text-muted); line-height: 1.6; flex: 1; }
+    .card-tag {
+      display: inline-block; padding: 2px 8px; border-radius: 999px;
+      font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
+      width: fit-content;
+    }
+    .tag-live { background: var(--accent-dim); color: var(--accent-light); }
+    .tag-tool { background: rgba(37,99,235,.15); color: var(--blue-light); }
+    .tag-doc { background: rgba(124,58,237,.15); color: var(--purple-light); }
+    .tag-ops { background: rgba(217,119,6,.15); color: var(--orange-light); }
+
+    footer {
+      border-top: 1px solid var(--border); padding: 20px 32px;
+      text-align: center; color: var(--text-dim); font-size: 0.78rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">Keng's Landing <span>Operations Hub</span></div>
+    <div class="header-right">
+      <span id="user-email"></span>
+      <button class="btn-signout" onclick="Auth.signOut()">Sign Out</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="hero">
+      <h1>What would you like to do?</h1>
+      <p>All tools for managing Keng's Landing properties — finance tracking, booking imports, and operations.</p>
+    </div>
+
+    <div class="section-label">Finance & Data</div>
+    <div class="card-grid">
+      <a class="card" href="/dashboard/">
+        <div class="card-icon green">📊</div>
+        <div class="card-title">Finance Dashboard</div>
+        <div class="card-desc">Revenue, expenses, net income, and occupancy KPIs across all properties. Filter by property and date range.</div>
+        <span class="card-tag tag-live">Live Data</span>
+      </a>
+      <a class="card" href="/expense-review/">
+        <div class="card-icon blue">🧾</div>
+        <div class="card-title">Expense Import Review</div>
+        <div class="card-desc">Upload bank or card CSV exports. AI-parsed rows get Schedule E categories. Review, approve, and promote to the ledger.</div>
+        <span class="card-tag tag-tool">Import Tool</span>
+      </a>
+      <a class="card" href="/booking-review/">
+        <div class="card-icon purple">📅</div>
+        <div class="card-title">Booking Import Review</div>
+        <div class="card-desc">Upload Airbnb CSV reservation exports. Review parsed booking rows and promote to canonical booking records.</div>
+        <span class="card-tag tag-tool">Import Tool</span>
+      </a>
+    </div>
+
+    <div class="section-label">Operations & Reference</div>
+    <div class="card-grid">
+      <a class="card" href="/operations/cleaning-sheet-julie.html" target="_blank">
+        <div class="card-icon green">🧹</div>
+        <div class="card-title">Cleaning Checklist</div>
+        <div class="card-desc">Turnover and weekly cleaning checklist. Printable 1-page reference for the cleaning crew.</div>
+        <span class="card-tag tag-ops">Printable</span>
+      </a>
+      <a class="card" href="/operations/maintenance-log-owners.html" target="_blank">
+        <div class="card-icon orange">🔧</div>
+        <div class="card-title">Maintenance Log</div>
+        <div class="card-desc">Monthly, 6-month, and annual maintenance task tracker. Owner-facing property upkeep record.</div>
+        <span class="card-tag tag-ops">Printable</span>
+      </a>
+      <a class="card" href="/operations/cleaning-reference-guide.html" target="_blank">
+        <div class="card-icon blue">📋</div>
+        <div class="card-title">Cleaning Reference Guide</div>
+        <div class="card-desc">Training document with how-to and why for every cleaning task. Use for onboarding new crew members.</div>
+        <span class="card-tag tag-doc">Reference</span>
+      </a>
+      <a class="card" href="/operations/supplies-inventory.html" target="_blank">
+        <div class="card-icon purple">📦</div>
+        <div class="card-title">Supplies Inventory</div>
+        <div class="card-desc">Monthly inventory check with 2-month par standards. Track what's running low before turnover season.</div>
+        <span class="card-tag tag-ops">Printable</span>
+      </a>
+    </div>
+  </main>
+
+  <footer>Keng's Landing LLC &mdash; Internal Operations</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const session = await Auth.requireLogin();
+      if (session) {
+        document.getElementById('user-email').textContent = session.user.email;
+      }
+    });
+  </script>
+</body>
+</html>
