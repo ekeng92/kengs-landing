@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Booking Import — Keng's Landing</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    /* ── Page-specific overrides ── */
+    body { background: var(--bg, #f8fafc); }
+
+    .import-shell {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 1.5rem 1rem 4rem;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .page-header h1 { font-size: 1.4rem; margin: 0; }
+    .back-link { color: var(--primary, #4f46e5); font-size: 0.85rem; text-decoration: none; }
+    .back-link:hover { text-decoration: underline; }
+
+    /* Step cards */
+    .step-card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .step-card h2 { font-size: 1rem; margin: 0 0 0.75rem; color: #1e293b; }
+
+    /* Config row */
+    .config-row {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      margin-bottom: 0.75rem;
+    }
+    .config-row label { display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; color: #475569; }
+    .config-row select, .config-row input[type="text"] {
+      padding: 6px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      min-width: 180px;
+    }
+
+    /* Upload zone */
+    .upload-zone {
+      border: 2px dashed #cbd5e1;
+      border-radius: 8px;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s;
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+    .upload-zone.drag-over { border-color: var(--primary, #4f46e5); background: #eff6ff; }
+    .upload-zone input[type="file"] { display: none; }
+
+    /* Summary bar */
+    .summary-bar {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #e2e8f0;
+      margin-bottom: 1rem;
+    }
+    .summary-stat { font-size: 0.85rem; color: #475569; }
+    .summary-stat strong { font-size: 1.1rem; color: #1e293b; display: block; }
+    .summary-stat.flagged strong { color: #d97706; }
+    .summary-stat.rejected strong { color: #dc2626; }
+    .summary-stat.ok strong { color: #16a34a; }
+
+    /* Review table */
+    .review-table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    thead th {
+      background: #f1f5f9;
+      padding: 8px 10px;
+      text-align: left;
+      font-weight: 600;
+      color: #475569;
+      border-bottom: 1px solid #e2e8f0;
+      white-space: nowrap;
+    }
+    tbody tr { border-bottom: 1px solid #f1f5f9; }
+    tbody tr:hover { background: #f8fafc; }
+    td { padding: 7px 10px; vertical-align: top; color: #334155; }
+    td.money { text-align: right; font-variant-numeric: tabular-nums; }
+
+    .badge-status {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-pending  { background: #dbeafe; color: #1d4ed8; }
+    .badge-flagged  { background: #fef3c7; color: #92400e; }
+    .badge-rejected { background: #fee2e2; color: #991b1b; }
+    .badge-approved { background: #dcfce7; color: #166534; }
+    .badge-promoted { background: #f0fdf4; color: #166534; }
+
+    .flag-reason { font-size: 0.72rem; color: #92400e; margin-top: 2px; }
+    .action-cell { white-space: nowrap; display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .btn-approve { background: #16a34a; color: #fff; border: none; padding: 4px 10px; border-radius: 5px; cursor: pointer; font-size: 0.78rem; }
+    .btn-approve:hover { background: #15803d; }
+    .btn-reject  { background: #dc2626; color: #fff; border: none; padding: 4px 10px; border-radius: 5px; cursor: pointer; font-size: 0.78rem; }
+    .btn-reject:hover  { background: #b91c1c; }
+
+    /* Commit bar */
+    .commit-bar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid #e2e8f0;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+    .commit-bar .btn-primary {
+      background: var(--primary, #4f46e5);
+      color: #fff;
+      border: none;
+      padding: 9px 22px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .commit-bar .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .commit-status { font-size: 0.85rem; color: #475569; }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: #1e293b;
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      z-index: 1000;
+    }
+    #toast.show { opacity: 1; }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 600px) {
+      thead { display: none; }
+      tbody tr { display: block; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 0.5rem; }
+      td { display: block; text-align: left; padding: 4px 10px; }
+      td::before { content: attr(data-label) ": "; font-weight: 600; color: #64748b; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="import-shell">
+  <div class="page-header">
+    <a class="back-link" href="index.html">← Back to Dashboard</a>
+    <h1>Booking Import</h1>
+  </div>
+
+  <!-- Step 1: Configure import -->
+  <div class="step-card" id="step-config">
+    <h2>Step 1 — Select Property &amp; Upload Airbnb CSV</h2>
+    <div class="config-row">
+      <label>
+        API Base URL
+        <input type="text" id="api-base" value="http://localhost:8787" placeholder="https://api.kengs-landing.com" />
+      </label>
+      <label>
+        Bearer Token
+        <input type="text" id="api-token" placeholder="eyJ..." />
+      </label>
+      <label>
+        Workspace ID
+        <input type="text" id="workspace-id" placeholder="uuid" />
+      </label>
+      <label>
+        Property
+        <select id="property-select">
+          <option value="">— Load properties —</option>
+        </select>
+      </label>
+      <button class="btn" onclick="loadProperties()" style="height:36px;margin-bottom:0">Load</button>
+    </div>
+
+    <div class="upload-zone" id="upload-zone" onclick="document.getElementById('csv-input').click()"
+         ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+      <input type="file" id="csv-input" accept=".csv,text/csv" onchange="onFileSelected(event)" />
+      <div>Drop your Airbnb CSV here or <strong>click to browse</strong></div>
+      <div id="selected-filename" style="margin-top:6px;color:#4f46e5;font-weight:600"></div>
+    </div>
+    <div style="margin-top:0.75rem;display:flex;gap:0.75rem;flex-wrap:wrap">
+      <button class="btn btn-primary" id="btn-parse" onclick="parseCsv()" disabled>Parse &amp; Check for Duplicates</button>
+      <span id="parse-status" class="commit-status"></span>
+    </div>
+  </div>
+
+  <!-- Step 2: Review queue (hidden until parse) -->
+  <div class="step-card hidden" id="step-review">
+    <h2>Step 2 — Review Flagged Rows</h2>
+
+    <div class="summary-bar" id="summary-bar"></div>
+
+    <div class="review-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Status</th>
+            <th>Confirmation</th>
+            <th>Guest</th>
+            <th>Check-In</th>
+            <th>Check-Out</th>
+            <th>Nights</th>
+            <th class="money">Gross</th>
+            <th class="money">Platform Fee</th>
+            <th class="money">Net Payout</th>
+            <th>Issues</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="review-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="commit-bar">
+      <button class="btn-primary" id="btn-commit" onclick="commitBookings()" disabled>
+        Commit Approved Bookings
+      </button>
+      <span id="commit-status" class="commit-status"></span>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+/* ── State ────────────────────────────────────────────────────────────── */
+let importJobId = null
+let rows = []  // [{id, row_index, review_status, normalized_payload, validation_errors}, ...]
+
+/* ── API helpers ─────────────────────────────────────────────────────── */
+function apiBase() { return document.getElementById('api-base').value.replace(/\/$/, '') }
+function apiToken() { return document.getElementById('api-token').value.trim() }
+function workspaceId() { return document.getElementById('workspace-id').value.trim() }
+function propertyId() { return document.getElementById('property-select').value }
+
+async function apiFetch(path, opts = {}) {
+  const token = apiToken()
+  const headers = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(opts.headers ?? {}) }
+  const res = await fetch(apiBase() + path, { ...opts, headers })
+  const json = await res.json()
+  if (!res.ok) throw new Error(json.error ?? `HTTP ${res.status}`)
+  return json
+}
+
+/* ── Property loading ─────────────────────────────────────────────────── */
+window.loadProperties = async function () {
+  const wsId = workspaceId()
+  if (!wsId) { toast('Enter a workspace ID first'); return }
+  try {
+    const { data } = await apiFetch(`/properties?workspace_id=${encodeURIComponent(wsId)}`)
+    const sel = document.getElementById('property-select')
+    sel.innerHTML = '<option value="">— Select property —</option>' +
+      (data ?? []).map(p => `<option value="${p.id}">${esc(p.name)} (${esc(p.code)})</option>`).join('')
+    toast(`Loaded ${(data ?? []).length} properties`)
+    maybeEnableParse()
+  } catch (e) {
+    toast('Error: ' + e.message)
+  }
+}
+
+/* ── File selection ───────────────────────────────────────────────────── */
+let csvText = null
+
+window.onFileSelected = function (e) {
+  const file = e.target.files[0]
+  if (!file) return
+  readFile(file)
+}
+
+window.onDragOver = function (e) {
+  e.preventDefault()
+  document.getElementById('upload-zone').classList.add('drag-over')
+}
+window.onDragLeave = function () {
+  document.getElementById('upload-zone').classList.remove('drag-over')
+}
+window.onDrop = function (e) {
+  e.preventDefault()
+  document.getElementById('upload-zone').classList.remove('drag-over')
+  const file = e.dataTransfer.files[0]
+  if (file) readFile(file)
+}
+
+function readFile(file) {
+  const reader = new FileReader()
+  reader.onload = (ev) => {
+    csvText = ev.target.result
+    document.getElementById('selected-filename').textContent = file.name
+    maybeEnableParse()
+  }
+  reader.readAsText(file)
+}
+
+function maybeEnableParse() {
+  const ready = csvText && propertyId()
+  document.getElementById('btn-parse').disabled = !ready
+}
+
+document.getElementById('property-select').addEventListener('change', maybeEnableParse)
+
+/* ── Parse ────────────────────────────────────────────────────────────── */
+window.parseCsv = async function () {
+  const wsId = workspaceId()
+  const propId = propertyId()
+  if (!wsId || !propId || !csvText) { toast('Workspace, property, and CSV are all required'); return }
+
+  document.getElementById('parse-status').textContent = 'Parsing…'
+  document.getElementById('btn-parse').disabled = true
+
+  try {
+    // Create import job
+    const jobRes = await apiFetch('/imports', {
+      method: 'POST',
+      body: JSON.stringify({ workspace_id: wsId, import_type: 'airbnb_csv', original_filename: document.getElementById('selected-filename').textContent }),
+    })
+    importJobId = jobRes.data.id
+
+    // Parse
+    const parseRes = await apiFetch(`/imports/${importJobId}/parse-bookings`, {
+      method: 'POST',
+      body: JSON.stringify({ property_id: propId, csv: csvText }),
+    })
+
+    document.getElementById('parse-status').textContent = ''
+    renderSummary(parseRes.summary)
+    await loadRows()
+    document.getElementById('step-review').classList.remove('hidden')
+    document.getElementById('step-review').scrollIntoView({ behavior: 'smooth' })
+  } catch (e) {
+    document.getElementById('parse-status').textContent = 'Error: ' + e.message
+    document.getElementById('btn-parse').disabled = false
+    toast('Parse failed: ' + e.message)
+  }
+}
+
+function renderSummary(summary) {
+  document.getElementById('summary-bar').innerHTML = `
+    <div class="summary-stat ok"><strong>${summary.auto_promotable}</strong>Auto-promotable</div>
+    <div class="summary-stat flagged"><strong>${summary.flagged}</strong>Flagged for review</div>
+    <div class="summary-stat rejected"><strong>${summary.rejected}</strong>Rejected (duplicates / errors)</div>
+    <div class="summary-stat"><strong>${summary.total}</strong>Total rows</div>
+  `
+}
+
+/* ── Load rows ────────────────────────────────────────────────────────── */
+async function loadRows() {
+  const { data } = await apiFetch(`/imports/${importJobId}/rows`)
+  rows = data ?? []
+  renderRows()
+}
+
+function renderRows() {
+  const tbody = document.getElementById('review-tbody')
+  tbody.innerHTML = rows.map((row, idx) => {
+    const n = row.normalized_payload ?? {}
+    const errors = (row.validation_errors ?? [])
+    const flagReasons = errors.map(e => e.reason).join(' · ')
+
+    return `<tr id="row-${idx}">
+      <td data-label="#">${row.row_index + 1}</td>
+      <td data-label="Status"><span class="badge-status badge-${row.review_status}">${row.review_status}</span></td>
+      <td data-label="Confirmation">${esc(n.source_confirmation_code ?? '—')}</td>
+      <td data-label="Guest">${esc(n.guest_name ?? '—')}</td>
+      <td data-label="Check-In">${esc(n.check_in_date ?? '—')}</td>
+      <td data-label="Check-Out">${esc(n.check_out_date ?? '—')}</td>
+      <td data-label="Nights">${n.nights ?? '—'}</td>
+      <td class="money" data-label="Gross">${fmtMoney(n.gross_revenue_amount)}</td>
+      <td class="money" data-label="Platform Fee">${fmtMoney(n.platform_fee_amount)}</td>
+      <td class="money" data-label="Net Payout"><strong>${fmtMoney(n.net_payout_amount)}</strong></td>
+      <td data-label="Issues">${flagReasons ? `<div class="flag-reason">${esc(flagReasons)}</div>` : '—'}</td>
+      <td data-label="Action">
+        ${row.review_status === 'flagged' || row.review_status === 'pending' ? `
+          <div class="action-cell">
+            <button class="btn-approve" onclick="approveRow('${row.id}', ${idx})">Approve</button>
+            <button class="btn-reject" onclick="rejectRow('${row.id}', ${idx})">Reject</button>
+          </div>` : '—'}
+      </td>
+    </tr>`
+  }).join('')
+
+  updateCommitButton()
+}
+
+/* ── Row actions ─────────────────────────────────────────────────────── */
+window.approveRow = async function (rowId, idx) {
+  try {
+    await apiFetch(`/imports/${importJobId}/rows/${rowId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ review_status: 'approved' }),
+    })
+    rows[idx].review_status = 'approved'
+    renderRows()
+  } catch (e) { toast('Error: ' + e.message) }
+}
+
+window.rejectRow = async function (rowId, idx) {
+  try {
+    await apiFetch(`/imports/${importJobId}/rows/${rowId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ review_status: 'rejected' }),
+    })
+    rows[idx].review_status = 'rejected'
+    renderRows()
+  } catch (e) { toast('Error: ' + e.message) }
+}
+
+function updateCommitButton() {
+  const eligible = rows.filter(r => r.review_status === 'pending' || r.review_status === 'approved').length
+  const btn = document.getElementById('btn-commit')
+  btn.disabled = eligible === 0
+  document.getElementById('commit-status').textContent =
+    eligible > 0 ? `${eligible} row(s) will be committed` : 'No rows eligible — approve at least one row'
+}
+
+/* ── Commit ───────────────────────────────────────────────────────────── */
+window.commitBookings = async function () {
+  document.getElementById('btn-commit').disabled = true
+  document.getElementById('commit-status').textContent = 'Committing…'
+  try {
+    const res = await apiFetch(`/imports/${importJobId}/promote-bookings`, { method: 'POST' })
+    const s = res.summary
+    toast(`Done: ${s.promoted} booking(s) committed, ${s.skipped} skipped`)
+    document.getElementById('commit-status').textContent = `✓ ${s.promoted} committed, ${s.skipped} skipped`
+    await loadRows()
+  } catch (e) {
+    document.getElementById('commit-status').textContent = 'Error: ' + e.message
+    document.getElementById('btn-commit').disabled = false
+    toast('Commit failed: ' + e.message)
+  }
+}
+
+/* ── Utilities ────────────────────────────────────────────────────────── */
+function fmtMoney(v) {
+  if (v == null) return '—'
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(v)
+}
+
+function esc(s) {
+  if (!s) return ''
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+}
+
+let _toastTimer = null
+function toast(msg) {
+  const el = document.getElementById('toast')
+  el.textContent = msg
+  el.classList.add('show')
+  clearTimeout(_toastTimer)
+  _toastTimer = setTimeout(() => el.classList.remove('show'), 3500)
+}
+</script>
+</body>
+</html>
