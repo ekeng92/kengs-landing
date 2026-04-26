@@ -6,7 +6,7 @@
 
 (function () {
   const SUPABASE_URL = 'https://ubfvhzepyizfjmghkhyh.supabase.co';
-  const SUPABASE_ANON_KEY = 'sb_publishable_FiK5az3hZgHDDfA430j94g_JkAMznHQ';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InViZnZoemVweWl6ZmptZ2hraHloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MzI2NDcsImV4cCI6MjA5MjMwODY0N30.DxXuQSPvcPetNMN3F9BWJ9bxTisolB3eRQRhgr_Z_hE';
 
   // Resolve paths relative to the site root regardless of which subdirectory
   // the page is in (e.g. /dashboard/, /booking-review/).
