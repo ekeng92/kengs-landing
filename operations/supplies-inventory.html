@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Keng's Landing — Supplies Inventory</title>
+  <style>
+    @page { size: letter portrait; margin: 0.45in; }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 11px;
+      color: #111;
+      background: #f2f2f2;
+      padding: 18px;
+    }
+
+    .page {
+      max-width: 7.5in;
+      margin: 0 auto;
+      background: #fff;
+      padding: 18px 22px 20px;
+      border-radius: 6px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.10);
+    }
+
+    /* HEADER */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2.5px solid #1a3a2a;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+    }
+
+    .header h1 { font-size: 15px; font-weight: 700; color: #1a3a2a; }
+    .header-sub { font-size: 10px; color: #666; margin-top: 2px; }
+
+    .header-fields { display: flex; gap: 14px; align-items: center; }
+    .hf { display: flex; align-items: center; gap: 5px; font-size: 10px; }
+    .hf label { color: #555; font-weight: 600; white-space: nowrap; }
+    .hf input {
+      border: none; border-bottom: 1.2px solid #aaa;
+      font-size: 10px; font-family: inherit;
+      padding: 1px 3px; background: transparent; outline: none; width: 110px;
+    }
+
+    /* CATEGORY HEADER */
+    .cat-header {
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #fff;
+      background: #1a3a2a;
+      padding: 3px 10px;
+      border-radius: 3px;
+      margin: 10px 0 5px;
+    }
+
+    /* TABLE */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 2px;
+    }
+
+    thead th {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #999;
+      text-align: left;
+      padding: 3px 6px;
+      border-bottom: 1.5px solid #ddd;
+    }
+
+    th.c-item  { }
+    th.c-have  { width: 55px; text-align: center; }
+    th.c-par   { width: 80px; }
+    th.c-need  { width: 55px; text-align: center; }
+    th.c-where { width: 130px; }
+    th.c-notes { width: 110px; }
+
+    tbody tr { border-bottom: 1px solid #f0f0f0; }
+    tbody tr:hover { background: #fafff8; }
+    tbody td { padding: 4px 6px; vertical-align: middle; }
+
+    td.c-have, td.c-need { text-align: center; }
+
+    input[type="checkbox"] {
+      width: 12px; height: 12px;
+      accent-color: #1a3a2a; cursor: pointer;
+    }
+
+    .item-name { font-size: 11px; font-weight: 500; }
+    .item-hint { font-size: 9px; color: #999; }
+
+    .inline-input {
+      border: none;
+      border-bottom: 1px solid #ddd;
+      font-size: 10px;
+      font-family: inherit;
+      width: 100%;
+      padding: 1px 2px;
+      background: transparent;
+      outline: none;
+    }
+    .inline-input:focus { border-bottom-color: #1a3a2a; }
+
+    /* ORDER FLAG */
+    .order-flag {
+      display: inline-block;
+      font-size: 8.5px;
+      font-weight: 700;
+      background: #ffebee;
+      color: #c62828;
+      border: 1px solid #ef9a9a;
+      border-radius: 3px;
+      padding: 1px 5px;
+      white-space: nowrap;
+    }
+
+    /* NOTES FOOTER */
+    .notes-section { border-top: 1.5px solid #eee; padding-top: 6px; margin-top: 10px; }
+    .notes-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #999; margin-bottom: 3px; }
+    .notes-line { border-bottom: 1px solid #ddd; height: 18px; margin-bottom: 3px; }
+
+    .doc-footer { font-size: 8.5px; color: #ccc; text-align: right; margin-top: 6px; }
+
+    /* PRINT */
+    @media print {
+      body { background: white; padding: 0; }
+      .page { box-shadow: none; border-radius: 0; padding: 0; max-width: 100%; }
+      .no-print { display: none !important; }
+      tbody tr { break-inside: avoid; }
+    }
+
+    .print-bar { max-width: 7.5in; margin: 0 auto 12px; display: flex; justify-content: flex-end; gap: 8px; }
+    .btn { padding: 6px 14px; font-size: 11px; font-weight: 600; border: none; border-radius: 5px; cursor: pointer; font-family: inherit; }
+    .btn-print { background: #1a3a2a; color: #fff; }
+    .btn-clear { background: #eee; color: #333; }
+    .btn-order { background: #c62828; color: #fff; }
+  </style>
+</head>
+<body>
+
+  <div class="print-bar no-print">
+    <button class="btn btn-clear" onclick="clearAll()">Clear All</button>
+    <button class="btn btn-print" onclick="window.print()">🖨 Print</button>
+  </div>
+
+  <div class="page">
+
+    <div class="header">
+      <div>
+        <h1>Keng's Landing — Supplies Inventory</h1>
+        <div class="header-sub">360 County Road · Check off what's stocked · Flag what needs ordering</div>
+      </div>
+      <div class="header-fields">
+        <div class="hf"><label>Checked by:</label><input type="text" placeholder="Name" /></div>
+        <div class="hf"><label>Date:</label><input type="date" /></div>
+      </div>
+    </div>
+
+    <!-- HOW TO USE -->
+    <div style="background:#e8f5e9; border-left:3px solid #1a3a2a; padding:5px 10px; font-size:10px; color:#333; margin-bottom:8px; border-radius:0 3px 3px 0; line-height:1.6;">
+      <strong>How to use:</strong> Check ✓ if stocked at an acceptable level. Check <span style="color:#c62828; font-weight:700;">ORDER</span> if low or out. Par = the target/minimum amount to keep on hand. Write the order list from all checked ORDER items and give to Eric &amp; Helen or place the order yourself.
+    </div>
+
+    <!-- ================================
+         GUEST AMENITIES
+    ================================= -->
+    <div class="cat-header">Guest Amenities — Bathrooms</div>
+    <table>
+      <thead>
+        <tr>
+          <th class="c-item">Item</th>
+          <th class="c-have">✓ OK</th>
+          <th class="c-have" style="color:#c62828">ORDER</th>
+          <th class="c-par">Par / Target</th>
+          <th class="c-notes">Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><div class="item-name">Toilet paper</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="e.g. 2 rolls/bath" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><div class="item-name">Hand soap (liquid)</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="1 full per bath" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><div class="item-name">Shampoo</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="1 full per shower" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><div class="item-name">Conditioner</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="1 full per shower" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><div class="item-name">Body wash</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="1 full per shower" /></td><td><input class="inline-input" type="text" /></td></tr>
+      </tbody>
+    </table>
+
+    <!-- ================================
+         KITCHEN SUPPLIES
+    ================================= -->
+    <div class="cat-header">Kitchen</div>
+    <table>
+      <thead>
+        <tr>
+          <th class="c-item">Item</th>
+          <th class="c-have">✓ OK</th>
+          <th class="c-have" style="color:#c62828">ORDER</th>
+          <th class="c-par">Par / Target</th>
+          <th class="c-notes">Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><div class="item-name">Paper towels</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="2+ rolls" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><div class="item-name">Dish soap</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="1 bottle, &gt;½ full" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><div class="item-name">Dish sponge</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="1 fresh" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><div class="item-name">Trash bags — kitchen</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="5+ spares" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><div class="item-name">Trash bags — small (bathroom)</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="10+ spares" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><div class="item-name">Coffee</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="1 bag/container" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><div class="item-name">Creamer</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="1 container" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><div class="item-name">Stevia / sweetener</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="Stocked" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><div class="item-name">White vinegar</div><div class="item-hint">Cleaning, coffee maker descale</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="1 bottle" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><div class="item-name">5-gallon purified water jugs</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="Min 1 full spare" /></td><td><input class="inline-input" type="text" /></td></tr>
+      </tbody>
+    </table>
+
+    <!-- ================================
+         LAUNDRY
+    ================================= -->
+    <div class="cat-header">Laundry</div>
+    <table>
+      <thead>
+        <tr>
+          <th class="c-item">Item</th>
+          <th class="c-have">✓ OK</th>
+          <th class="c-have" style="color:#c62828">ORDER</th>
+          <th class="c-par">Par / Target</th>
+          <th class="c-notes">Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><div class="item-name">Laundry detergent</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="&gt;½ bottle" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><div class="item-name">Dryer sheets</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="10+ sheets" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><div class="item-name">Washer cleaner tabs</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="2+ tabs" /></td><td><input class="inline-input" type="text" /></td></tr>
+      </tbody>
+    </table>
+
+    <!-- ================================
+         CLEANING SUPPLIES
+    ================================= -->
+    <div class="cat-header">Cleaning Supplies</div>
+    <table>
+      <thead>
+        <tr>
+          <th class="c-item">Item</th>
+          <th class="c-have">✓ OK</th>
+          <th class="c-have" style="color:#c62828">ORDER</th>
+          <th class="c-par">Par / Target</th>
+          <th class="c-notes">Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><div class="item-name">All-purpose spray cleaner</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="1 bottle" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><div class="item-name">Disinfectant spray</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="1 bottle" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><div class="item-name">Toilet bowl cleaner</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="1 bottle" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><div class="item-name">Glass / mirror cleaner</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="1 bottle" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><div class="item-name">Scrub brush (shower/tub)</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="1 per bath" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><div class="item-name">Toilet brush</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="1 per bath" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><div class="item-name">Microfiber cloths</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="6+" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><div class="item-name">Mop pads (Roborock spare set)</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="1 clean set ready" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><div class="item-name">Roborock filter (spare)</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="1 clean spare" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><div class="item-name">Roborock dirt bags</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="2+ spare" /></td><td><input class="inline-input" type="text" /></td></tr>
+      </tbody>
+    </table>
+
+    <!-- ================================
+         HOT TUB CHEMICALS
+    ================================= -->
+    <div class="cat-header">Hot Tub Chemicals</div>
+    <table>
+      <thead>
+        <tr>
+          <th class="c-item">Item</th>
+          <th class="c-have">✓ OK</th>
+          <th class="c-have" style="color:#c62828">ORDER</th>
+          <th class="c-par">Par / Target</th>
+          <th class="c-notes">Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><div class="item-name">Bromine tablets</div><div class="item-hint">Keep floater at 2 solid tablets at all times</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="1+ container" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><div class="item-name">Shock / oxidizer</div><div class="item-hint">Weekly + after every guest</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="Several doses on hand" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><div class="item-name">pH Up (sodium bicarbonate)</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="Stocked" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><div class="item-name">pH Down (sodium bisulfate)</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="Stocked" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><div class="item-name">Test strips</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="1 container, not expired" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><div class="item-name">Filter cleaner solution</div><div class="item-hint">For monthly cartridge soak</div></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" placeholder="Stocked" /></td><td><input class="inline-input" type="text" /></td></tr>
+      </tbody>
+    </table>
+
+    <!-- ================================
+         OTHER
+    ================================= -->
+    <div class="cat-header">Other / Add Your Own</div>
+    <table>
+      <thead>
+        <tr>
+          <th class="c-item">Item</th>
+          <th class="c-have">✓ OK</th>
+          <th class="c-have" style="color:#c62828">ORDER</th>
+          <th class="c-par">Par / Target</th>
+          <th class="c-notes">Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><input class="inline-input" type="text" placeholder="Item..." /></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><input class="inline-input" type="text" placeholder="Item..." /></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><input class="inline-input" type="text" placeholder="Item..." /></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" /></td><td><input class="inline-input" type="text" /></td></tr>
+        <tr><td><input class="inline-input" type="text" placeholder="Item..." /></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" /></td><td><input class="inline-input" type="text" /></td></tr>
+      </tbody>
+    </table>
+
+    <!-- ORDER LIST -->
+    <div class="notes-section">
+      <div class="notes-label">Order List — Items Flagged LOW / OUT</div>
+      <div class="notes-line"></div>
+      <div class="notes-line"></div>
+      <div class="notes-line"></div>
+    </div>
+
+    <div class="doc-footer">Keng's Landing LLC · Supplies Inventory v1.0 · April 2026</div>
+
+  </div>
+
+  <script>
+    function clearAll() {
+      if (!confirm('Clear all checkboxes and fields?')) return;
+      document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+      document.querySelectorAll('input[type="text"], input[type="date"]').forEach(inp => {
+        if (!inp.placeholder.includes('Item...') && inp.tagName === 'INPUT' && inp.closest('.cat-header + table tbody') ) return;
+        inp.value = '';
+      });
+      document.querySelectorAll('input[type="text"], input[type="date"]').forEach(inp => inp.value = '');
+    }
+  </script>
+
+</body>
+</html>
