@@ -5,23 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Keng's Landing — Supplies Inventory</title>
   <style>
-    @page { size: letter portrait; margin: 0.45in; }
+    @page { size: letter portrait; margin: 0.25in; }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
-      font-size: 11px;
+      font-size: 9px;
       color: #111;
       background: #f2f2f2;
-      padding: 18px;
+      padding: 10px;
     }
 
     .page {
       max-width: 7.5in;
       margin: 0 auto;
       background: #fff;
-      padding: 18px 22px 20px;
+      padding: 10px 14px 8px;
       border-radius: 6px;
       box-shadow: 0 2px 12px rgba(0,0,0,.10);
     }
@@ -32,78 +32,78 @@
       align-items: center;
       justify-content: space-between;
       border-bottom: 2.5px solid #1a3a2a;
-      padding-bottom: 8px;
-      margin-bottom: 10px;
+      padding-bottom: 4px;
+      margin-bottom: 5px;
     }
 
-    .header h1 { font-size: 15px; font-weight: 700; color: #1a3a2a; }
-    .header-sub { font-size: 10px; color: #666; margin-top: 2px; }
+    .header h1 { font-size: 12px; font-weight: 700; color: #1a3a2a; }
+    .header-sub { font-size: 8.5px; color: #666; margin-top: 2px; }
 
     .header-fields { display: flex; gap: 14px; align-items: center; }
-    .hf { display: flex; align-items: center; gap: 5px; font-size: 10px; }
+    .hf { display: flex; align-items: center; gap: 5px; font-size: 9px; }
     .hf label { color: #555; font-weight: 600; white-space: nowrap; }
     .hf input {
       border: none; border-bottom: 1.2px solid #aaa;
-      font-size: 10px; font-family: inherit;
-      padding: 1px 3px; background: transparent; outline: none; width: 110px;
+      font-size: 9px; font-family: inherit;
+      padding: 1px 3px; background: transparent; outline: none; width: 90px;
     }
 
     /* CATEGORY HEADER */
     .cat-header {
-      font-size: 9.5px;
+      font-size: 8.5px;
       font-weight: 700;
       letter-spacing: 0.8px;
       text-transform: uppercase;
       color: #fff;
       background: #1a3a2a;
-      padding: 3px 10px;
+      padding: 2px 8px;
       border-radius: 3px;
-      margin: 10px 0 5px;
+      margin: 5px 0 3px;
     }
 
     /* TABLE */
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 2px;
+      margin-bottom: 1px;
     }
 
     thead th {
-      font-size: 9px;
+      font-size: 8px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       color: #999;
       text-align: left;
-      padding: 3px 6px;
+      padding: 2px 3px;
       border-bottom: 1.5px solid #ddd;
     }
 
     th.c-item  { }
-    th.c-have  { width: 55px; text-align: center; }
-    th.c-par   { width: 80px; }
-    th.c-need  { width: 55px; text-align: center; }
-    th.c-where { width: 130px; }
-    th.c-notes { width: 110px; }
+    th.c-have  { width: 38px; text-align: center; }
+    th.c-par   { width: 60px; }
+    th.c-need  { width: 38px; text-align: center; }
+    th.c-where { width: 100px; }
+    th.c-notes { width: 75px; }
 
     tbody tr { border-bottom: 1px solid #f0f0f0; }
     tbody tr:hover { background: #fafff8; }
-    tbody td { padding: 4px 6px; vertical-align: middle; }
+    tbody td { padding: 1.5px 3px; vertical-align: middle; }
 
     td.c-have, td.c-need { text-align: center; }
 
     input[type="checkbox"] {
-      width: 12px; height: 12px;
+      width: 11px; height: 11px;
       accent-color: #1a3a2a; cursor: pointer;
     }
 
-    .item-name { font-size: 11px; font-weight: 500; }
-    .item-hint { font-size: 9px; color: #999; }
+    .item-name { font-size: 9px; font-weight: 500; }
+    .item-hint { font-size: 7.5px; color: #999; }
 
     .inline-input {
       border: none;
       border-bottom: 1px solid #ddd;
-      font-size: 10px;
+      font-size: 9px;
       font-family: inherit;
       width: 100%;
       padding: 1px 2px;
@@ -125,12 +125,16 @@
       white-space: nowrap;
     }
 
-    /* NOTES FOOTER */
-    .notes-section { border-top: 1.5px solid #eee; padding-top: 6px; margin-top: 10px; }
-    .notes-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #999; margin-bottom: 3px; }
-    .notes-line { border-bottom: 1px solid #ddd; height: 18px; margin-bottom: 3px; }
+    /* TWO-COLUMN LAYOUT */
+    .two-col { display: flex; gap: 10px; }
+    .col-left, .col-right { flex: 1; min-width: 0; }
 
-    .doc-footer { font-size: 8.5px; color: #ccc; text-align: right; margin-top: 6px; }
+    /* NOTES FOOTER */
+    .notes-section { border-top: 1.5px solid #eee; padding-top: 4px; margin-top: 6px; }
+    .notes-label { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #999; margin-bottom: 2px; }
+    .notes-line { border-bottom: 1px solid #ddd; height: 14px; margin-bottom: 2px; }
+
+    .doc-footer { font-size: 8px; color: #ccc; text-align: right; margin-top: 3px; }
 
     /* PRINT */
     @media print {
@@ -168,10 +172,11 @@
     </div>
 
     <!-- HOW TO USE -->
-    <div style="background:#e8f5e9; border-left:3px solid #1a3a2a; padding:5px 10px; font-size:10px; color:#333; margin-bottom:8px; border-radius:0 3px 3px 0; line-height:1.6;">
+    <div style="background:#e8f5e9; border-left:3px solid #1a3a2a; padding:3px 8px; font-size:8.5px; color:#333; margin-bottom:5px; border-radius:0 3px 3px 0; line-height:1.6;">
       <strong>How to use:</strong> Complete this check monthly. Check ✓ if stocked at an acceptable level. Check <span style="color:#c62828; font-weight:700;">ORDER</span> if low or out. Par = 2-month supply — always keep enough on hand to last 2 months without a restock run. Write the order list from all checked ORDER items and give to the owners or place the order yourself.
     </div>
 
+    <div class="two-col"><div class="col-left">
     <!-- ================================
          GUEST AMENITIES
     ================================= -->
@@ -244,6 +249,7 @@
       </tbody>
     </table>
 
+    </div><!-- /col-left --><div class="col-right">
     <!-- ================================
          CLEANING SUPPLIES
     ================================= -->
@@ -317,6 +323,8 @@
         <tr><td><input class="inline-input" type="text" placeholder="Item..." /></td><td class="c-have"><input type="checkbox" /></td><td class="c-need"><input type="checkbox" /></td><td><input class="inline-input" type="text" /></td><td><input class="inline-input" type="text" /></td></tr>
       </tbody>
     </table>
+
+    </div></div><!-- /two-col -->
 
     <!-- ORDER LIST -->
     <div class="notes-section">
