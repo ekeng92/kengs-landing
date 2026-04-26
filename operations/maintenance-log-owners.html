@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Keng's Landing — Owner Maintenance Log</title>
+  <style>
+    @page {
+      size: letter portrait;
+      margin: 0.45in;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 10.5px;
+      color: #111;
+      background: #f2f2f2;
+      padding: 18px;
+    }
+
+    .page {
+      max-width: 7.5in;
+      margin: 0 auto;
+      background: #fff;
+      padding: 18px 22px 14px;
+      border-radius: 6px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.10);
+    }
+
+    /* HEADER */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2.5px solid #6a1a2a;
+      padding-bottom: 7px;
+      margin-bottom: 10px;
+      gap: 12px;
+    }
+
+    .header h1 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #6a1a2a;
+    }
+
+    .header-sub { font-size: 10px; color: #666; margin-top: 1px; }
+
+    .header-fields { display: flex; gap: 14px; align-items: center; }
+
+    .hf { display: flex; align-items: center; gap: 4px; font-size: 10px; }
+    .hf label { color: #555; font-weight: 600; white-space: nowrap; }
+    .hf input {
+      border: none;
+      border-bottom: 1.2px solid #aaa;
+      font-size: 10px;
+      font-family: inherit;
+      padding: 1px 3px;
+      background: transparent;
+      outline: none;
+      width: 100px;
+    }
+
+    /* SECTION LABELS */
+    .section-label {
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #fff;
+      padding: 3px 10px;
+      border-radius: 3px;
+      margin-bottom: 6px;
+      margin-top: 10px;
+    }
+
+    .sl-monthly  { background: #795548; }
+    .sl-biannual { background: #6a1a2a; }
+    .sl-annual   { background: #37474f; }
+
+    /* TABLE */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 4px;
+    }
+
+    thead th {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #999;
+      text-align: left;
+      padding: 3px 6px;
+      border-bottom: 1.5px solid #ddd;
+    }
+
+    th.c-done  { width: 30px; text-align: center; }
+    th.c-task  { }
+    th.c-who   { width: 80px; }
+    th.c-date  { width: 90px; }
+    th.c-notes { width: 130px; }
+
+    tbody tr { border-bottom: 1px solid #f0f0f0; }
+    tbody tr:hover { background: #fdf8f8; }
+
+    tbody td { padding: 4.5px 6px; vertical-align: middle; }
+    td.c-done { text-align: center; }
+
+    input[type="checkbox"] {
+      width: 12px; height: 12px;
+      accent-color: #6a1a2a;
+      cursor: pointer;
+    }
+
+    .task-name { font-size: 10.5px; font-weight: 500; }
+    .task-hint { font-size: 9px; color: #888; }
+
+    .cat-row td {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #bbb;
+      padding: 7px 6px 2px;
+      border-bottom: none;
+      background: transparent;
+    }
+
+    .inline-input {
+      border: none;
+      border-bottom: 1px solid #ddd;
+      font-size: 10px;
+      font-family: inherit;
+      width: 100%;
+      padding: 1px 2px;
+      background: transparent;
+      outline: none;
+    }
+    .inline-input:focus { border-bottom-color: #6a1a2a; }
+
+    /* NOTES */
+    .notes-section {
+      border-top: 1.5px solid #eee;
+      padding-top: 6px;
+      margin-top: 8px;
+    }
+    .notes-label {
+      font-size: 9px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      color: #999; margin-bottom: 3px;
+    }
+    .notes-line { border-bottom: 1px solid #ddd; height: 18px; margin-bottom: 3px; }
+
+    .doc-footer { font-size: 8.5px; color: #ccc; text-align: right; margin-top: 6px; }
+
+    /* PRINT */
+    @media print {
+      body { background: white; padding: 0; }
+      .page { box-shadow: none; border-radius: 0; padding: 0; max-width: 100%; }
+      .no-print { display: none !important; }
+      tbody tr { break-inside: avoid; }
+    }
+
+    /* BUTTONS */
+    .print-bar { max-width: 7.5in; margin: 0 auto 12px; display: flex; justify-content: flex-end; gap: 8px; }
+    .btn { padding: 6px 14px; font-size: 11px; font-weight: 600; border: none; border-radius: 5px; cursor: pointer; font-family: inherit; }
+    .btn-print { background: #6a1a2a; color: #fff; }
+    .btn-clear { background: #eee; color: #333; }
+  </style>
+</head>
+<body>
+
+  <div class="print-bar no-print">
+    <button class="btn btn-clear" onclick="clearAll()">Clear All</button>
+    <button class="btn btn-print" onclick="window.print()">🖨 Print</button>
+  </div>
+
+  <div class="page">
+
+    <div class="header">
+      <div>
+        <h1>Keng's Landing — Owner Maintenance Log</h1>
+        <div class="header-sub">360 County Road · Eric &amp; Helen · Not for cleaning crew</div>
+      </div>
+      <div class="header-fields">
+        <div class="hf"><label>Property:</label><input type="text" placeholder="360 CR" /></div>
+        <div class="hf"><label>Year:</label><input type="text" placeholder="2026" style="width:55px" /></div>
+      </div>
+    </div>
+
+
+    <!-- ================================
+         MONTHLY
+    ================================= -->
+    <div class="section-label sl-monthly">Monthly</div>
+
+    <table>
+      <thead>
+        <tr>
+          <th class="c-done">✓</th>
+          <th class="c-task">Task</th>
+          <th class="c-who">Done By</th>
+          <th class="c-date">Date</th>
+          <th class="c-notes">Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <tr class="cat-row"><td colspan="5">Hot Tub</td></tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">Remove &amp; rinse filter cartridge</div><div class="task-hint">Hose off, soak in filter cleaner solution</div></td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+
+        <tr class="cat-row"><td colspan="5">Appliances</td></tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">Check HVAC air filter — replace if gray</div></td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">Run washer cleaning cycle; wipe drum &amp; seal</div></td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">Dryer lint trap housing — vacuum deep inside</div></td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">Descale coffee maker</div><div class="task-hint">White vinegar or descale cycle</div></td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">Clean garbage disposal</div><div class="task-hint">Ice + salt + citrus peels</div></td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+
+        <tr class="cat-row"><td colspan="5">Safety &amp; Structure</td></tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">Test smoke &amp; CO detectors (press test button)</div></td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">Fire extinguisher — gauge in green, pin intact</div></td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">GFCI outlets — test &amp; reset (bathrooms &amp; kitchen)</div></td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">Inspect under all sinks for leaks or moisture</div></td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">Pest check — any signs of insects or rodents</div></td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+
+        <tr class="cat-row"><td colspan="5">Review</td></tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">Review Airbnb guest reviews — recurring feedback?</div></td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+
+      </tbody>
+    </table>
+
+
+    <!-- ================================
+         6-MONTH / ANNUAL
+    ================================= -->
+    <div class="section-label sl-biannual">6-Month &amp; Annual</div>
+
+    <table>
+      <thead>
+        <tr>
+          <th class="c-done">✓</th>
+          <th class="c-task">Task</th>
+          <th style="width:50px; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#999; text-align:left; padding:3px 6px; border-bottom:1.5px solid #ddd;">Freq</th>
+          <th class="c-who">Done By</th>
+          <th class="c-date">Date</th>
+          <th class="c-notes">Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <tr class="cat-row"><td colspan="6">Hot Tub</td></tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">Full drain, scrub shell &amp; refill; replace filter if &gt;1yr old</div></td>
+          <td style="font-size:9px; color:#888;">6-mo</td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">Inspect jets, seals &amp; circulation pump</div></td>
+          <td style="font-size:9px; color:#888;">Annual</td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+
+        <tr class="cat-row"><td colspan="6">HVAC &amp; Water Systems</td></tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">Replace ALL HVAC filters (scheduled, not just when dirty)</div></td>
+          <td style="font-size:9px; color:#888;">6-mo</td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">Professional HVAC service &amp; inspection</div></td>
+          <td style="font-size:9px; color:#888;">Annual</td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">Water heater — flush sediment, check temp setting</div></td>
+          <td style="font-size:9px; color:#888;">Annual</td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">Water heater — inspect anode rod (replace if corroded)</div></td>
+          <td style="font-size:9px; color:#888;">Annual</td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+
+        <tr class="cat-row"><td colspan="6">Safety</td></tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">Replace smoke &amp; CO detector batteries (all units)</div></td>
+          <td style="font-size:9px; color:#888;">Annual</td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">Fire extinguisher — recharge or replace if expired</div></td>
+          <td style="font-size:9px; color:#888;">Annual</td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">Scheduled pest control service</div></td>
+          <td style="font-size:9px; color:#888;">6-mo</td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+
+        <tr class="cat-row"><td colspan="6">Exterior &amp; Structure</td></tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">Clean gutters &amp; downspouts</div></td>
+          <td style="font-size:9px; color:#888;">6-mo</td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">Roof inspection — missing shingles, damage, flashing</div></td>
+          <td style="font-size:9px; color:#888;">Annual</td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">Pressure wash exterior, deck &amp; concrete</div></td>
+          <td style="font-size:9px; color:#888;">Annual</td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">Inspect window &amp; door seals / weatherstripping</div></td>
+          <td style="font-size:9px; color:#888;">Annual</td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+
+        <tr class="cat-row"><td colspan="6">Appliances</td></tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">Professional dryer vent cleaning</div><div class="task-hint">Fire risk — important with heavy STR laundry use</div></td>
+          <td style="font-size:9px; color:#888;">Annual</td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">Deep clean carpets (steam clean)</div></td>
+          <td style="font-size:9px; color:#888;">6-mo</td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">Leather couch — clean &amp; condition</div><div class="task-hint">Spray section with all-in-1 cleaner/conditioner → wipe in gently with microfiber → do whole couch → buff out excess with clean microfiber</div></td>
+          <td style="font-size:9px; color:#888;">6-mo</td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+
+        <tr class="cat-row"><td colspan="6">Operations</td></tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">Update guest guidebook &amp; house rules if anything changed</div></td>
+          <td style="font-size:9px; color:#888;">Annual</td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+        <tr>
+          <td class="c-done"><input type="checkbox" /></td>
+          <td><div class="task-name">Review STR insurance policy — coverage still adequate?</div></td>
+          <td style="font-size:9px; color:#888;">Annual</td>
+          <td><input class="inline-input" type="text" /></td>
+          <td><input class="inline-input" type="date" /></td>
+          <td><input class="inline-input" type="text" /></td>
+        </tr>
+
+      </tbody>
+    </table>
+
+
+    <!-- NOTES -->
+    <div class="notes-section">
+      <div class="notes-label">Notes / Action Items</div>
+      <div class="notes-line"></div>
+      <div class="notes-line"></div>
+    </div>
+
+    <div class="doc-footer">Keng's Landing LLC · Owner Maintenance Log v1.0 · April 2026</div>
+
+  </div>
+
+  <script>
+    function clearAll() {
+      if (!confirm('Clear all checkboxes and fields?')) return;
+      document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+      document.querySelectorAll('input[type="text"], input[type="date"]').forEach(inp => inp.value = '');
+    }
+  </script>
+
+</body>
+</html>

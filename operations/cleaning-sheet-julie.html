@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Keng's Landing — Cleaning Sheet (Julie)</title>
+  <style>
+    /* ============================
+       PAGE SETUP
+    ============================ */
+    @page {
+      size: letter portrait;
+      margin: 0.45in 0.45in 0.4in;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 10.5px;
+      color: #111;
+      background: #f2f2f2;
+      padding: 18px;
+    }
+
+    .page {
+      max-width: 7.5in;
+      margin: 0 auto;
+      background: #fff;
+      padding: 18px 22px 14px;
+      border-radius: 6px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.10);
+    }
+
+    /* ============================
+       HEADER
+    ============================ */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2.5px solid #1a3a2a;
+      padding-bottom: 7px;
+      margin-bottom: 8px;
+      gap: 12px;
+    }
+
+    .header h1 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a3a2a;
+      white-space: nowrap;
+    }
+
+    .header-sub {
+      font-size: 10px;
+      color: #666;
+      margin-top: 1px;
+    }
+
+    .header-fields {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .hf {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+    }
+
+    .hf label { color: #555; font-weight: 600; white-space: nowrap; }
+
+    .hf input {
+      border: none;
+      border-bottom: 1.2px solid #aaa;
+      font-size: 10px;
+      font-family: inherit;
+      padding: 1px 3px;
+      background: transparent;
+      outline: none;
+      width: 100px;
+    }
+
+    /* ============================
+       TIP BAR
+    ============================ */
+    .tip-bar {
+      background: #fff8e1;
+      border-left: 3px solid #f5c400;
+      padding: 4px 10px;
+      font-size: 10px;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 8px;
+      border-radius: 0 3px 3px 0;
+    }
+
+    /* ============================
+       SECTION HEADERS
+    ============================ */
+    .section-label {
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #fff;
+      padding: 3px 10px;
+      border-radius: 3px;
+      margin-bottom: 6px;
+    }
+
+    .sl-turnover  { background: #1a3a2a; }
+    .sl-weekly    { background: #1565c0; }
+    .sl-monthly   { background: #795548; }
+
+    /* ============================
+       TWO-COLUMN TURNOVER LAYOUT
+    ============================ */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0 14px;
+      margin-bottom: 7px;
+    }
+
+    /* ============================
+       SUBSECTION GROUPS
+    ============================ */
+    .group {
+      margin-bottom: 6px;
+    }
+
+    .group-title {
+      font-size: 9.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #888;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 2px;
+      margin-bottom: 3px;
+    }
+
+    /* ============================
+       CHECKLIST ROWS
+    ============================ */
+    .item {
+      display: flex;
+      align-items: flex-start;
+      gap: 5px;
+      padding: 2.5px 0;
+      border-bottom: 1px dotted #f0f0f0;
+    }
+
+    .item input[type="checkbox"] {
+      width: 12px;
+      height: 12px;
+      margin-top: 1px;
+      flex-shrink: 0;
+      accent-color: #1a3a2a;
+      cursor: pointer;
+    }
+
+    .item-text {
+      flex: 1;
+      font-size: 10.5px;
+      line-height: 1.35;
+    }
+
+    .item-hint {
+      font-size: 9px;
+      color: #888;
+      margin-top: 0;
+    }
+
+    .item-note {
+      font-size: 9.5px;
+      color: #1a3a2a;
+      font-weight: 600;
+    }
+
+    /* inline initials blank */
+    .init {
+      font-size: 9px;
+      color: #bbb;
+      white-space: nowrap;
+      margin-top: 1px;
+    }
+
+    /* ============================
+       WEEKLY + MONTHLY (single col, compact)
+    ============================ */
+    .single-section {
+      margin-bottom: 6px;
+    }
+
+    .horiz-items {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0 16px;
+    }
+
+    .horiz-items .item {
+      min-width: 48%;
+      flex: 1 1 48%;
+    }
+
+    /* ============================
+       NOTES FOOTER
+    ============================ */
+    .notes-section {
+      border-top: 1.5px solid #eee;
+      padding-top: 5px;
+      margin-top: 6px;
+    }
+
+    .notes-label {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #999;
+      margin-bottom: 3px;
+    }
+
+    .notes-line {
+      border-bottom: 1px solid #ddd;
+      height: 18px;
+      margin-bottom: 3px;
+    }
+
+    .doc-footer {
+      font-size: 8.5px;
+      color: #ccc;
+      text-align: right;
+      margin-top: 4px;
+    }
+
+    /* ============================
+       PRINT STYLES
+    ============================ */
+    @media print {
+      body { background: white; padding: 0; font-size: 10px; }
+      .page { box-shadow: none; border-radius: 0; padding: 0; max-width: 100%; }
+      .no-print { display: none !important; }
+      .item { break-inside: avoid; }
+      .two-col { break-inside: avoid; }
+    }
+
+    /* ============================
+       PRINT BUTTON
+    ============================ */
+    .print-bar {
+      max-width: 7.5in;
+      margin: 0 auto 12px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .btn {
+      padding: 6px 14px;
+      font-size: 11px;
+      font-weight: 600;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .btn-print { background: #1a3a2a; color: #fff; }
+    .btn-clear { background: #eee; color: #333; }
+  </style>
+</head>
+<body>
+
+  <div class="print-bar no-print">
+    <button class="btn btn-clear" onclick="clearAll()">Clear All</button>
+    <button class="btn btn-print" onclick="window.print()">🖨 Print</button>
+  </div>
+
+  <div class="page">
+
+    <!-- HEADER -->
+    <div class="header">
+      <div>
+        <h1>Keng's Landing — Cleaning Sheet</h1>
+        <div class="header-sub">360 County Road</div>
+      </div>
+      <div class="header-fields">
+        <div class="hf">
+          <label>Date cleaned:</label>
+          <input type="date" />
+        </div>
+        <div class="hf">
+          <label>Done by:</label>
+          <input type="text" placeholder="Name" style="width:80px" />
+        </div>
+      </div>
+    </div>
+
+    <!-- TIP -->
+    <div class="tip-bar">
+      ⭐ START LAUNDRY FIRST — strip all beds and start the washer before anything else so it runs while you clean.
+    </div>
+
+    <!-- ================================
+         TURNOVER SECTION (2 columns)
+    ================================= -->
+    <div class="section-label sl-turnover">Every Guest Turnover</div>
+
+    <div class="two-col">
+
+      <!-- LEFT COLUMN -->
+      <div>
+
+        <div class="group">
+          <div class="group-title">Laundry &amp; Linens</div>
+          <div class="item"><input type="checkbox" /><div class="item-text">Strip all beds — put sheets &amp; pillowcases in washer <span class="item-hint">(start now!)</span></div></div>
+          <div class="item"><input type="checkbox" /><div class="item-text">Remake all beds with fresh linens</div></div>
+          <div class="item"><input type="checkbox" /><div class="item-text">Fresh bath towels, hand towels, washcloths in every bath</div></div>
+          <div class="item"><input type="checkbox" /><div class="item-text">Fresh kitchen towels</div></div>
+          <div class="item"><input type="checkbox" /><div class="item-text">Wash &amp; dry all used linens before leaving</div></div>
+        </div>
+
+        <div class="group">
+          <div class="group-title">Bedrooms</div>
+          <div class="item"><input type="checkbox" /><div class="item-text">Dust furniture, nightstands &amp; ceiling fans</div></div>
+          <div class="item"><input type="checkbox" /><div class="item-text">Check under beds for left-behind items</div></div>
+        </div>
+
+        <div class="group">
+          <div class="group-title">Bathrooms (each one)</div>
+          <div class="item"><input type="checkbox" /><div class="item-text">Scrub toilet — bowl, seat, base &amp; handle</div></div>
+          <div class="item"><input type="checkbox" /><div class="item-text">Clean sink &amp; faucet</div></div>
+          <div class="item"><input type="checkbox" /><div class="item-text">Wipe mirror (streak-free)</div></div>
+          <div class="item"><input type="checkbox" /><div class="item-text">Check shower is clean &amp; clear of debris <span class="item-hint">(light spray with soap/vinegar mix &amp; rinse is usually enough — full wipe-down only if needed)</span></div></div>
+          <div class="item"><input type="checkbox" /><div class="item-text">Restock: toilet paper, soap, shampoo, conditioner, body wash</div></div>
+        </div>
+
+      </div><!-- /left col -->
+
+      <!-- RIGHT COLUMN -->
+      <div>
+
+        <div class="group">
+          <div class="group-title">Kitchen</div>
+          <div class="item"><input type="checkbox" /><div class="item-text">Wipe countertops &amp; backsplash</div></div>
+          <div class="item"><input type="checkbox" /><div class="item-text">Clean stovetop &amp; range hood</div></div>
+          <div class="item"><input type="checkbox" /><div class="item-text">Wipe microwave inside &amp; out</div></div>
+          <div class="item"><input type="checkbox" /><div class="item-text">Clear fridge of leftover food; wipe shelves &amp; drawers</div></div>
+          <div class="item"><input type="checkbox" /><div class="item-text">Dishes — wash, dry, and put away</div></div>
+          <div class="item"><input type="checkbox" /><div class="item-text">Restock: paper towels, dish soap, sponge, trash bags</div></div>
+        </div>
+
+        <div class="group">
+          <div class="group-title">All Areas</div>
+          <div class="item"><input type="checkbox" /><div class="item-text">Empty ALL trash cans, replace liners</div></div>
+          <div class="item"><input type="checkbox" /><div class="item-text">Roborock — empty dirty mop water bin &amp; refill clean water bin</div></div>
+          <div class="item"><input type="checkbox" /><div class="item-text">Check thermostat is on the default setting</div></div>
+          <div class="item"><input type="checkbox" /><div class="item-text">Walk-through — note any damage or missing items below</div></div>
+        </div>
+
+        <div class="group">
+          <div class="group-title">Outdoor &amp; Hot Tub</div>
+          <div class="item"><input type="checkbox" /><div class="item-text">Clear patio of trash &amp; wipe patio furniture</div></div>
+          <div class="item"><input type="checkbox" /><div class="item-text">Hot tub floater — <span class="item-note">always keep at least 2 solid tablets.</span> Add 1–2 if count is low or existing tablets are mostly dissolved.</div></div>
+          <div class="item"><input type="checkbox" /><div class="item-text">Hot tub — skim water surface &amp; check water level</div></div>
+          <div class="item"><input type="checkbox" /><div class="item-text">Hot tub cover — wipe down &amp; secure</div></div>
+        </div>
+
+      </div><!-- /right col -->
+    </div><!-- /two-col -->
+
+
+    <!-- ================================
+         WEEKLY SECTION
+    ================================= -->
+    <div class="single-section">
+      <div class="section-label sl-weekly">Weekly / As Needed</div>
+      <div class="horiz-items">
+        <div class="item"><input type="checkbox" /><div class="item-text">Hot tub — add one shock dose <span class="item-hint">(also do after every guest)</span></div></div>
+        <div class="item"><input type="checkbox" /><div class="item-text">Hot tub — lightly scrub sides &amp; waterline with brush</div></div>
+        <div class="item"><input type="checkbox" /><div class="item-text">5-gallon water jugs — at least 1 full jug in reserve?</div></div>
+        <div class="item"><input type="checkbox" /><div class="item-text">Supplies check — coffee, creamer, Stevia, white vinegar, TP, soap, shampoo, conditioner, body wash, paper towels, dish soap, laundry detergent, dryer sheets, trash bags, hot tub bromine tablets &amp; shock</div></div>
+      </div>
+    </div>
+
+
+    <!-- ================================
+         MONTHLY SECTION
+    ================================= -->
+    <div class="single-section">
+      <div class="section-label sl-monthly">Monthly — Pick 1–2 each visit to spread the work out</div>
+      <div class="horiz-items">
+        <div class="item"><input type="checkbox" /><div class="item-text">Roborock — rinse mop tray &amp; put back</div></div>
+        <div class="item"><input type="checkbox" /><div class="item-text">Roborock — check dirt bag; replace if getting full</div></div>
+        <div class="item"><input type="checkbox" /><div class="item-text">Roborock — swap in clean spare mop pads; put dirty pads in wash</div></div>
+        <div class="item"><input type="checkbox" /><div class="item-text">Roborock — swap in clean spare filter; rinse old one in sink, then top rack of dishwasher</div></div>
+        <div class="item"><input type="checkbox" /><div class="item-text">Roborock — clear main brush &amp; side brush of hair; wipe sensors</div></div>
+        <div class="item"><input type="checkbox" /><div class="item-text">Scrub shower walls &amp; floor — all bathrooms</div></div>
+        <div class="item"><input type="checkbox" /><div class="item-text">Spot clean bathroom floors behind toilets &amp; in corners <span class="item-hint">(where Roborock can't reach)</span></div></div>
+        <div class="item"><input type="checkbox" /><div class="item-text">Wipe light switches &amp; door handles throughout home</div></div>
+        <div class="item"><input type="checkbox" /><div class="item-text">Blow off patio &amp; steps <span class="item-hint">(leaf blower or broom)</span></div></div>
+        <div class="item"><input type="checkbox" /><div class="item-text">Patio cushions — vacuum or wipe down as needed</div></div>
+        <div class="item"><input type="checkbox" /><div class="item-text">Wipe baseboards in all rooms &amp; hallways</div></div>
+        <div class="item"><input type="checkbox" /><div class="item-text">Wipe ceiling fans &amp; light fixtures</div></div>
+        <div class="item"><input type="checkbox" /><div class="item-text">Deep clean oven interior</div></div>
+      </div>
+    </div>
+
+
+    <!-- NOTES -->
+    <div class="notes-section">
+      <div class="notes-label">Issues Found / Notes for Eric &amp; Helen</div>
+      <div class="notes-line"></div>
+      <div class="notes-line"></div>
+      <div class="notes-line"></div>
+    </div>
+
+    <div class="doc-footer">Keng's Landing LLC · Cleaning Sheet v1.0 · April 2026</div>
+
+  </div><!-- /page -->
+
+  <script>
+    function clearAll() {
+      if (!confirm('Clear all checkboxes and fields?')) return;
+      document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+      document.querySelectorAll('input[type="text"], input[type="date"]').forEach(inp => inp.value = '');
+    }
+  </script>
+
+</body>
+</html>

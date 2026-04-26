@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Keng's Landing — Property Maintenance Checklist</title>
+  <style>
+    /* ============================
+       BASE
+    ============================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 13px;
+      color: #1a1a1a;
+      background: #f4f4f4;
+      padding: 24px;
+    }
+
+    .page {
+      max-width: 860px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+      padding: 32px 40px 48px;
+    }
+
+    /* ============================
+       HEADER
+    ============================ */
+    .header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      border-bottom: 3px solid #1a3a2a;
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+      gap: 20px;
+    }
+
+    .header-left h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a3a2a;
+      letter-spacing: 0.3px;
+    }
+
+    .header-left .subtitle {
+      font-size: 12px;
+      color: #555;
+      margin-top: 4px;
+    }
+
+    .header-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 16px;
+      align-items: center;
+      min-width: 320px;
+    }
+
+    .meta-field {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+    }
+
+    .meta-field label {
+      white-space: nowrap;
+      color: #555;
+      font-weight: 600;
+    }
+
+    .meta-field input[type="text"],
+    .meta-field input[type="date"] {
+      border: none;
+      border-bottom: 1.5px solid #aaa;
+      font-size: 12px;
+      font-family: inherit;
+      width: 130px;
+      padding: 2px 4px;
+      background: transparent;
+      color: #1a1a1a;
+      outline: none;
+    }
+
+    .meta-field input:focus { border-bottom-color: #1a3a2a; }
+
+    /* ============================
+       SECTION HEADERS
+    ============================ */
+    .section {
+      margin-top: 28px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .section-badge {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    .badge-turnover  { background: #e8f5e9; color: #1b5e20; border: 1px solid #a5d6a7; }
+    .badge-weekly    { background: #e3f2fd; color: #0d47a1; border: 1px solid #90caf9; }
+    .badge-monthly   { background: #fff8e1; color: #795548; border: 1px solid #ffcc80; }
+    .badge-biannual  { background: #fce4ec; color: #880e4f; border: 1px solid #f48fb1; }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a3a2a;
+    }
+
+    .section-date-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-size: 11px;
+      color: #555;
+    }
+
+    .section-date-row input[type="text"],
+    .section-date-row input[type="date"] {
+      border: none;
+      border-bottom: 1.5px solid #bbb;
+      font-size: 11px;
+      font-family: inherit;
+      width: 130px;
+      padding: 2px 4px;
+      background: transparent;
+      outline: none;
+    }
+
+    /* ============================
+       CHECKLIST TABLE
+    ============================ */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #888;
+      text-align: left;
+      padding: 5px 8px;
+      border-bottom: 1.5px solid #ddd;
+    }
+
+    thead th.col-done  { width: 36px; text-align: center; }
+    thead th.col-item  { }
+    thead th.col-initials { width: 70px; }
+    thead th.col-notes { width: 120px; }
+
+    tbody tr {
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    tbody tr:hover { background: #fafff8; }
+
+    tbody td {
+      padding: 7px 8px;
+      vertical-align: middle;
+    }
+
+    td.col-done { text-align: center; }
+
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: #1a3a2a;
+    }
+
+    td .task-name {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    td .task-note {
+      font-size: 11px;
+      color: #777;
+      margin-top: 1px;
+    }
+
+    .inline-input {
+      border: none;
+      border-bottom: 1px solid #ddd;
+      font-size: 11px;
+      font-family: inherit;
+      width: 100%;
+      padding: 2px 2px;
+      background: transparent;
+      outline: none;
+      color: #1a1a1a;
+    }
+
+    .inline-input:focus { border-bottom-color: #1a3a2a; }
+
+    /* Group rows */
+    .group-label td {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #aaa;
+      padding: 10px 8px 4px;
+      border-bottom: none;
+    }
+
+    /* ============================
+       NOTES FOOTER
+    ============================ */
+    .notes-footer {
+      margin-top: 32px;
+      border-top: 1.5px solid #eee;
+      padding-top: 16px;
+    }
+
+    .notes-footer h3 {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #888;
+      margin-bottom: 8px;
+    }
+
+    .notes-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .notes-lines .line {
+      border-bottom: 1px solid #ddd;
+      height: 22px;
+      width: 100%;
+    }
+
+    .doc-footer {
+      margin-top: 20px;
+      font-size: 10px;
+      color: #bbb;
+      text-align: right;
+    }
+
+    /* ============================
+       PRINT STYLES
+    ============================ */
+    @media print {
+      body { background: white; padding: 0; }
+      .page { box-shadow: none; border-radius: 0; padding: 20px 24px 32px; }
+
+      .no-print { display: none !important; }
+
+      thead th, tbody td { font-size: 11px; }
+
+      input[type="checkbox"] { width: 13px; height: 13px; }
+
+      tbody tr { page-break-inside: avoid; }
+      .section { page-break-inside: avoid; }
+    }
+
+    /* ============================
+       PRINT BUTTON
+    ============================ */
+    .print-bar {
+      max-width: 860px;
+      margin: 0 auto 16px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 8px 18px;
+      font-size: 12px;
+      font-weight: 600;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .btn-print { background: #1a3a2a; color: #fff; }
+    .btn-print:hover { background: #14502a; }
+    .btn-clear { background: #eee; color: #333; }
+    .btn-clear:hover { background: #ddd; }
+
+  </style>
+</head>
+<body>
+
+  <!-- Print / Action Bar -->
+  <div class="print-bar no-print">
+    <button class="btn btn-clear" onclick="clearAll()">Clear All</button>
+    <button class="btn btn-print" onclick="window.print()">🖨 Print</button>
+  </div>
+
+  <div class="page">
+
+    <!-- ================================
+         HEADER
+    ================================= -->
+    <div class="header">
+      <div class="header-left">
+        <h1>Keng's Landing — Property Maintenance Log</h1>
+        <div class="subtitle">360 County Road · Short-Term Rental Operations</div>
+      </div>
+      <div class="header-meta">
+        <div class="meta-field">
+          <label>Property:</label>
+          <input type="text" placeholder="360 CR / Other" />
+        </div>
+        <div class="meta-field">
+          <label>Period:</label>
+          <input type="text" placeholder="e.g. Week of Apr 25" />
+        </div>
+        <div class="meta-field">
+          <label>Completed by:</label>
+          <input type="text" placeholder="Name" />
+        </div>
+        <div class="meta-field">
+          <label>Date:</label>
+          <input type="date" />
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ================================
+         SECTION 1: BETWEEN EACH GUEST
+    ================================= -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-badge badge-turnover">Between Each Guest</span>
+        <span class="section-title">Turn-Over Cleaning</span>
+      </div>
+      <div class="section-date-row">
+        <span>Guest check-out date:</span>
+        <input type="date" />
+        <span style="margin-left:16px">Next check-in:</span>
+        <input type="date" />
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th class="col-done">Done</th>
+            <th class="col-item">Task</th>
+            <th class="col-initials">Initials</th>
+            <th class="col-notes">Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <tr class="group-label"><td colspan="4">Bedrooms &amp; Linens</td></tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Strip all bed linens &amp; pillowcases</div><div class="task-note">All bedrooms — leave in laundry area</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Remake all beds with fresh linens</div><div class="task-note">Check for stains before putting on bed</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Replace all bath towels, hand towels, washcloths</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Replace kitchen towels &amp; dish cloths</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Wash and dry all used linens</div><div class="task-note">Start laundry first — runs while cleaning</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Dust bedroom furniture, nightstands, fans</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+
+          <tr class="group-label"><td colspan="4">Bathrooms</td></tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Clean &amp; disinfect all toilets (bowl, seat, base, tank)</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Clean sinks &amp; faucets</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Wipe mirrors (streak-free)</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Rinse &amp; wipe shower/tub walls, door, &amp; floor</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Mop bathroom floors</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Restock: toilet paper, soap, shampoo, conditioner, body wash</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+
+          <tr class="group-label"><td colspan="4">Kitchen</td></tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Wipe all countertops &amp; backsplash</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Clean stovetop, knobs, &amp; range hood</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Wipe microwave inside &amp; out</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Clean refrigerator — remove leftover food, wipe shelves &amp; drawers</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Run dishwasher or hand-wash any remaining dishes</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Restock: paper towels, dish soap, sponge, trash bags</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+
+          <tr class="group-label"><td colspan="4">Living Areas &amp; General</td></tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Empty all trash cans &amp; replace liners</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Run Roborock / vacuum all floors</div><div class="task-note">Empty dustbin after run</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Mop hard floors</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Wipe down light switches, door handles, &amp; high-touch surfaces</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Check &amp; reset thermostat to standard guest temp</div><div class="task-note">72°F or per house standard</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Walk-through for damage, missing items, or anything unusual</div><div class="task-note">Note in section below if anything found</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Check all exterior doors are locked</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+
+          <tr class="group-label"><td colspan="4">Outdoor / Patio</td></tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Clear patio of any trash or left-behind items</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Wipe down outdoor furniture</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Hot tub — skim surface, quick rinse of cover, check water level</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+
+
+    <!-- ================================
+         SECTION 2: WEEKLY
+    ================================= -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-badge badge-weekly">Weekly</span>
+        <span class="section-title">Weekly Maintenance</span>
+      </div>
+      <div class="section-date-row">
+        <span>Week of:</span>
+        <input type="date" />
+        <span style="margin-left:16px">Completed by:</span>
+        <input type="text" style="border:none; border-bottom:1.5px solid #bbb; font-size:11px; font-family:inherit; width:130px; padding:2px 4px; background:transparent; outline:none;" />
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th class="col-done">Done</th>
+            <th class="col-item">Task</th>
+            <th class="col-initials">Initials</th>
+            <th class="col-notes">Notes / Reading</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <tr class="group-label"><td colspan="4">Hot Tub</td></tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Hot tub chemistry — pH test</div><div class="task-note">Target: 7.4–7.6</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" placeholder="Reading:" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Hot tub — Alkalinity test</div><div class="task-note">Target: 80–120 ppm</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" placeholder="Reading:" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Hot tub — Sanitizer level (bromine or chlorine)</div><div class="task-note">Bromine: 3–5 ppm · Chlorine: 2–4 ppm</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" placeholder="Reading:" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Hot tub — Water level check &amp; top off if needed</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Hot tub cover — wipe down, check for damage</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+
+          <tr class="group-label"><td colspan="4">Deep Cleaning</td></tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Scrub shower walls, tile, &amp; grout (all bathrooms)</div><div class="task-note">Use scrub brush on grout lines</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Wipe baseboards in main living areas &amp; hallways</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Wipe down ceiling fans &amp; light fixtures</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+
+          <tr class="group-label"><td colspan="4">Equipment &amp; Robot</td></tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Roborock — check dustbin (empty if &gt;50% full)</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Roborock — check main brush &amp; side brush for hair/debris</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Roborock — check filter (tap clean or replace if gray)</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+
+          <tr class="group-label"><td colspan="4">Supplies</td></tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">5-gallon purified water supply — check level &amp; refill if low</div><div class="task-note">Keep at least 1 full jug in reserve</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" placeholder="Jugs on hand:" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Guest amenities inventory check</div><div class="task-note">Toilet paper, paper towels, soap, shampoo, conditioner, dish soap</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Cleaning supplies inventory check</div><div class="task-note">Spray cleaners, disinfectant, scrub brushes, mop pads</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+
+          <tr class="group-label"><td colspan="4">Safety &amp; Outdoor</td></tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Verify smoke &amp; CO detector indicator lights are green</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Check outdoor lighting (porch, patio, path lights)</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Quick exterior walk — check for any visible issues</div><div class="task-note">Fence, doors, windows, yard debris</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+
+
+    <!-- ================================
+         SECTION 3: MONTHLY
+    ================================= -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-badge badge-monthly">Monthly</span>
+        <span class="section-title">Monthly Maintenance</span>
+      </div>
+      <div class="section-date-row">
+        <span>Month:</span>
+        <input type="text" placeholder="e.g. May 2026" style="border:none; border-bottom:1.5px solid #bbb; font-size:11px; font-family:inherit; width:110px; padding:2px 4px; background:transparent; outline:none;" />
+        <span style="margin-left:16px">Completed by:</span>
+        <input type="text" style="border:none; border-bottom:1.5px solid #bbb; font-size:11px; font-family:inherit; width:130px; padding:2px 4px; background:transparent; outline:none;" />
+        <span style="margin-left:16px">Date done:</span>
+        <input type="date" />
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th class="col-done">Done</th>
+            <th class="col-item">Task</th>
+            <th class="col-initials">Initials</th>
+            <th class="col-notes">Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <tr class="group-label"><td colspan="4">Appliances &amp; Systems</td></tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Deep clean oven interior</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Run washer cleaning cycle; wipe drum &amp; door seal</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Clean dryer lint trap housing (vacuum deep inside)</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Inspect &amp; replace HVAC air filters if dirty</div><div class="task-note">Check filter color — replace if gray</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Descale coffee maker</div><div class="task-note">Run a white vinegar or descale cycle</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Clean garbage disposal</div><div class="task-note">Ice + salt + citrus peels</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+
+          <tr class="group-label"><td colspan="4">Hot Tub</td></tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Remove &amp; rinse hot tub filter cartridge</div><div class="task-note">Rinse with garden hose, soak in filter cleaner solution</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Shock treatment / oxidizer dose</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+
+          <tr class="group-label"><td colspan="4">Safety</td></tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Test smoke &amp; CO detectors (press test button on each)</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Check fire extinguisher — gauge in green, pin intact</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Check GFCI outlets in bathrooms and kitchen (test/reset)</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+
+          <tr class="group-label"><td colspan="4">Structure &amp; Exterior</td></tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Inspect under all sinks for leaks or moisture</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Check all door locks, latches, &amp; hinges</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Inspect deck &amp; patio furniture for damage or wear</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Touch up any caulk or grout issues spotted this month</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+
+          <tr class="group-label"><td colspan="4">Operations Review</td></tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Review Airbnb guest reviews — note any recurring feedback</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Pest check — signs of insects or rodents anywhere</div></td>
+            <td><input type="text" class="inline-input" /></td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+
+
+    <!-- ================================
+         SECTION 4: 6-MONTH / ANNUAL
+    ================================= -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-badge badge-biannual">6-Month / Annual</span>
+        <span class="section-title">Seasonal &amp; Annual Maintenance</span>
+      </div>
+      <div class="section-date-row">
+        <span>Season / Year:</span>
+        <input type="text" placeholder="e.g. Fall 2026" style="border:none; border-bottom:1.5px solid #bbb; font-size:11px; font-family:inherit; width:110px; padding:2px 4px; background:transparent; outline:none;" />
+        <span style="margin-left:16px">Completed by:</span>
+        <input type="text" style="border:none; border-bottom:1.5px solid #bbb; font-size:11px; font-family:inherit; width:130px; padding:2px 4px; background:transparent; outline:none;" />
+        <span style="margin-left:16px">Date done:</span>
+        <input type="date" />
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th class="col-done">Done</th>
+            <th class="col-item">Task</th>
+            <th class="col-initials">Freq</th>
+            <th class="col-notes">Notes / Date</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <tr class="group-label"><td colspan="4">Hot Tub</td></tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Full drain, scrub shell, &amp; refill hot tub</div><div class="task-note">Replace filter cartridge if &gt;1 year old</div></td>
+            <td style="font-size:11px; color:#888;">6-mo</td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Hot tub — inspect jets, seals, &amp; circulation pump</div></td>
+            <td style="font-size:11px; color:#888;">Annual</td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+
+          <tr class="group-label"><td colspan="4">HVAC &amp; Water</td></tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Replace all HVAC air filters (scheduled, regardless of appearance)</div></td>
+            <td style="font-size:11px; color:#888;">6-mo</td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Professional HVAC service &amp; inspection</div></td>
+            <td style="font-size:11px; color:#888;">Annual</td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Water heater — check temp setting, flush sediment</div></td>
+            <td style="font-size:11px; color:#888;">Annual</td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Water heater — inspect anode rod (replace if corroded)</div></td>
+            <td style="font-size:11px; color:#888;">Annual</td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+
+          <tr class="group-label"><td colspan="4">Safety</td></tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Replace smoke &amp; CO detector batteries (all units)</div></td>
+            <td style="font-size:11px; color:#888;">Annual</td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Fire extinguisher — professional recharge or replace if expired</div></td>
+            <td style="font-size:11px; color:#888;">Annual</td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Scheduled pest control service</div></td>
+            <td style="font-size:11px; color:#888;">6-mo</td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+
+          <tr class="group-label"><td colspan="4">Exterior &amp; Structure</td></tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Clean gutters &amp; downspouts</div></td>
+            <td style="font-size:11px; color:#888;">6-mo</td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Roof inspection — check for missing shingles, damage</div></td>
+            <td style="font-size:11px; color:#888;">Annual</td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Pressure wash exterior, deck, &amp; concrete</div></td>
+            <td style="font-size:11px; color:#888;">Annual</td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Inspect window &amp; door seals / weatherstripping</div></td>
+            <td style="font-size:11px; color:#888;">Annual</td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+
+          <tr class="group-label"><td colspan="4">Appliances</td></tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Professional dryer vent cleaning</div><div class="task-note">Fire hazard — important for heavy-use STR dryers</div></td>
+            <td style="font-size:11px; color:#888;">Annual</td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Deep clean carpets (steam clean)</div></td>
+            <td style="font-size:11px; color:#888;">6-mo</td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Inspect all appliances for wear or issues — note age</div></td>
+            <td style="font-size:11px; color:#888;">Annual</td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+
+          <tr class="group-label"><td colspan="4">Operations</td></tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Update guest guidebook &amp; house rules if anything changed</div></td>
+            <td style="font-size:11px; color:#888;">Annual</td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Update emergency contact list posted in home</div></td>
+            <td style="font-size:11px; color:#888;">Annual</td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+          <tr>
+            <td class="col-done"><input type="checkbox" /></td>
+            <td><div class="task-name">Review STR insurance policy — coverage still adequate?</div></td>
+            <td style="font-size:11px; color:#888;">Annual</td>
+            <td><input type="text" class="inline-input" /></td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+
+
+    <!-- ================================
+         NOTES FOOTER
+    ================================= -->
+    <div class="notes-footer">
+      <h3>Issues Found / Follow-Up Needed</h3>
+      <div class="notes-lines">
+        <div class="line"></div>
+        <div class="line"></div>
+        <div class="line"></div>
+        <div class="line"></div>
+        <div class="line"></div>
+      </div>
+    </div>
+
+    <div class="doc-footer">
+      Keng's Landing LLC · Property Maintenance Log · v1.0 · April 2026
+    </div>
+
+  </div><!-- /page -->
+
+  <script>
+    function clearAll() {
+      if (!confirm('Clear all checkboxes and inputs on this page?')) return;
+      document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+      document.querySelectorAll('input[type="text"], input[type="date"]').forEach(inp => inp.value = '');
+    }
+  </script>
+
+</body>
+</html>
