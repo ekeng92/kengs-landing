@@ -146,7 +146,7 @@
 
   <script>
     // ── Config ──────────────────────────────────────────────────────────
-    const API = 'http://localhost:8787';
+    const API = location.hostname === 'localhost' ? 'http://localhost:8787' : 'https://kengs-landing-api.kengs-landing.workers.dev';
     const WS_ID = 'b0604861-b7ae-4f1e-a7cb-fe066d57c623';
 
     // ── State ───────────────────────────────────────────────────────────
