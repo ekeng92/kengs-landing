@@ -5,7 +5,7 @@ compatibility_flags = ["nodejs_compat"]
 
 # Non-secret runtime config. Safe to commit with empty value — set real value in dashboard or .dev.vars.
 [vars]
-SUPABASE_URL = ""
+SUPABASE_URL = "https://ubfvhzepyizfjmghkhyh.supabase.co"
 
 # Bind secrets via:
 #   wrangler secret put SUPABASE_SERVICE_ROLE_KEY

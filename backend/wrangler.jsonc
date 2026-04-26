@@ -5,6 +5,6 @@
   "compatibility_date": "2024-09-23",
   "compatibility_flags": ["nodejs_compat"],
   "vars": {
-    "SUPABASE_URL": ""
+    "SUPABASE_URL": "https://ubfvhzepyizfjmghkhyh.supabase.co"
   }
 }
