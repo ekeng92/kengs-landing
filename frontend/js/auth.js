@@ -121,7 +121,10 @@
     if (!res.ok) return null;
     const { data } = await res.json();
     if (data && data.length > 0) {
-      _workspace = data[0];
+      // API returns { workspace_id, role, workspaces: { id, name, ... } }
+      const row = data[0];
+      _workspace = row.workspaces ?? row;
+      _workspace.workspace_id = row.workspace_id ?? _workspace.id;
     }
     return _workspace;
   }
@@ -131,7 +134,7 @@
    */
   async function getWorkspaceId() {
     const ws = await getWorkspace();
-    return ws?.id ?? null;
+    return ws?.workspace_id ?? ws?.id ?? null;
   }
 
   /**
