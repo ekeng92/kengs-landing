@@ -13,8 +13,11 @@ const app = new Hono<{ Bindings: Env }>()
 app.use(
   '*',
   cors({
-    // Tighten to specific allowed origins before production deployment
-    origin: (origin) => origin,
+    origin: [
+      'https://kengs-landing-frontend.pages.dev',
+      'http://localhost:8788',
+      'http://localhost:3000',
+    ],
     allowHeaders: ['Authorization', 'Content-Type'],
     allowMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true,
