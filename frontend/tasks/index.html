@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Task Board — Keng's Landing</title>
+  <style>
+    :root {
+      --bg: #0f1117; --surface: #1a1d27; --surface2: #222633; --surface3: #2a2e3b;
+      --border: #2e3345; --border2: #3d4255;
+      --text: #e2e4ea; --text-muted: #8b90a0; --text-dim: #5a5f72;
+      --accent: #2f7c55; --accent-light: #4ade80; --accent-dim: #1e4a35;
+      --blue: #2563eb; --blue-light: #60a5fa;
+      --purple: #7c3aed; --purple-light: #a78bfa;
+      --orange: #d97706; --orange-light: #fbbf24;
+      --red: #dc2626; --red-light: #f87171;
+      --radius: 12px; --radius-sm: 6px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg); color: var(--text);
+      font-size: 14px; line-height: 1.5; min-height: 100vh;
+    }
+    header {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 14px 32px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo { font-size: 1.1rem; font-weight: 700; color: var(--accent-light); }
+    .logo span { color: var(--text-muted); font-weight: 400; font-size: 0.8rem; margin-left: 8px; }
+    .header-right { display: flex; align-items: center; gap: 16px; }
+    #user-email { color: var(--text-muted); font-size: 0.82rem; }
+    .btn-signout, .btn-back {
+      padding: 6px 14px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: none;
+      color: var(--text-muted); cursor: pointer; font-size: 0.8rem;
+      transition: all .15s; text-decoration: none;
+    }
+    .btn-signout:hover, .btn-back:hover { color: var(--text); border-color: var(--border2); background: var(--surface2); }
+
+    /* Toolbar */
+    .toolbar {
+      max-width: 1400px; margin: 0 auto; padding: 24px 24px 0;
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .toolbar h1 { font-size: 1.3rem; font-weight: 700; margin-right: auto; }
+    .filter-group { display: flex; align-items: center; gap: 8px; }
+    .filter-group label { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+    select, .search-input {
+      background: var(--surface); border: 1px solid var(--border); color: var(--text);
+      padding: 6px 10px; border-radius: var(--radius-sm); font-size: 0.82rem;
+    }
+    select:focus, .search-input:focus { outline: none; border-color: var(--accent); }
+    .search-input { width: 180px; }
+    .btn-add {
+      padding: 8px 16px; border-radius: var(--radius-sm);
+      border: 1px solid var(--accent); background: var(--accent-dim);
+      color: var(--accent-light); cursor: pointer; font-size: 0.82rem;
+      font-weight: 600; transition: all .15s;
+    }
+    .btn-add:hover { background: var(--accent); color: #fff; }
+
+    /* Kanban board */
+    .board {
+      max-width: 1400px; margin: 0 auto; padding: 24px;
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+      min-height: calc(100vh - 200px);
+    }
+    .column {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      display: flex; flex-direction: column; min-height: 300px;
+    }
+    .column-header {
+      padding: 16px 16px 12px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .column-title { font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .column-count {
+      background: var(--surface3); color: var(--text-muted); padding: 2px 8px;
+      border-radius: 999px; font-size: 0.72rem; font-weight: 600;
+    }
+    .column-body { padding: 8px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+    .column-body.drag-over { background: var(--surface2); }
+
+    /* Task card */
+    .task-card {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 12px; cursor: grab; transition: all .15s;
+    }
+    .task-card:hover { border-color: var(--border2); background: var(--surface3); }
+    .task-card.dragging { opacity: 0.4; }
+    .task-ref { font-size: 0.72rem; color: var(--text-dim); font-weight: 600; font-family: monospace; }
+    .task-title { font-size: 0.85rem; font-weight: 500; margin: 4px 0; }
+    .task-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+    .task-project {
+      font-size: 0.68rem; padding: 2px 6px; border-radius: 4px;
+      font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px;
+    }
+    .project-kengs-landing { background: var(--accent-dim); color: var(--accent-light); }
+    .project-chatkey { background: rgba(124,58,237,.15); color: var(--purple-light); }
+    .project-kengs-stories { background: rgba(37,99,235,.15); color: var(--blue-light); }
+    .project-aeon-infra { background: rgba(217,119,6,.15); color: var(--orange-light); }
+    .project-default { background: var(--surface3); color: var(--text-muted); }
+    .priority-badge { font-size: 0.68rem; font-weight: 600; }
+    .priority-critical { color: var(--red-light); }
+    .priority-high { color: var(--orange-light); }
+    .priority-medium { color: var(--text-muted); }
+    .priority-low { color: var(--text-dim); }
+    .task-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+    .task-tag {
+      font-size: 0.65rem; padding: 1px 5px; border-radius: 3px;
+      background: var(--surface); color: var(--text-dim); border: 1px solid var(--border);
+    }
+
+    /* Modal */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6);
+      z-index: 100; align-items: center; justify-content: center;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 32px; width: 500px; max-width: 90vw; max-height: 85vh; overflow-y: auto;
+    }
+    .modal h2 { font-size: 1.1rem; margin-bottom: 20px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 4px; }
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); padding: 8px 10px; border-radius: var(--radius-sm); font-size: 0.88rem;
+      font-family: inherit;
+    }
+    .form-group textarea { min-height: 80px; resize: vertical; }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: var(--accent); }
+    .form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 24px; }
+    .btn-cancel {
+      padding: 8px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+      background: none; color: var(--text-muted); cursor: pointer; font-size: 0.82rem;
+    }
+    .btn-save {
+      padding: 8px 20px; border-radius: var(--radius-sm); border: none;
+      background: var(--accent); color: #fff; cursor: pointer; font-size: 0.82rem; font-weight: 600;
+    }
+    .btn-save:hover { background: var(--accent-light); color: var(--bg); }
+    .btn-delete {
+      padding: 8px 16px; border-radius: var(--radius-sm); border: 1px solid var(--red);
+      background: none; color: var(--red-light); cursor: pointer; font-size: 0.82rem;
+      margin-right: auto;
+    }
+    .btn-delete:hover { background: rgba(220,38,38,.15); }
+
+    @media (max-width: 900px) {
+      .board { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 560px) {
+      .board { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">Keng's Landing <span>Task Board</span></div>
+    <div class="header-right">
+      <a class="btn-back" href="/">← Hub</a>
+      <span id="user-email"></span>
+      <button class="btn-signout" onclick="Auth.signOut()">Sign Out</button>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <h1>Task Board</h1>
+    <div class="filter-group">
+      <label>Project</label>
+      <select id="filter-project">
+        <option value="">All</option>
+        <option value="kengs-landing">Keng's Landing</option>
+        <option value="chatkey">ChatKey</option>
+        <option value="kengs-stories">Keng's Stories</option>
+        <option value="aeon-infra">AEON Infra</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Priority</label>
+      <select id="filter-priority">
+        <option value="">All</option>
+        <option value="critical">Critical</option>
+        <option value="high">High</option>
+        <option value="medium">Medium</option>
+        <option value="low">Low</option>
+      </select>
+    </div>
+    <input class="search-input" id="search" type="text" placeholder="Search tasks…" />
+    <button class="btn-add" onclick="openCreateModal()">+ New Task</button>
+  </div>
+
+  <div class="board">
+    <div class="column" data-status="backlog">
+      <div class="column-header">
+        <span class="column-title">Backlog</span>
+        <span class="column-count" id="count-backlog">0</span>
+      </div>
+      <div class="column-body" data-status="backlog"></div>
+    </div>
+    <div class="column" data-status="todo">
+      <div class="column-header">
+        <span class="column-title">To Do</span>
+        <span class="column-count" id="count-todo">0</span>
+      </div>
+      <div class="column-body" data-status="todo"></div>
+    </div>
+    <div class="column" data-status="in_progress">
+      <div class="column-header">
+        <span class="column-title">In Progress</span>
+        <span class="column-count" id="count-in_progress">0</span>
+      </div>
+      <div class="column-body" data-status="in_progress"></div>
+    </div>
+    <div class="column" data-status="done">
+      <div class="column-header">
+        <span class="column-title">Done</span>
+        <span class="column-count" id="count-done">0</span>
+      </div>
+      <div class="column-body" data-status="done"></div>
+    </div>
+  </div>
+
+  <!-- Create / Edit Modal -->
+  <div class="modal-overlay" id="task-modal">
+    <div class="modal">
+      <h2 id="modal-title">New Task</h2>
+      <input type="hidden" id="task-id" />
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text" id="task-title" placeholder="What needs to be done?" />
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="task-desc" placeholder="Details, acceptance criteria, notes…"></textarea>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div class="form-group">
+          <label>Status</label>
+          <select id="task-status">
+            <option value="backlog">Backlog</option>
+            <option value="todo">To Do</option>
+            <option value="in_progress">In Progress</option>
+            <option value="done">Done</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Priority</label>
+          <select id="task-priority">
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+            <option value="critical">Critical</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Project</label>
+        <select id="task-project">
+          <option value="">None</option>
+          <option value="kengs-landing">Keng's Landing</option>
+          <option value="chatkey">ChatKey</option>
+          <option value="kengs-stories">Keng's Stories</option>
+          <option value="aeon-infra">AEON Infra</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Tags (comma-separated)</label>
+        <input type="text" id="task-tags" placeholder="e.g. frontend, bug, tax-prep" />
+      </div>
+      <div class="form-actions">
+        <button class="btn-delete" id="btn-delete" style="display:none" onclick="deleteTask()">Delete</button>
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn-save" onclick="saveTask()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    let allTasks = [];
+    let editingId = null;
+
+    const COLUMNS = ['backlog', 'todo', 'in_progress', 'done'];
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const session = await Auth.requireLogin();
+      if (!session) return;
+      document.getElementById('user-email').textContent = session.user.email;
+      await loadTasks();
+
+      // Filters
+      document.getElementById('filter-project').addEventListener('change', renderBoard);
+      document.getElementById('filter-priority').addEventListener('change', renderBoard);
+      document.getElementById('search').addEventListener('input', renderBoard);
+
+      // Drag-and-drop on columns
+      document.querySelectorAll('.column-body').forEach(col => {
+        col.addEventListener('dragover', e => { e.preventDefault(); col.classList.add('drag-over'); });
+        col.addEventListener('dragleave', () => col.classList.remove('drag-over'));
+        col.addEventListener('drop', async e => {
+          e.preventDefault();
+          col.classList.remove('drag-over');
+          const taskId = e.dataTransfer.getData('text/plain');
+          const newStatus = col.dataset.status;
+          await moveTask(taskId, newStatus);
+        });
+      });
+    });
+
+    async function loadTasks() {
+      const workspaceId = await Auth.getWorkspaceId();
+      const resp = await Auth.apiFetch(`/tasks?workspace_id=${workspaceId}`);
+      if (!resp.ok) { console.error('Failed to load tasks'); return; }
+      const json = await resp.json();
+      allTasks = json.data || [];
+      renderBoard();
+    }
+
+    function getFilteredTasks() {
+      const project = document.getElementById('filter-project').value;
+      const priority = document.getElementById('filter-priority').value;
+      const search = document.getElementById('search').value.toLowerCase().trim();
+
+      return allTasks.filter(t => {
+        if (project && t.project !== project) return false;
+        if (priority && t.priority !== priority) return false;
+        if (search) {
+          const haystack = `${t.ref_code} ${t.title} ${t.description || ''} ${(t.tags || []).join(' ')}`.toLowerCase();
+          if (!haystack.includes(search)) return false;
+        }
+        return true;
+      });
+    }
+
+    function renderBoard() {
+      const filtered = getFilteredTasks();
+
+      COLUMNS.forEach(status => {
+        const col = document.querySelector(`.column-body[data-status="${status}"]`);
+        const tasks = filtered.filter(t => t.status === status);
+        document.getElementById(`count-${status}`).textContent = tasks.length;
+
+        col.innerHTML = tasks.map(t => `
+          <div class="task-card" draggable="true" data-id="${t.id}"
+               ondragstart="event.dataTransfer.setData('text/plain','${t.id}'); this.classList.add('dragging')"
+               ondragend="this.classList.remove('dragging')"
+               onclick="openEditModal('${t.id}')">
+            <div class="task-ref">${esc(t.ref_code)}</div>
+            <div class="task-title">${esc(t.title)}</div>
+            <div class="task-meta">
+              ${t.project ? `<span class="task-project ${projectClass(t.project)}">${esc(t.project)}</span>` : ''}
+              <span class="priority-badge priority-${t.priority}">${t.priority === 'critical' ? '🔴' : t.priority === 'high' ? '🟠' : t.priority === 'medium' ? '⚪' : '⚫'} ${esc(t.priority)}</span>
+            </div>
+            ${t.tags?.length ? `<div class="task-tags">${t.tags.map(tag => `<span class="task-tag">${esc(tag)}</span>`).join('')}</div>` : ''}
+          </div>
+        `).join('');
+      });
+    }
+
+    function projectClass(p) {
+      const map = { 'kengs-landing': 'project-kengs-landing', 'chatkey': 'project-chatkey', 'kengs-stories': 'project-kengs-stories', 'aeon-infra': 'project-aeon-infra' };
+      return map[p] || 'project-default';
+    }
+
+    function esc(s) {
+      if (!s) return '';
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    function openCreateModal() {
+      editingId = null;
+      document.getElementById('modal-title').textContent = 'New Task';
+      document.getElementById('task-id').value = '';
+      document.getElementById('task-title').value = '';
+      document.getElementById('task-desc').value = '';
+      document.getElementById('task-status').value = 'backlog';
+      document.getElementById('task-priority').value = 'medium';
+      document.getElementById('task-project').value = '';
+      document.getElementById('task-tags').value = '';
+      document.getElementById('btn-delete').style.display = 'none';
+      document.getElementById('task-modal').classList.add('active');
+    }
+
+    function openEditModal(id) {
+      const task = allTasks.find(t => t.id === id);
+      if (!task) return;
+      editingId = id;
+      document.getElementById('modal-title').textContent = `Edit ${task.ref_code}`;
+      document.getElementById('task-id').value = id;
+      document.getElementById('task-title').value = task.title;
+      document.getElementById('task-desc').value = task.description || '';
+      document.getElementById('task-status').value = task.status;
+      document.getElementById('task-priority').value = task.priority;
+      document.getElementById('task-project').value = task.project || '';
+      document.getElementById('task-tags').value = (task.tags || []).join(', ');
+      document.getElementById('btn-delete').style.display = 'inline-block';
+      document.getElementById('task-modal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('task-modal').classList.remove('active');
+      editingId = null;
+    }
+
+    async function saveTask() {
+      const title = document.getElementById('task-title').value.trim();
+      if (!title) { alert('Title is required'); return; }
+
+      const body = {
+        title,
+        description: document.getElementById('task-desc').value.trim() || null,
+        status: document.getElementById('task-status').value,
+        priority: document.getElementById('task-priority').value,
+        project: document.getElementById('task-project').value || null,
+        tags: document.getElementById('task-tags').value.split(',').map(s => s.trim()).filter(Boolean),
+      };
+
+      if (editingId) {
+        const resp = await Auth.apiFetch(`/tasks/${editingId}`, { method: 'PATCH', body: JSON.stringify(body) });
+        if (!resp.ok) { alert('Save failed'); return; }
+      } else {
+        const workspaceId = await Auth.getWorkspaceId();
+        body.workspace_id = workspaceId;
+        const resp = await Auth.apiFetch('/tasks', { method: 'POST', body: JSON.stringify(body) });
+        if (!resp.ok) { alert('Create failed'); return; }
+      }
+
+      closeModal();
+      await loadTasks();
+    }
+
+    async function moveTask(id, newStatus) {
+      const resp = await Auth.apiFetch(`/tasks/${id}/move`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (resp.ok) {
+        const task = allTasks.find(t => t.id === id);
+        if (task) task.status = newStatus;
+        renderBoard();
+      }
+    }
+
+    async function deleteTask() {
+      if (!editingId) return;
+      if (!confirm('Delete this task?')) return;
+      await Auth.apiFetch(`/tasks/${editingId}`, { method: 'DELETE' });
+      closeModal();
+      await loadTasks();
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeModal();
+      if (e.key === 'n' && !e.ctrlKey && !e.metaKey && document.activeElement === document.body) {
+        e.preventDefault();
+        openCreateModal();
+      }
+    });
+  </script>
+</body>
+</html>

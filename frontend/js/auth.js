@@ -15,7 +15,10 @@
     return origin + path;
   }
 
+  const API = location.hostname === 'localhost' ? 'http://localhost:8787' : 'https://kengs-landing-api.kengs-landing.workers.dev';
+
   let _client = null;
+  let _workspace = null;
 
   function getClient() {
     if (!_client) {
@@ -31,7 +34,12 @@
   }
 
   async function getSession() {
-    const { data } = await getClient().auth.getSession();
+    const { data, error } = await getClient().auth.getSession();
+    // If session expired, try to refresh
+    if (!data.session) {
+      const { data: refreshed } = await getClient().auth.refreshSession();
+      return refreshed.session;
+    }
     return data.session;
   }
 
@@ -91,11 +99,49 @@
   }
 
   // Listen for auth state changes (e.g. token refresh, sign-out from another tab)
-  getClient().auth.onAuthStateChange((event) => {
+  getClient().auth.onAuthStateChange((event, session) => {
     if (event === 'SIGNED_OUT') {
+      _workspace = null;
       location.href = rootPath('/login.html');
+    }
+    if (event === 'TOKEN_REFRESHED') {
+      // Session auto-refreshed by Supabase client — nothing to do
+      console.debug('[Auth] Token refreshed');
     }
   });
 
-  window.Auth = { requireLogin, getSession, getHeaders, jsonHeaders, signIn, signUp, signOut, getUserEmail };
+  /**
+   * Load the user's workspace. Caches after first call.
+   * Returns { id, name } or null if none found.
+   */
+  async function getWorkspace() {
+    if (_workspace) return _workspace;
+    const headers = await getHeaders();
+    const res = await fetch(API + '/workspaces', { headers });
+    if (!res.ok) return null;
+    const { data } = await res.json();
+    if (data && data.length > 0) {
+      _workspace = data[0];
+    }
+    return _workspace;
+  }
+
+  /**
+   * Returns the workspace ID. Convenience shortcut.
+   */
+  async function getWorkspaceId() {
+    const ws = await getWorkspace();
+    return ws?.id ?? null;
+  }
+
+  /**
+   * Authenticated fetch wrapper for the backend API.
+   * Automatically attaches JWT and Content-Type headers.
+   */
+  async function apiFetch(path, opts = {}) {
+    const headers = await jsonHeaders();
+    return fetch(API + path, { ...opts, headers: { ...headers, ...(opts.headers || {}) } });
+  }
+
+  window.Auth = { requireLogin, getSession, getHeaders, jsonHeaders, signIn, signUp, signOut, getUserEmail, getWorkspace, getWorkspaceId, apiFetch, API };
 })();
