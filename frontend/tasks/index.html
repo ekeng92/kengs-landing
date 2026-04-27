@@ -2,8 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Task Board — Keng's Landing</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0f1117" />
+  <title>Tasks — Keng's Landing</title>
+  <link rel="stylesheet" href="../css/app-shell.css" />
   <style>
     :root {
       --bg: #0f1117; --surface: #1a1d27; --surface2: #222633; --surface3: #2a2e3b;
@@ -159,12 +162,7 @@
 </head>
 <body>
   <header>
-    <div class="logo">Keng's Landing <span>Task Board</span></div>
-    <div class="header-right">
-      <a class="btn-back" href="/">← Hub</a>
-      <span id="user-email"></span>
-      <button class="btn-signout" onclick="Auth.signOut()">Sign Out</button>
-    </div>
+    <h1>Task Board</h1>
   </header>
 
   <div class="toolbar">
@@ -281,6 +279,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="../js/auth.js"></script>
+  <script src="../js/app-shell.js"></script>
   <script>
     let allTasks = [];
     let editingId = null;
