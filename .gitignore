@@ -27,3 +27,6 @@ backend/supabase/.temp/
 
 # Backup files
 *.bak
+
+# Wrangler cache
+.wrangler/
