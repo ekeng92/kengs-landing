@@ -150,8 +150,8 @@
 
   <script>
     // ── Config ──────────────────────────────────────────────────────────
-    const API = location.hostname === 'localhost' ? 'http://localhost:8787' : 'https://kengs-landing-api.kengs-landing.workers.dev';
-    const WS_ID = 'b0604861-b7ae-4f1e-a7cb-fe066d57c623';
+    const API = Auth.API;
+    let WS_ID = null;
 
     // ── State ───────────────────────────────────────────────────────────
     let properties = [];
@@ -163,6 +163,8 @@
     document.addEventListener('DOMContentLoaded', async () => {
       const session = await Auth.requireLogin();
       if (!session) return;
+      WS_ID = await Auth.getWorkspaceId();
+      if (!WS_ID) { document.body.innerHTML = '<h2 style="color:#fff;padding:2rem">No workspace found. Contact the owner.</h2>'; return; }
       document.getElementById('user-email').textContent = session.user.email;
       wireTabs();
       await loadProperties();
