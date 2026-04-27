@@ -4,8 +4,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Expense Import Review — Keng's Landing</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0f1117" />
+  <title>Expense Import — Keng's Landing</title>
+  <link rel="stylesheet" href="../css/app-shell.css" />
   <style>
     :root {
       --bg: #0f1117; --surface: #1a1d27; --surface2: #222633; --surface3: #2a2e3b;
@@ -236,12 +239,10 @@
 <body>
 
   <header>
-    <a class="back-link" href="/dashboard/">← Dashboard</a>
     <h1>Expense Import</h1>
-    <span class="header-meta" id="header-meta"></span>
   </header>
 
-  <div class="container">
+  <div class="app-content">
 
     <!-- Upload zone -->
     <div id="upload-section">
@@ -331,6 +332,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="../js/auth.js"></script>
+  <script src="../js/app-shell.js"></script>
   <script type="module" src="js/expense-review.js"></script>
 </body>
 </html>
