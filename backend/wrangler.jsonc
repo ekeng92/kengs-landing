@@ -6,5 +6,8 @@
   "compatibility_flags": ["nodejs_compat"],
   "vars": {
     "SUPABASE_URL": "https://ubfvhzepyizfjmghkhyh.supabase.co"
+  },
+  "triggers": {
+    "crons": ["0 * * * *"]
   }
 }

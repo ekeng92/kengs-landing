@@ -2,9 +2,9 @@
 // Expense Review Queue — dark theme redesign
 // Wired to Hono backend API
 
-const API = location.hostname === 'localhost' ? 'http://localhost:8787' : 'https://kengs-landing-api.kengs-landing.workers.dev';
-const WS_ID = 'b0604861-b7ae-4f1e-a7cb-fe066d57c623';
-const PROPERTY_360CR = '0e8ab13c-7976-4b9d-a6c6-3561f7a73f40';
+const API = Auth.API;
+let WS_ID = null;
+let PROPERTY_360CR = null;
 
 const SCHEDULE_E_CATEGORIES = [
   'Supplies', 'Repairs & maintenance', 'Cleaning & turnover', 'Utilities',
@@ -30,6 +30,11 @@ const $ = (id) => document.getElementById(id);
 // ---------------------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', async () => {
   await Auth.requireLogin();
+  WS_ID = await Auth.getWorkspaceId();
+  if (!WS_ID) { document.body.innerHTML = '<h2 style="color:#fff;padding:2rem">No workspace found.</h2>'; return; }
+  // Load first property
+  const propRes = await fetch(API + `/properties?workspace_id=${WS_ID}`, { headers: await Auth.getHeaders() });
+  if (propRes.ok) { const pd = await propRes.json(); if (pd.data?.length) PROPERTY_360CR = pd.data[0].id; }
   populateCategoryFilter();
   wireUploadZone();
   wireFilters();
