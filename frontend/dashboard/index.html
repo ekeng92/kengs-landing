@@ -152,7 +152,6 @@
       if (!session) return;
       WS_ID = await Auth.getWorkspaceId();
       if (!WS_ID) { document.body.innerHTML = '<h2 style="color:#fff;padding:2rem">No workspace found. Contact the owner.</h2>'; return; }
-      document.getElementById('user-email').textContent = session.user.email;
       wireTabs();
       await loadProperties();
       await refreshAll();

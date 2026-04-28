@@ -289,7 +289,6 @@
     document.addEventListener('DOMContentLoaded', async () => {
       const session = await Auth.requireLogin();
       if (!session) return;
-      document.getElementById('user-email').textContent = session.user.email;
       await loadTasks();
 
       // Filters
