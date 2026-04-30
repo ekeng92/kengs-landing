@@ -10,7 +10,7 @@ import { dashboardRouter } from './routes/dashboard'
 import { icalSyncRouter, runIcalSync } from './routes/ical-sync'
 import { tasksRouter } from './routes/tasks'
 
-const app = new Hono<{ Bindings: Env }>()
+export const app = new Hono<{ Bindings: Env }>()
 
 app.use(
   '*',
