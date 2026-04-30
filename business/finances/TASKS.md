@@ -28,6 +28,12 @@
 - [ ] **Depreciation Schedule sheet** — blocked on tax assessment data
 - [ ] **Annual CC statement archive** — at year-end, download full Robinhood CC + Chase transaction histories to `finances/2026/`
 
+## Task Board / Executive Function
+
+- [x] **Add Waiting / Blocked lane + planning fields** — board now supports follow-up date, energy, context, and blocked reason metadata
+- [ ] **Seed Launch / Tax Readiness cards** — create the initial task cards from `docs/task-board-operating-system.md`
+- [ ] **Weekly board sweep automation** — surface stale In Progress, due Waiting tasks, and top 3 next actions
+
 ## Completed
 
 - [x] Airbnb CSV import (3 bookings enriched)
