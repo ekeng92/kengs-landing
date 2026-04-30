@@ -24,7 +24,6 @@ importsRouter.use('*', requireAuth)
  */
 importsRouter.post('/', async (c) => {
   const userId = c.var.userId
-  const supabase = createSupabaseClient(c.env)
   const body = await c.req.json<{
     workspace_id: string
     import_type: string
@@ -33,6 +32,11 @@ importsRouter.post('/', async (c) => {
     metadata?: Record<string, unknown>
   }>()
 
+  if (!body.workspace_id || !body.import_type) {
+    return c.json({ error: 'workspace_id and import_type are required' }, 400)
+  }
+
+  const supabase = createSupabaseClient(c.env)
   const { data, error } = await supabase
     .from('import_jobs')
     .insert({
