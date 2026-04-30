@@ -17,6 +17,7 @@ tasksRouter.get('/', async (c) => {
   const status = c.req.query('status')
   const project = c.req.query('project')
   const priority = c.req.query('priority')
+  const context = c.req.query('context')
 
   if (!workspaceId) return c.json({ error: 'workspace_id is required' }, 400)
 
@@ -28,8 +29,11 @@ tasksRouter.get('/', async (c) => {
   if (status) query = query.eq('status', status)
   if (project) query = query.eq('project', project)
   if (priority) query = query.eq('priority', priority)
+  if (context) query = query.eq('context', context)
 
-  const { data, error } = await query.order('created_at', { ascending: false })
+  const { data, error } = await query
+    .order('due_date', { ascending: true, nullsFirst: false })
+    .order('created_at', { ascending: false })
   if (error) return c.json({ error: error.message }, 500)
   return c.json({ data })
 })
@@ -65,6 +69,10 @@ tasksRouter.post('/', async (c) => {
     project?: string
     tags?: string[]
     assigned_to?: string
+    due_date?: string | null
+    effort?: string | null
+    context?: string | null
+    blocked_reason?: string | null
   }>()
 
   if (!body.workspace_id || !body.title) {
@@ -85,6 +93,10 @@ tasksRouter.post('/', async (c) => {
       tags: body.tags ?? [],
       created_by: userId,
       assigned_to: body.assigned_to ?? null,
+      due_date: body.due_date ?? null,
+      effort: body.effort ?? null,
+      context: body.context ?? null,
+      blocked_reason: body.blocked_reason ?? null,
     })
     .select()
     .single()
@@ -105,6 +117,10 @@ tasksRouter.patch('/:idOrRef', async (c) => {
     project: string
     tags: string[]
     assigned_to: string
+    due_date: string | null
+    effort: string | null
+    context: string | null
+    blocked_reason: string | null
   }>>()
 
   const isRef = /^AEON-\d+$/i.test(param)
@@ -127,7 +143,7 @@ tasksRouter.patch('/:idOrRef/move', async (c) => {
   const param = c.req.param('idOrRef')
   const { status } = await c.req.json<{ status: string }>()
 
-  const validStatuses = ['backlog', 'todo', 'in_progress', 'done', 'archived']
+  const validStatuses = ['backlog', 'todo', 'in_progress', 'waiting', 'done', 'archived']
   if (!validStatuses.includes(status)) {
     return c.json({ error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` }, 400)
   }
@@ -176,6 +192,10 @@ tasksRouter.post('/bulk', async (c) => {
       priority?: string
       project?: string
       tags?: string[]
+      due_date?: string | null
+      effort?: string | null
+      context?: string | null
+      blocked_reason?: string | null
     }>
   }>()
 
@@ -191,6 +211,10 @@ tasksRouter.post('/bulk', async (c) => {
     priority: t.priority ?? 'medium',
     project: t.project ?? null,
     tags: t.tags ?? [],
+    due_date: t.due_date ?? null,
+    effort: t.effort ?? null,
+    context: t.context ?? null,
+    blocked_reason: t.blocked_reason ?? null,
     created_by: userId,
   }))
 

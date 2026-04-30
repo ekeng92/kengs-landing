@@ -66,7 +66,7 @@
     /* Kanban board */
     .board {
       max-width: 1400px; margin: 0 auto; padding: 24px;
-      display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px;
       min-height: calc(100vh - 200px);
     }
     .column {
@@ -110,6 +110,13 @@
     .priority-medium { color: var(--text-muted); }
     .priority-low { color: var(--text-dim); }
     .task-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+    .task-planning { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+    .planning-chip {
+      font-size: 0.65rem; padding: 1px 6px; border-radius: 999px;
+      background: var(--surface); color: var(--text-muted); border: 1px solid var(--border);
+    }
+    .planning-chip.due-soon { color: var(--orange-light); border-color: rgba(217,119,6,.45); }
+    .planning-chip.overdue { color: var(--red-light); border-color: rgba(220,38,38,.45); }
     .task-tag {
       font-size: 0.65rem; padding: 1px 5px; border-radius: 3px;
       background: var(--surface); color: var(--text-dim); border: 1px solid var(--border);
@@ -152,7 +159,7 @@
     }
     .btn-delete:hover { background: rgba(220,38,38,.15); }
 
-    @media (max-width: 900px) {
+    @media (max-width: 1100px) {
       .board { grid-template-columns: 1fr 1fr; }
     }
     @media (max-width: 560px) {
@@ -213,6 +220,13 @@
       </div>
       <div class="column-body" data-status="in_progress"></div>
     </div>
+    <div class="column" data-status="waiting">
+      <div class="column-header">
+        <span class="column-title">Waiting / Blocked</span>
+        <span class="column-count" id="count-waiting">0</span>
+      </div>
+      <div class="column-body" data-status="waiting"></div>
+    </div>
     <div class="column" data-status="done">
       <div class="column-header">
         <span class="column-title">Done</span>
@@ -242,6 +256,7 @@
             <option value="backlog">Backlog</option>
             <option value="todo">To Do</option>
             <option value="in_progress">In Progress</option>
+            <option value="waiting">Waiting / Blocked</option>
             <option value="done">Done</option>
           </select>
         </div>
@@ -265,6 +280,38 @@
           <option value="aeon-infra">AEON Infra</option>
         </select>
       </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;">
+        <div class="form-group">
+          <label>Due / Follow-up</label>
+          <input type="date" id="task-due" />
+        </div>
+        <div class="form-group">
+          <label>Energy</label>
+          <select id="task-effort">
+            <option value="">Unset</option>
+            <option value="quick">Quick</option>
+            <option value="deep">Deep Work</option>
+            <option value="errand">Errand</option>
+            <option value="call">Call</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Context</label>
+          <select id="task-context">
+            <option value="">Unset</option>
+            <option value="computer">Computer</option>
+            <option value="phone">Phone</option>
+            <option value="home">Home</option>
+            <option value="property">Property</option>
+            <option value="cpa">CPA</option>
+            <option value="vendor">Vendor</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Blocked reason / waiting on</label>
+        <input type="text" id="task-blocked" placeholder="e.g. waiting on CAD statement, Julie, CPA…" />
+      </div>
       <div class="form-group">
         <label>Tags (comma-separated)</label>
         <input type="text" id="task-tags" placeholder="e.g. frontend, bug, tax-prep" />
@@ -284,7 +331,7 @@
     let allTasks = [];
     let editingId = null;
 
-    const COLUMNS = ['backlog', 'todo', 'in_progress', 'done'];
+    const COLUMNS = ['backlog', 'todo', 'in_progress', 'waiting', 'done'];
 
     document.addEventListener('DOMContentLoaded', async () => {
       const session = await Auth.requireLogin();
@@ -354,6 +401,7 @@
               ${t.project ? `<span class="task-project ${projectClass(t.project)}">${esc(t.project)}</span>` : ''}
               <span class="priority-badge priority-${t.priority}">${t.priority === 'critical' ? '🔴' : t.priority === 'high' ? '🟠' : t.priority === 'medium' ? '⚪' : '⚫'} ${esc(t.priority)}</span>
             </div>
+            ${planningChips(t)}
             ${t.tags?.length ? `<div class="task-tags">${t.tags.map(tag => `<span class="task-tag">${esc(tag)}</span>`).join('')}</div>` : ''}
           </div>
         `).join('');
@@ -363,6 +411,21 @@
     function projectClass(p) {
       const map = { 'kengs-landing': 'project-kengs-landing', 'chatkey': 'project-chatkey', 'kengs-stories': 'project-kengs-stories', 'aeon-infra': 'project-aeon-infra' };
       return map[p] || 'project-default';
+    }
+
+    function planningChips(t) {
+      const chips = [];
+      if (t.due_date) {
+        const due = new Date(`${t.due_date}T00:00:00`);
+        const today = new Date(); today.setHours(0,0,0,0);
+        const diffDays = Math.round((due - today) / 86400000);
+        const klass = diffDays < 0 ? 'overdue' : diffDays <= 3 ? 'due-soon' : '';
+        chips.push(`<span class="planning-chip ${klass}">📅 ${esc(t.due_date)}</span>`);
+      }
+      if (t.effort) chips.push(`<span class="planning-chip">⚡ ${esc(t.effort)}</span>`);
+      if (t.context) chips.push(`<span class="planning-chip">📍 ${esc(t.context)}</span>`);
+      if (t.blocked_reason) chips.push(`<span class="planning-chip overdue">⛔ ${esc(t.blocked_reason)}</span>`);
+      return chips.length ? `<div class="task-planning">${chips.join('')}</div>` : '';
     }
 
     function esc(s) {
@@ -381,6 +444,10 @@
       document.getElementById('task-status').value = 'backlog';
       document.getElementById('task-priority').value = 'medium';
       document.getElementById('task-project').value = '';
+      document.getElementById('task-due').value = '';
+      document.getElementById('task-effort').value = '';
+      document.getElementById('task-context').value = '';
+      document.getElementById('task-blocked').value = '';
       document.getElementById('task-tags').value = '';
       document.getElementById('btn-delete').style.display = 'none';
       document.getElementById('task-modal').classList.add('active');
@@ -397,6 +464,10 @@
       document.getElementById('task-status').value = task.status;
       document.getElementById('task-priority').value = task.priority;
       document.getElementById('task-project').value = task.project || '';
+      document.getElementById('task-due').value = task.due_date || '';
+      document.getElementById('task-effort').value = task.effort || '';
+      document.getElementById('task-context').value = task.context || '';
+      document.getElementById('task-blocked').value = task.blocked_reason || '';
       document.getElementById('task-tags').value = (task.tags || []).join(', ');
       document.getElementById('btn-delete').style.display = 'inline-block';
       document.getElementById('task-modal').classList.add('active');
@@ -417,6 +488,10 @@
         status: document.getElementById('task-status').value,
         priority: document.getElementById('task-priority').value,
         project: document.getElementById('task-project').value || null,
+        due_date: document.getElementById('task-due').value || null,
+        effort: document.getElementById('task-effort').value || null,
+        context: document.getElementById('task-context').value || null,
+        blocked_reason: document.getElementById('task-blocked').value.trim() || null,
         tags: document.getElementById('task-tags').value.split(',').map(s => s.trim()).filter(Boolean),
       };
 

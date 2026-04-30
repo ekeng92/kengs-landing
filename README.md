@@ -78,3 +78,8 @@ To import new bank data, use the `@str-finance` agent in VS Code.
 
 - **`@str-finance`** — Financial operations: CSV import, expense categorization, tax strategy, P&L, Schedule E prep
 - **`@str-legal-counsel`** — LLC management, asset protection, compliance, document drafting
+
+## Operating Notes
+
+- [Task Board Operating System](docs/task-board-operating-system.md) — Kanban lanes, task fields, and initial Keng's Landing cards
+- [AEON Watch Dedicated PC Setup Plan](docs/aeon-room-setup-plan.md) — tomorrow's always-on node checklist
