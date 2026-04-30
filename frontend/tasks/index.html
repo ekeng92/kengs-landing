@@ -195,6 +195,7 @@
       </select>
     </div>
     <input class="search-input" id="search" type="text" placeholder="Search tasks…" />
+    <button class="btn-add" onclick="seedKengsLandingTasks()">Seed Keng's Landing</button>
     <button class="btn-add" onclick="openCreateModal()">+ New Task</button>
   </div>
 
@@ -332,6 +333,86 @@
     let editingId = null;
 
     const COLUMNS = ['backlog', 'todo', 'in_progress', 'waiting', 'done'];
+
+    const KENGS_LANDING_SEED_TASKS = [
+      {
+        title: 'Pull Freestone CAD land/building split',
+        description: 'Find the 2025 property tax statement or CAD record and capture land vs building value for 27.5-year depreciation.',
+        status: 'waiting', priority: 'critical', project: 'kengs-landing',
+        effort: 'quick', context: 'computer', blocked_reason: 'Need CAD website/property tax statement',
+        tags: ['tax', 'depreciation', 'cpa']
+      },
+      {
+        title: 'Get golf cart bill of sale',
+        description: 'Find seller documentation from texts/FB Marketplace for Section 179 support on the $2,400 golf cart purchase.',
+        status: 'waiting', priority: 'critical', project: 'kengs-landing',
+        effort: 'quick', context: 'phone', blocked_reason: 'Need seller/text/FB Marketplace evidence',
+        tags: ['tax', 'receipt', 'section-179']
+      },
+      {
+        title: 'Categorize 94 pre-service expenses',
+        description: 'Split pre-service expenses into capital improvements vs startup costs so 2026 tax treatment is clear.',
+        status: 'todo', priority: 'high', project: 'kengs-landing',
+        effort: 'deep', context: 'computer',
+        tags: ['tax', 'finance', 'pre-service']
+      },
+      {
+        title: 'Build depreciation schedule sheet',
+        description: 'Add depreciation schedule once land/building split and placed-in-service assumptions are final.',
+        status: 'waiting', priority: 'high', project: 'kengs-landing',
+        effort: 'deep', context: 'computer', blocked_reason: 'Waiting on land/building split',
+        tags: ['tax', 'depreciation', 'finance']
+      },
+      {
+        title: 'Generate CPA packet export',
+        description: 'Create export package for Schedule E summary, mileage, receipt gaps, review exceptions, and depreciation support.',
+        status: 'backlog', priority: 'high', project: 'kengs-landing',
+        effort: 'deep', context: 'computer',
+        tags: ['tax', 'cpa', 'export']
+      },
+      {
+        title: 'Complete digital guest guide gaps',
+        description: 'Fill missing check-in, smart TV, kitchen, climate, laundry, septic, pet policy, quiet hours, emergency info, and checkout thermostat sections.',
+        status: 'todo', priority: 'high', project: 'kengs-landing',
+        effort: 'deep', context: 'computer',
+        tags: ['guest', 'ops', 'risk']
+      },
+      {
+        title: 'Add recurring turnover checklist templates',
+        description: 'Turn cleaner/owner turnover work into reusable board templates for every stay.',
+        status: 'todo', priority: 'high', project: 'kengs-landing',
+        effort: 'deep', context: 'computer',
+        tags: ['ops', 'cleaning', 'template']
+      },
+      {
+        title: 'Build vendor/contact sheet',
+        description: 'Capture cleaner, handyman, lawn, septic, utilities, emergency contacts, and preferred vendors.',
+        status: 'backlog', priority: 'medium', project: 'kengs-landing',
+        effort: 'call', context: 'phone',
+        tags: ['ops', 'vendor', 'maintenance']
+      },
+      {
+        title: 'Track consumable supply inventory',
+        description: 'Create inventory thresholds for towels, toiletries, propane, coffee, paper goods, cleaning supplies, and hot tub items.',
+        status: 'backlog', priority: 'medium', project: 'kengs-landing',
+        effort: 'errand', context: 'property',
+        tags: ['ops', 'inventory', 'guest']
+      },
+      {
+        title: 'Create competitor rate tracker',
+        description: 'Track comparable Airbnb/VRBO nightly rates, cleaning fees, occupancy signals, and rate changes around the $150/night baseline.',
+        status: 'backlog', priority: 'medium', project: 'kengs-landing',
+        effort: 'deep', context: 'computer',
+        tags: ['listing', 'revenue', 'product']
+      },
+      {
+        title: 'Create post-stay review workflow',
+        description: 'Define review request timing, guest issue capture, and conversion of guest feedback into board tasks.',
+        status: 'backlog', priority: 'medium', project: 'kengs-landing',
+        effort: 'quick', context: 'computer',
+        tags: ['guest', 'reviews', 'ops']
+      }
+    ];
 
     document.addEventListener('DOMContentLoaded', async () => {
       const session = await Auth.requireLogin();
@@ -476,6 +557,34 @@
     function closeModal() {
       document.getElementById('task-modal').classList.remove('active');
       editingId = null;
+    }
+
+    async function seedKengsLandingTasks() {
+      const existingTitles = new Set(allTasks
+        .filter(t => t.project === 'kengs-landing')
+        .map(t => (t.title || '').toLowerCase().trim()));
+      const tasks = KENGS_LANDING_SEED_TASKS.filter(t => !existingTitles.has(t.title.toLowerCase()));
+
+      if (tasks.length === 0) {
+        alert('Keng\'s Landing seed tasks already exist.');
+        return;
+      }
+      if (!confirm(`Create ${tasks.length} Keng's Landing starter tasks? Existing matching titles will be skipped.`)) return;
+
+      const workspaceId = await Auth.getWorkspaceId();
+      const resp = await Auth.apiFetch('/tasks/bulk', {
+        method: 'POST',
+        body: JSON.stringify({ workspace_id: workspaceId, tasks }),
+      });
+
+      if (!resp.ok) {
+        const detail = await resp.text().catch(() => '');
+        alert(`Seed failed: ${detail || resp.status}`);
+        return;
+      }
+
+      document.getElementById('filter-project').value = 'kengs-landing';
+      await loadTasks();
     }
 
     async function saveTask() {
