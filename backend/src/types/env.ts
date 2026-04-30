@@ -6,4 +6,6 @@ export interface Env {
   DEV_WORKSPACE_ID?: string
   DB_HOST?: string
   DB_PASSWORD?: string
+  /** Test-only injection point for route contract tests. */
+  TEST_SUPABASE?: unknown
 }
