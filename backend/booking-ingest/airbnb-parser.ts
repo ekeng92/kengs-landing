@@ -68,11 +68,15 @@ export function parseCsvText(text: string): AirbnbCsvRow[] {
   const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0)
   if (lines.length < 2) return []
 
-  const headers = splitCsvLine(lines[0])
+  const headerLine = lines[0]
+  if (!headerLine) return []
+  const headers = splitCsvLine(headerLine)
   const rows: AirbnbCsvRow[] = []
 
   for (let i = 1; i < lines.length; i++) {
-    const values = splitCsvLine(lines[i])
+    const line = lines[i]
+    if (!line) continue
+    const values = splitCsvLine(line)
     const row: AirbnbCsvRow = {}
     headers.forEach((h, idx) => {
       row[h.trim()] = (values[idx] ?? '').trim()
@@ -145,8 +149,9 @@ export function normalizeAirbnbRow(row: AirbnbCsvRow): ParsedRow {
 
   // Nights
   let nights: number | null = null
-  if (row[COL.NIGHTS]) {
-    nights = parseInt(row[COL.NIGHTS], 10)
+  const nightsRaw = row[COL.NIGHTS]
+  if (nightsRaw) {
+    nights = parseInt(nightsRaw, 10)
     if (isNaN(nights)) nights = null
   }
   if (nights == null && checkIn && checkOut) {
@@ -307,7 +312,7 @@ function parseDate(raw: string | undefined): string | null {
   // MM/DD/YYYY or M/D/YYYY
   const mdyMatch = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)
   if (mdyMatch) {
-    const [, m, d, y] = mdyMatch
+    const [, m = '', d = '', y = ''] = mdyMatch
     const padded = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
     const date = new Date(padded)
     return isNaN(date.getTime()) ? null : padded

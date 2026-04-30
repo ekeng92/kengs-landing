@@ -94,7 +94,10 @@ export function parseDate(raw: string): string | null {
   // MM/DD/YYYY or M/D/YYYY or M/D/YY
   const mdy = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
   if (mdy) {
-    let [, m, d, y] = mdy.map(Number);
+    const m = Number(mdy[1]);
+    const d = Number(mdy[2]);
+    let y = Number(mdy[3]);
+    if (!m || !d || !y) return null;
     if (y < 100) y += 2000;
     const date = new Date(y, m - 1, d);
     if (isNaN(date.getTime())) return null;
@@ -177,14 +180,16 @@ export function parseBankCsv(
   const rows = splitCsvRows(csvText);
   if (rows.length < 2) return []; // header + at least one data row required
 
-  const headers = rows[0].map((h) => h.trim());
+  const firstRow = rows[0];
+  if (!firstRow) return [];
+  const headers = firstRow.map((h) => h.trim());
   const cols = detectColumns(headers);
 
   const results: ParsedRow[] = [];
 
   for (let i = 1; i < rows.length; i++) {
     const cells = rows[i];
-    if (cells.length === 0) continue;
+    if (!cells || cells.length === 0) continue;
     const row: Record<string, string> = {};
     headers.forEach((h, idx) => {
       row[h] = (cells[idx] ?? '').trim();
@@ -421,7 +426,7 @@ function splitCsvRows(csvText: string): string[][] {
     if (i < len && csvText[i] === '\r') i++;
     if (i < len && csvText[i] === '\n') i++;
     // Only add non-empty rows
-    if (row.length > 1 || (row.length === 1 && row[0].trim())) {
+    if (row.length > 1 || (row.length === 1 && (row[0] ?? '').trim())) {
       rows.push(row);
     }
   }
