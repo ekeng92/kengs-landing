@@ -7,6 +7,8 @@ import type { Env } from '../types/env'
  * after the request has been authenticated via requireAuth middleware.
  */
 export function createSupabaseClient(env: Env): SupabaseClient {
+  if (env.TEST_SUPABASE) return env.TEST_SUPABASE as SupabaseClient
+
   return createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
     auth: { persistSession: false },
   })
