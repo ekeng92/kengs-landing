@@ -81,6 +81,7 @@ To import new bank data, use the `@str-finance` agent in VS Code.
 
 ## Operating Notes
 
+- [Feature Map](docs/feature-map.md) — product/ops roadmap and execution order
 - [Task Board Operating System](docs/task-board-operating-system.md) — Kanban lanes, task fields, and initial Keng's Landing cards
 - [AEON Watch Dedicated PC Setup Plan](docs/aeon-room-setup-plan.md) — tomorrow's always-on node checklist
 - [Testing Strategy](docs/testing-strategy.md) — safety gates for agent-led development
