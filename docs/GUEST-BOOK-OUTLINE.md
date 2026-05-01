@@ -1,6 +1,7 @@
 # Guest Book — Content Outline
 
 Source file: `docs/Kengs_Landing_Guest_Book.docx`
+Content drafts: `docs/guest-book-content/` (markdown sections ready to merge into docx)
 
 ## Sections
 
@@ -10,8 +11,9 @@ Source file: `docs/Kengs_Landing_Guest_Book.docx`
 - [x] **Wi-Fi & Remote Work** — Starlink, desk setup, monitor, HDMI
 - [ ] **Entertainment / Smart TVs** — Which streaming apps, how to cast *(missing — TVs mentioned but no instructions)*
 - [ ] **Kitchen & Appliances** — Coffee maker, oven, microwave, what's stocked *(missing)*
-- [ ] **Climate Control** — A/C thermostat, propane heater, ceiling fans *(missing)*
-- [x] **Hot Tub** — No glass, kids supervised, shower first, cover after use
+- [x] **Outdoor Lighting** — Back porch power switch (pine wall behind TV), pull switches for patio lights *(new — `guest-book-content/outdoor-lighting.md`)*
+- [x] **Climate Control** — Electric & propane fireplaces, 1–5 thermostat dial, lighting instructions *(new — `guest-book-content/climate-control-fireplaces.md`)*
+- [x] **Hot Tub** — No glass, kids supervised, shower first, cover after use + detailed operations: seating layout, jet zones, throttle controls, swapped button labels *(expanded — `guest-book-content/hot-tub-operations.md`)*
 - [ ] **Laundry** — Washer/dryer location and operating instructions *(light — mentioned exists, no details)*
 - [x] **Trash & Outdoor Care** — Red dumpster, Thursday pickup, wildlife prevention
 - [ ] **Septic System** — What NOT to flush *(missing — critical for rural property)*
