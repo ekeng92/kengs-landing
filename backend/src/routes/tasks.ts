@@ -18,6 +18,7 @@ tasksRouter.get('/', async (c) => {
   const project = c.req.query('project')
   const priority = c.req.query('priority')
   const context = c.req.query('context')
+  const assignedTo = c.req.query('assigned_to')
 
   if (!workspaceId) return c.json({ error: 'workspace_id is required' }, 400)
 
@@ -30,6 +31,11 @@ tasksRouter.get('/', async (c) => {
   if (project) query = query.eq('project', project)
   if (priority) query = query.eq('priority', priority)
   if (context) query = query.eq('context', context)
+  if (assignedTo === 'unassigned') {
+    query = query.is('assigned_to', null)
+  } else if (assignedTo) {
+    query = query.eq('assigned_to', assignedTo)
+  }
 
   const { data, error } = await query
     .order('due_date', { ascending: true, nullsFirst: false })
@@ -81,23 +87,29 @@ tasksRouter.post('/', async (c) => {
 
   const userId = c.var.userId
 
+  // Build insert payload with only fields that the DB has.
+  // V016 fields (due_date, effort, context, blocked_reason) may not exist yet.
+  const row: Record<string, unknown> = {
+    workspace_id: body.workspace_id,
+    title: body.title,
+    description: body.description ?? null,
+    status: body.status ?? 'backlog',
+    priority: body.priority ?? 'medium',
+    project: body.project ?? null,
+    tags: body.tags ?? [],
+    created_by: userId,
+    assigned_to: body.assigned_to ?? null,
+  }
+
+  // Conditionally include V016 fields only if provided
+  if (body.due_date !== undefined) row.due_date = body.due_date
+  if (body.effort !== undefined) row.effort = body.effort
+  if (body.context !== undefined) row.context = body.context
+  if (body.blocked_reason !== undefined) row.blocked_reason = body.blocked_reason
+
   const { data, error } = await supabase
     .from('tasks')
-    .insert({
-      workspace_id: body.workspace_id,
-      title: body.title,
-      description: body.description ?? null,
-      status: body.status ?? 'backlog',
-      priority: body.priority ?? 'medium',
-      project: body.project ?? null,
-      tags: body.tags ?? [],
-      created_by: userId,
-      assigned_to: body.assigned_to ?? null,
-      due_date: body.due_date ?? null,
-      effort: body.effort ?? null,
-      context: body.context ?? null,
-      blocked_reason: body.blocked_reason ?? null,
-    })
+    .insert(row)
     .select()
     .single()
 
@@ -203,20 +215,23 @@ tasksRouter.post('/bulk', async (c) => {
     return c.json({ error: 'workspace_id and tasks array are required' }, 400)
   }
 
-  const rows = tasks.map(t => ({
-    workspace_id,
-    title: t.title,
-    description: t.description ?? null,
-    status: t.status ?? 'backlog',
-    priority: t.priority ?? 'medium',
-    project: t.project ?? null,
-    tags: t.tags ?? [],
-    due_date: t.due_date ?? null,
-    effort: t.effort ?? null,
-    context: t.context ?? null,
-    blocked_reason: t.blocked_reason ?? null,
-    created_by: userId,
-  }))
+  const rows = tasks.map(t => {
+    const row: Record<string, unknown> = {
+      workspace_id,
+      title: t.title,
+      description: t.description ?? null,
+      status: t.status ?? 'backlog',
+      priority: t.priority ?? 'medium',
+      project: t.project ?? null,
+      tags: t.tags ?? [],
+      created_by: userId,
+    }
+    if (t.due_date !== undefined) row.due_date = t.due_date
+    if (t.effort !== undefined) row.effort = t.effort
+    if (t.context !== undefined) row.context = t.context
+    if (t.blocked_reason !== undefined) row.blocked_reason = t.blocked_reason
+    return row
+  })
 
   const { data, error } = await supabase
     .from('tasks')

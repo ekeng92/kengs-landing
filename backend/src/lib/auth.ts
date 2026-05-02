@@ -9,6 +9,7 @@ export type AuthVariables = {
 
 /**
  * Validates the Supabase JWT from the Authorization header.
+ * Also supports API key auth via X-API-Key header for service accounts (e.g. AEON Watch).
  * Sets c.var.userId for downstream handlers.
  * Returns 401 for missing, malformed, or expired tokens.
  */
@@ -20,6 +21,15 @@ export const requireAuth = createMiddleware<{
   if (c.env.DEV_BYPASS_AUTH === 'true') {
     c.set('userId', c.env.DEV_USER_ID || '00000000-0000-0000-0000-000000000001')
     c.set('workspace_id', c.env.DEV_WORKSPACE_ID || '')
+    await next()
+    return
+  }
+
+  // API key auth: service accounts (e.g. AEON Watch) use X-API-Key header
+  const apiKey = c.req.header('X-API-Key')
+  if (apiKey && c.env.AGENT_API_KEY && apiKey === c.env.AGENT_API_KEY) {
+    c.set('userId', c.env.AGENT_USER_ID || '00000000-0000-0000-0000-000000000001')
+    c.set('workspace_id', c.env.AGENT_WORKSPACE_ID || '')
     await next()
     return
   }

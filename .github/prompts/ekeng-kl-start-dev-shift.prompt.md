@@ -36,7 +36,7 @@ Then load the most recent worklog to resume from where the last session left off
 
 Run the cheapest checks that give the most signal. In this order:
 
-1. `powershell -ExecutionPolicy Bypass -File kengs-landing/scripts/environment-status.ps1` — repo state, backend readiness, GitHub auth
+1. Environment status script — repo state, backend readiness, GitHub auth. On macOS/Linux: `bash kengs-landing/scripts/environment-status.sh`. On Windows: `powershell -ExecutionPolicy Bypass -File kengs-landing/scripts/environment-status.ps1`
 2. `git log --oneline -8` on kengs-landing (recent trajectory)
 3. Scan TASKS.md for the first unblocked, unchecked item
 

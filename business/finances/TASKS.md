@@ -2,6 +2,14 @@
 
 > Living task list. Newest additions at top within each section.
 
+## Product Vision — Dashboard as Management Hub
+
+> **Direction set May 2, 2026**: The deployed website is the operating system for the business. Not VS Code. Not markdown. The browser is where everything lives — tasks, finances, guest docs, operations. Agents interact through Telegram/OpenClaw, mutations flow through the API, and the dashboard reflects reality.
+
+- [ ] **Make deployed site the management hub** — all tasks, finances, guest docs, operations managed from the browser. TASKS.md becomes a backup/snapshot, not the primary
+- [ ] **Surface operations docs on website** — guest book, WiFi QR codes, cleaning checklists, house rules viewable and editable through the deployed site
+- [ ] **Wire Telegram → API for task/operations commands** — text on Telegram to create tasks, update guest book, update finances, finish tasks. OpenClaw agent calls the Kengs Landing API
+
 ## Priority — Tax Prep / Depreciation
 
 - [x] **Placed-in-service date: March 1, 2026** — based on first VRBO booking (Mar 2026). Tax Period column added to tracker: 94 Pre-Service, 41 Operational
@@ -34,6 +42,17 @@
 - [x] **Add Waiting / Blocked lane + planning fields** — board now supports follow-up date, energy, context, and blocked reason metadata
 - [ ] **Seed Launch / Tax Readiness cards** — create the initial task cards from `docs/task-board-operating-system.md`
 - [ ] **Weekly board sweep automation** — surface stale In Progress, due Waiting tasks, and top 3 next actions
+## Backend Engineering
+
+- [x] **Mileage CRUD routes** — `GET/POST/PATCH/DELETE /mileage` endpoints built with 8 passing tests. Auto-calculates deduction from miles * IRS rate. Property-workspace validation. Registered in app router
+- [x] **Fix dashboard workspace_id bug** — all 3 dashboard endpoints (`/metrics`, `/export/expenses`, `/export/bookings`) used `c.get('workspace_id')` which is never set in production (auth middleware only sets `userId`). Changed to `c.req.query('workspace_id')` to match every other route. Updated error messages to list workspace_id as required
+- [x] **Seed task board from TASKS.md** — 32 tasks created in production Supabase (AEON-004 through AEON-035) via `scripts/seed-task-board.mjs --direct`. Deployed Kanban at kengs-landing-frontend.pages.dev/tasks/ now shows all tasks. Script is idempotent (dedupes by title)
+- [ ] **Apply V016 migration to production Supabase** — `db/migrations/V016__enhance_tasks_for_ops_board.sql` adds `due_date`, `effort`, `context`, `blocked_reason` columns and expands status CHECK to include `waiting`. Must be run via Supabase Dashboard SQL Editor. Currently tasks route 500s on create because it sends `blocked_reason` which doesn't exist. Either apply migration or make the route conditionally omit V016 fields
+- [ ] **Add pagination to list endpoints** — bookings, expenses, mileage, tasks all return all rows. Add `limit`/`offset` query params following a shared pattern. Required before dataset grows
+- [ ] **Add void endpoints for bookings and expenses** — committed records have a status field but no transition to `voided`. Add `PATCH /:id/void` for both entities with audit trail
+- [ ] **Wire import job status auto-update** — parse-bookings and parse-expenses routes don't update job.status to `parsed`/`flagged` after row creation. Job lifecycle stalls at `uploaded`
+- [ ] **Add Supabase Storage binding** — import routes reference signed URLs and `storage_path` but no Storage binding exists in wrangler.toml. Needed for file upload support
+
 ## AEON Watch Suggestions
 
 - [ ] **Create an owner-ready monthly close checklist** — turn the current finance workflow into a repeatable month-end sequence: import statements, review uncategorized expenses, reconcile bookings, archive receipts, export tax snapshot.
@@ -50,18 +69,24 @@
 - [x] **Check in VS Code task runner for local workflows** — added `.vscode/tasks.json` with backend install/dev/typecheck plus dashboard/task-board launch tasks
 - [x] **Document local environment workflow** — added `docs/dev-environment.md` with context-loading order, startup paths, and current gaps
 - [x] **Add one-command backend bootstrap** — added `backend/scripts/bootstrap-dev.ps1` plus a VS Code task to verify `.dev.vars`, install backend deps, and report readiness before `wrangler dev`
-- [x] **Add environment status report** — added `scripts/environment-status.ps1` plus a VS Code task to summarize repo state, backend readiness, GitHub auth, and task-board freshness; enhanced in May 2026 session to add Node.js/Wrangler versions, frontend surface checks, and better-labeled output
+- [x] **Add environment status report** — added `scripts/environment-status.ps1` (Windows) and `scripts/environment-status.sh` (macOS/Linux). VS Code task available. Reports repo state, backend readiness, TypeScript health, Python status, GitHub auth, and task-board freshness
 - [x] **Document openclaw gateway and Telegram bot state** — see `docs/dev-environment.md`; gateway is installed but not running as a service; Telegram bot is active through openclaw main agent; no Keng's Landing-specific bot code exists yet
+- [x] **Fix openclaw memory + security + update (Mac)** — Fixed memory-lancedb "Unknown embedding provider: local" by enabling dreaming config, installing node-llama-cpp in plugin-runtime-deps, and setting dimensions=768. Fixed world-readable config (chmod 600). Cleared ineffective denyCommands. Updated 2026.4.27→2026.4.29. Security audit: 0 critical (was 1)
 - [ ] **Install Python 3 + openpyxl** — required to run finance import scripts locally. Not in PATH (Windows Store stubs only). Install from python.org, add to PATH, then `pip install openpyxl`. Unblocks VRBO import, Amazon import, and future finance scripts
 - [ ] **Decide board strategy: markdown only vs GitHub Projects mirror** — current repo has no open Projects board; decide whether to keep the markdown file as the canonical board or sync to GitHub Projects after auth is configured
 - [ ] **Create local backend `.dev.vars`** — copy `backend/.dev.vars.example` to `.dev.vars` and fill in Supabase URL/service-role credentials so `wrangler dev` can run on this PC
-- [ ] **Authenticate this PC for GitHub** — complete `gh auth login` so AEON Watch can pull private repos, create issues/PRs, and sync task board changes with approval.
+- [x] **Authenticate Mac for GitHub** — `gh auth login` completed with ekeng92 PAT. AEON Watch can now use `gh` CLI for issues, PRs, and repo operations.
 - [ ] **Give AEON Watch dashboard API write access** — provide a safe auth path/service token or agent account so tasks can be created through the Keng's Landing `/tasks` API instead of only local markdown.
 - [ ] **Define Telegram bot scope for Keng's Landing** — the bot is live via openclaw but has no Keng's Landing tasks wired to it. Define what it should handle: booking alerts, expense prompts, task nudges, morning briefings. Then decide: openclaw agent tool, or dedicated Hono webhook route in the backend
 - [ ] **Evaluate Ubuntu path for the mini PC** — decide between staying Windows-native, adding WSL2 Ubuntu, or reinstalling Ubuntu Server for simpler automation and long-running services.
 - [ ] **Set up local model/tooling baseline** — install/test a practical local model runtime if hardware allows, plus CLI tools AEON Watch needs for repo audits, docs indexing, and background jobs.
 - [ ] **Create an AEON Watch ops dashboard** — local status page or markdown report for gateway health, tasks audit, cron jobs, repo sync status, disk, and recent work log.
 - [ ] **Define standing autonomy levels** — document which actions AEON Watch can do silently, which need approval, and which are never allowed without Eric.
+- [ ] **Validate openclaw memory recall end-to-end** — memory-lancedb initializes and stores to `~/.openclaw/memory/lancedb` but lazy-init means the DB hasn't been created yet. Send a test message via Telegram and confirm recall works. If dimensions mismatch, delete the lancedb dir and restart
+- [ ] **Fix skills-remote bin probe timeout** — every gateway restart logs `remote bin probe timed out` for 44 required bins. The node is connected but the `system.which` probe exceeds 15s. Investigate if the node service needs to be installed (`openclaw node install`) or if it's a connectivity issue with the local device pairing
+- [ ] **Implement proper tool-level security restrictions** — the cleared denyCommands used invalid command names. The original intent (block camera, SMS, contacts, calendar) needs to be reimplemented via `tools.exec` policy or by disabling specific skill plugins. Audit which skills expose sensitive operations and restrict accordingly
+- [x] **Bootstrap AEON Watch with Keng's Landing context** — Created `KENGS-LANDING.md` (full API reference, auth, deployment, endpoints), `STANDING-ORDERS.md` (authority levels, task board operations, monitoring patterns). Updated `AGENTS.md`, `HEARTBEAT.md`, `TOOLS.md`, `IDENTITY.md`, memory. Watch now has full project context and clear operational authority
+- [ ] **Create Supabase service account for AEON Watch** — the `/tasks` API requires a Bearer JWT. Watch needs either: (a) a dedicated Supabase user account (email+password) it can sign in with programmatically, or (b) a service-account/API-key auth path in the backend middleware. Without this, Watch can only interact with the task board via markdown + git, not the deployed API
 
 ## Completed
 

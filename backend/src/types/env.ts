@@ -4,6 +4,9 @@ export interface Env {
   DEV_BYPASS_AUTH?: string
   DEV_USER_ID?: string
   DEV_WORKSPACE_ID?: string
+  AGENT_API_KEY?: string
+  AGENT_USER_ID?: string
+  AGENT_WORKSPACE_ID?: string
   DB_HOST?: string
   DB_PASSWORD?: string
   /** Test-only injection point for route contract tests. */

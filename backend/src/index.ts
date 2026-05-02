@@ -9,6 +9,7 @@ import { importsRouter } from './routes/imports'
 import { dashboardRouter } from './routes/dashboard'
 import { icalSyncRouter, runIcalSync } from './routes/ical-sync'
 import { tasksRouter } from './routes/tasks'
+import { mileageRouter } from './routes/mileage'
 
 export const app = new Hono<{ Bindings: Env }>()
 
@@ -20,7 +21,7 @@ app.use(
       'http://localhost:8788',
       'http://localhost:3000',
     ],
-    allowHeaders: ['Authorization', 'Content-Type'],
+    allowHeaders: ['Authorization', 'Content-Type', 'X-API-Key'],
     allowMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true,
   })
@@ -36,6 +37,7 @@ app.route('/imports', importsRouter)
 app.route('/dashboard', dashboardRouter)
 app.route('/ical-sync', icalSyncRouter)
 app.route('/tasks', tasksRouter)
+app.route('/mileage', mileageRouter)
 
 export default {
   fetch: app.fetch,
