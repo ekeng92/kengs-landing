@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <title>Operations — Keng's Landing</title>
+  <link rel="stylesheet" href="../css/app-shell.css" />
+  <style>
+    header { display:none; }
+    main { max-width:700px; margin:0 auto; padding:24px; }
+    h1 { font-size:1.35rem; margin:0 0 6px; }
+    .muted { color:var(--text-muted); font-size:.9rem; margin-bottom:20px; }
+    .doc-grid { display:grid; gap:12px; }
+    .doc-card {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:var(--radius); padding:16px;
+      text-decoration:none; color:inherit;
+      display:flex; align-items:center; gap:14px;
+      transition:border-color .15s, background .15s;
+    }
+    .doc-card:hover { border-color:var(--border2); background:var(--surface2); }
+    .doc-icon {
+      width:42px; height:42px; border-radius:var(--radius-sm);
+      display:flex; align-items:center; justify-content:center;
+      font-size:1.15rem; flex-shrink:0;
+    }
+    .doc-icon.green { background:var(--accent-dim); }
+    .doc-icon.blue { background:rgba(37,99,235,.2); }
+    .doc-icon.purple { background:rgba(124,58,237,.2); }
+    .doc-icon.orange { background:rgba(217,119,6,.2); }
+    .doc-body { flex:1; min-width:0; }
+    .doc-title { font-weight:600; font-size:.92rem; }
+    .doc-desc { font-size:.78rem; color:var(--text-muted); margin-top:2px; }
+    .doc-tags { display:flex; gap:6px; margin-top:6px; flex-wrap:wrap; }
+    .tag {
+      display:inline-block; padding:2px 8px; border-radius:999px;
+      font-size:.62rem; font-weight:600; text-transform:uppercase; letter-spacing:.4px;
+    }
+    .tag-ops { background:rgba(217,119,6,.15); color:var(--orange-light); }
+    .tag-doc { background:rgba(124,58,237,.15); color:var(--purple-light); }
+    .tag-print { background:rgba(37,99,235,.15); color:var(--blue-light); }
+    .doc-chevron { color:var(--text-dim); font-size:1.1rem; flex-shrink:0; }
+    .section-label {
+      font-size:.68rem; text-transform:uppercase; letter-spacing:1px;
+      color:var(--text-dim); font-weight:600; margin:24px 0 12px;
+    }
+    .section-label:first-of-type { margin-top:0; }
+  </style>
+</head>
+<body>
+  <header><h1>Operations</h1></header>
+  <main>
+    <h1>Operations</h1>
+    <div class="muted">Guest-ready checklists, maintenance tracking, and supplies management for all properties.</div>
+
+    <div class="section-label">Cleaning</div>
+    <div class="doc-grid">
+      <a class="doc-card" href="cleaning-sheet-julie.html">
+        <div class="doc-icon green">🧹</div>
+        <div class="doc-body">
+          <div class="doc-title">Cleaning Checklist</div>
+          <div class="doc-desc">Turnover and weekly cleaning checklist. Designed for printing.</div>
+          <div class="doc-tags"><span class="tag tag-ops">Checklist</span><span class="tag tag-print">Printable</span></div>
+        </div>
+        <span class="doc-chevron">›</span>
+      </a>
+      <a class="doc-card" href="cleaning-reference-guide.html">
+        <div class="doc-icon blue">📋</div>
+        <div class="doc-body">
+          <div class="doc-title">Cleaning Reference Guide</div>
+          <div class="doc-desc">Training document for onboarding cleaning crew. Room-by-room standards.</div>
+          <div class="doc-tags"><span class="tag tag-doc">Reference</span><span class="tag tag-print">Printable</span></div>
+        </div>
+        <span class="doc-chevron">›</span>
+      </a>
+    </div>
+
+    <div class="section-label">Property Management</div>
+    <div class="doc-grid">
+      <a class="doc-card" href="maintenance-log-owners.html">
+        <div class="doc-icon orange">🔧</div>
+        <div class="doc-body">
+          <div class="doc-title">Maintenance Log</div>
+          <div class="doc-desc">Monthly and annual maintenance tracker with seasonal items.</div>
+          <div class="doc-tags"><span class="tag tag-ops">Tracker</span><span class="tag tag-print">Printable</span></div>
+        </div>
+        <span class="doc-chevron">›</span>
+      </a>
+      <a class="doc-card" href="supplies-inventory.html">
+        <div class="doc-icon purple">📦</div>
+        <div class="doc-body">
+          <div class="doc-title">Supplies Inventory</div>
+          <div class="doc-desc">Monthly inventory count with 2-month par level standards.</div>
+          <div class="doc-tags"><span class="tag tag-ops">Inventory</span><span class="tag tag-print">Printable</span></div>
+        </div>
+        <span class="doc-chevron">›</span>
+      </a>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/app-shell.js"></script>
+</body>
+</html>
