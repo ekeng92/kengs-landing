@@ -1,5 +1,10 @@
 # Keng's Landing — STR Finance Task List
 
+> ⚠️ **DEPRECATED AS PRIMARY TASK SOURCE (May 2, 2026)**
+> The canonical task board is the deployed Kanban at [kengs-landing-frontend.pages.dev/tasks/](https://kengs-landing-frontend.pages.dev/tasks/).
+> All new tasks go there via the API or dashboard UI. This file is a **snapshot** for offline reference only.
+> Do NOT add new tasks here. Do NOT treat this as the source of truth.
+
 > Living task list. Newest additions at top within each section.
 
 ## Product Vision — Dashboard as Management Hub
