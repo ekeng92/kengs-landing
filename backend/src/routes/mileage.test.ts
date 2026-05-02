@@ -44,13 +44,17 @@ describe('mileage route contracts', () => {
     )
 
     expect(res.status).toBe(200)
-    await expect(res.json()).resolves.toEqual({ data: [sampleTrip] })
+    const json: any = await res.json()
+    expect(json.data).toEqual([sampleTrip])
+    expect(json.limit).toBe(100)
+    expect(json.offset).toBe(0)
     expect(mock.tableCalls).toEqual(['mileage_trips'])
     expect(mock.builders[0]?.calls).toEqual([
-      { method: 'select', args: ['*'] },
+      { method: 'select', args: ['*', { count: 'exact' }] },
       { method: 'eq', args: ['workspace_id', 'workspace-1'] },
       { method: 'eq', args: ['property_id', 'property-1'] },
       { method: 'order', args: ['trip_date', { ascending: false }] },
+      { method: 'range', args: [0, 99] },
     ])
   })
 
