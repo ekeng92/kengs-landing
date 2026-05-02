@@ -75,12 +75,36 @@ Run `powershell -ExecutionPolicy Bypass -File scripts/environment-status.ps1` fr
 
 ## Current Environment Gaps
 
-- GitHub CLI is not authenticated on this PC, which blocks issue/PR/project automation
+- **GitHub CLI** — not authenticated on this PC; blocks issue/PR/project automation. Run `gh auth login` to fix
+- **Python** — not in PATH (Microsoft Store stubs only). Finance import scripts (`import-*.py`) require a real Python 3 install. Install from `https://python.org` or enable via the Store; install `openpyxl` after
+- **Backend `.dev.vars`** — not created; `wrangler dev` will fail until Supabase credentials are added
 - The workspace file is outside the repo, so team-wide shared workspace settings remain intentionally local for now
-- The finance dashboard is file-based, so there is no unified app start command across prototype and backend surfaces yet
+- The finance dashboard is file-based; no unified app start command across prototype and backend surfaces yet
+
+## OpenClaw Gateway (Local AI Infrastructure)
+
+OpenClaw is installed and available at `openclaw` in terminal. Version: 2026.4.29.
+
+Current status (as of 2026-05-01):
+- Gateway is **unreachable** (`ws://127.0.0.1:18789` timeout) — not running as a persistent service
+- Scheduled Task is **not installed** — gateway does not survive reboots
+- **4 active sessions** including a Telegram direct session — the Telegram bot IS active
+- 3 channel plugins (discord, nostr, slack) fail to load due to missing deps — non-critical if not using those channels
+- Tasks: 4 running, 3 audit errors — run `openclaw tasks maintenance --apply` to resolve
+
+To start the gateway manually: `openclaw gateway run`
+To install as a persistent Windows Scheduled Task: ask SAGE before changing service configuration.
+
+## Telegram Bot
+
+OpenClaw has an active Telegram channel session (`agent:main:telegram:direct:XXXX`). As of 2026-05-01:
+- The bot is live and receiving messages through openclaw's main agent
+- **No Keng's Landing-specific bot code exists in this repo** — all bot behavior is currently handled by the openclaw main agent
+- Future work: define what Keng's Landing tasks the bot should handle (booking alerts, expense prompts, task nudges) and wire them through openclaw's agent or a dedicated Hono webhook route
 
 ## Immediate Next Improvements
 
-1. Decide whether markdown remains the only task board or whether GitHub Projects should mirror it after auth is restored
-2. Add a lightweight environment status report for repo sync, backend readiness, and task-board freshness
-3. Reduce Windows-specific friction by deciding whether the mini PC should stay native, move to WSL2, or move to Ubuntu
+1. Install Python 3 and `openpyxl` so finance import scripts can run locally
+2. Complete `gh auth login` to unblock PR/issue automation
+3. Decide whether markdown remains the only task board or whether GitHub Projects should mirror it after auth is restored
+4. Reduce Windows-specific friction by deciding whether the mini PC should stay native, move to WSL2, or move to Ubuntu

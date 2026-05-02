@@ -21,7 +21,8 @@
 ## Data Imports
 
 - [ ] **Amazon orders** — Option C deferred. Export Amazon order history CSV, match ~$6,188 across 181 transactions to STR vs personal
-- [ ] **VRBO import** — need sample VRBO CSV export to build import script
+- [x] **VRBO import script built** — `business/finances/import-vrbo-csv.py` created 2026-05-01. Flexible column aliasing handles known VRBO export format variations. Use `--detect` flag with a real CSV to confirm column mapping before first live run. Still need: a real VRBO CSV export to calibrate against
+- [ ] **Run VRBO import** — export a reservation CSV from VRBO dashboard, run `python import-vrbo-csv.py --detect <file>` first, then do the live import. Python 3 + openpyxl must be installed (see dev-environment.md)
 
 ## Dashboard / Reporting
 
@@ -45,10 +46,13 @@
 - [x] **Document local environment workflow** — added `docs/dev-environment.md` with context-loading order, startup paths, and current gaps
 - [x] **Add one-command backend bootstrap** — added `backend/scripts/bootstrap-dev.ps1` plus a VS Code task to verify `.dev.vars`, install backend deps, and report readiness before `wrangler dev`
 - [x] **Add environment status report** — added `scripts/environment-status.ps1` plus a VS Code task to summarize repo state, backend readiness, GitHub auth, and task-board freshness; enhanced in May 2026 session to add Node.js/Wrangler versions, frontend surface checks, and better-labeled output
+- [x] **Document openclaw gateway and Telegram bot state** — see `docs/dev-environment.md`; gateway is installed but not running as a service; Telegram bot is active through openclaw main agent; no Keng's Landing-specific bot code exists yet
+- [ ] **Install Python 3 + openpyxl** — required to run finance import scripts locally. Not in PATH (Windows Store stubs only). Install from python.org, add to PATH, then `pip install openpyxl`. Unblocks VRBO import, Amazon import, and future finance scripts
 - [ ] **Decide board strategy: markdown only vs GitHub Projects mirror** — current repo has no open Projects board; decide whether to keep the markdown file as the canonical board or sync to GitHub Projects after auth is configured
 - [ ] **Create local backend `.dev.vars`** — copy `backend/.dev.vars.example` to `.dev.vars` and fill in Supabase URL/service-role credentials so `wrangler dev` can run on this PC
 - [ ] **Authenticate this PC for GitHub** — complete `gh auth login` so AEON Watch can pull private repos, create issues/PRs, and sync task board changes with approval.
 - [ ] **Give AEON Watch dashboard API write access** — provide a safe auth path/service token or agent account so tasks can be created through the Keng's Landing `/tasks` API instead of only local markdown.
+- [ ] **Define Telegram bot scope for Keng's Landing** — the bot is live via openclaw but has no Keng's Landing tasks wired to it. Define what it should handle: booking alerts, expense prompts, task nudges, morning briefings. Then decide: openclaw agent tool, or dedicated Hono webhook route in the backend
 - [ ] **Evaluate Ubuntu path for the mini PC** — decide between staying Windows-native, adding WSL2 Ubuntu, or reinstalling Ubuntu Server for simpler automation and long-running services.
 - [ ] **Set up local model/tooling baseline** — install/test a practical local model runtime if hardware allows, plus CLI tools AEON Watch needs for repo audits, docs indexing, and background jobs.
 - [ ] **Create an AEON Watch ops dashboard** — local status page or markdown report for gateway health, tasks audit, cron jobs, repo sync status, disk, and recent work log.
