@@ -18,12 +18,12 @@ dashboardRouter.use('*', requireAuth)
 
 dashboardRouter.get('/metrics', async (c: any) => {
   const supabase = createSupabaseClient(c.env)
-  const workspaceId = c.get('workspace_id')
+  const workspaceId = c.req.query('workspace_id')
   const propertyId = c.req.query('property_id')
   const dateFrom = c.req.query('date_from')
   const dateTo = c.req.query('date_to')
   if (!workspaceId || !propertyId || !dateFrom || !dateTo) {
-    return c.json({ error: 'property_id, date_from, date_to required' }, 400)
+    return c.json({ error: 'workspace_id, property_id, date_from, date_to required' }, 400)
   }
   // Query bookings
   const { data: bookings, error: bookingsErr } = await supabase
@@ -84,12 +84,12 @@ dashboardRouter.get('/metrics', async (c: any) => {
 
 dashboardRouter.get('/export/expenses', async (c: any) => {
   const supabase = createSupabaseClient(c.env)
-  const workspaceId = c.get('workspace_id')
+  const workspaceId = c.req.query('workspace_id')
   const propertyId = c.req.query('property_id')
   const dateFrom = c.req.query('date_from')
   const dateTo = c.req.query('date_to')
   if (!workspaceId || !propertyId || !dateFrom || !dateTo) {
-    return c.json({ error: 'property_id, date_from, date_to required' }, 400)
+    return c.json({ error: 'workspace_id, property_id, date_from, date_to required' }, 400)
   }
   let query = supabase
     .from('expenses')
@@ -120,12 +120,12 @@ dashboardRouter.get('/export/expenses', async (c: any) => {
 
 dashboardRouter.get('/export/bookings', async (c: any) => {
   const supabase = createSupabaseClient(c.env)
-  const workspaceId = c.get('workspace_id')
+  const workspaceId = c.req.query('workspace_id')
   const propertyId = c.req.query('property_id')
   const dateFrom = c.req.query('date_from')
   const dateTo = c.req.query('date_to')
   if (!workspaceId || !propertyId || !dateFrom || !dateTo) {
-    return c.json({ error: 'property_id, date_from, date_to required' }, 400)
+    return c.json({ error: 'workspace_id, property_id, date_from, date_to required' }, 400)
   }
   let query = supabase
     .from('bookings')

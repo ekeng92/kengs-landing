@@ -121,6 +121,18 @@
       font-size: 0.65rem; padding: 1px 5px; border-radius: 3px;
       background: var(--surface); color: var(--text-dim); border: 1px solid var(--border);
     }
+    .task-assignee {
+      font-size: 0.68rem; color: var(--blue-light); font-weight: 500;
+      display: flex; align-items: center; gap: 3px;
+    }
+    .task-assignee .avatar {
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--blue); color: #fff; font-size: 0.55rem;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; flex-shrink: 0;
+    }
+    .task-assignee.agent .avatar { background: var(--purple); }
+    .unassigned { color: var(--text-dim); font-style: italic; }
 
     /* Modal */
     .modal-overlay {
@@ -192,6 +204,13 @@
         <option value="high">High</option>
         <option value="medium">Medium</option>
         <option value="low">Low</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Assignee</label>
+      <select id="filter-assignee">
+        <option value="">All</option>
+        <option value="unassigned">Unassigned</option>
       </select>
     </div>
     <input class="search-input" id="search" type="text" placeholder="Search tasks…" />
@@ -281,6 +300,12 @@
           <option value="aeon-infra">AEON Infra</option>
         </select>
       </div>
+      <div class="form-group">
+        <label>Assigned To</label>
+        <select id="task-assigned">
+          <option value="">Unassigned</option>
+        </select>
+      </div>
       <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;">
         <div class="form-group">
           <label>Due / Follow-up</label>
@@ -331,6 +356,7 @@
   <script>
     let allTasks = [];
     let editingId = null;
+    let workspaceMembers = [];
 
     const COLUMNS = ['backlog', 'todo', 'in_progress', 'waiting', 'done'];
 
@@ -417,11 +443,13 @@
     document.addEventListener('DOMContentLoaded', async () => {
       const session = await Auth.requireLogin();
       if (!session) return;
+      await loadMembers();
       await loadTasks();
 
       // Filters
       document.getElementById('filter-project').addEventListener('change', renderBoard);
       document.getElementById('filter-priority').addEventListener('change', renderBoard);
+      document.getElementById('filter-assignee').addEventListener('change', renderBoard);
       document.getElementById('search').addEventListener('input', renderBoard);
 
       // Drag-and-drop on columns
@@ -444,19 +472,68 @@
       if (!resp.ok) { console.error('Failed to load tasks'); return; }
       const json = await resp.json();
       allTasks = json.data || [];
+      populateAssigneeDropdowns();
       renderBoard();
+    }
+
+    async function loadMembers() {
+      const workspaceId = await Auth.getWorkspaceId();
+      try {
+        const resp = await Auth.apiFetch(`/workspaces/${workspaceId}/members`);
+        if (resp.ok) {
+          const json = await resp.json();
+          workspaceMembers = (json.data || []).map(m => ({
+            ...m,
+            display_name: m.display_name || m.role || 'Member',
+          }));
+        }
+      } catch (e) {
+        console.warn('Could not load members:', e);
+      }
+      populateAssigneeDropdowns();
+    }
+
+    function populateAssigneeDropdowns() {
+      const filterSelect = document.getElementById('filter-assignee');
+      const modalSelect = document.getElementById('task-assigned');
+
+      // Also include assigned_to values from tasks that aren't in members (legacy data)
+      const memberNames = new Set(workspaceMembers.map(m => m.display_name));
+      const taskAssignees = [...new Set(allTasks.map(t => t.assigned_to).filter(Boolean))];
+      const extraAssignees = taskAssignees.filter(a => !memberNames.has(a));
+
+      // Rebuild filter dropdown
+      filterSelect.innerHTML = '<option value="">All</option><option value="unassigned">Unassigned</option>';
+      workspaceMembers.forEach(m => {
+        filterSelect.innerHTML += `<option value="${esc(m.display_name)}">${esc(m.display_name)}${m.role === 'agent' ? ' 🤖' : ''}</option>`;
+      });
+      extraAssignees.forEach(a => {
+        filterSelect.innerHTML += `<option value="${esc(a)}">${esc(a)}</option>`;
+      });
+
+      // Rebuild modal dropdown
+      modalSelect.innerHTML = '<option value="">Unassigned</option>';
+      workspaceMembers.forEach(m => {
+        modalSelect.innerHTML += `<option value="${esc(m.display_name)}">${esc(m.display_name)}${m.role === 'agent' ? ' 🤖' : ''}</option>`;
+      });
+      extraAssignees.forEach(a => {
+        modalSelect.innerHTML += `<option value="${esc(a)}">${esc(a)}</option>`;
+      });
     }
 
     function getFilteredTasks() {
       const project = document.getElementById('filter-project').value;
       const priority = document.getElementById('filter-priority').value;
+      const assignee = document.getElementById('filter-assignee').value;
       const search = document.getElementById('search').value.toLowerCase().trim();
 
       return allTasks.filter(t => {
         if (project && t.project !== project) return false;
         if (priority && t.priority !== priority) return false;
+        if (assignee === 'unassigned' && t.assigned_to) return false;
+        if (assignee && assignee !== 'unassigned' && t.assigned_to !== assignee) return false;
         if (search) {
-          const haystack = `${t.ref_code} ${t.title} ${t.description || ''} ${(t.tags || []).join(' ')}`.toLowerCase();
+          const haystack = `${t.ref_code} ${t.title} ${t.description || ''} ${(t.tags || []).join(' ')} ${t.assigned_to || ''}`.toLowerCase();
           if (!haystack.includes(search)) return false;
         }
         return true;
@@ -481,6 +558,7 @@
             <div class="task-meta">
               ${t.project ? `<span class="task-project ${projectClass(t.project)}">${esc(t.project)}</span>` : ''}
               <span class="priority-badge priority-${t.priority}">${t.priority === 'critical' ? '🔴' : t.priority === 'high' ? '🟠' : t.priority === 'medium' ? '⚪' : '⚫'} ${esc(t.priority)}</span>
+              ${assigneeBadge(t.assigned_to)}
             </div>
             ${planningChips(t)}
             ${t.tags?.length ? `<div class="task-tags">${t.tags.map(tag => `<span class="task-tag">${esc(tag)}</span>`).join('')}</div>` : ''}
@@ -492,6 +570,13 @@
     function projectClass(p) {
       const map = { 'kengs-landing': 'project-kengs-landing', 'chatkey': 'project-chatkey', 'kengs-stories': 'project-kengs-stories', 'aeon-infra': 'project-aeon-infra' };
       return map[p] || 'project-default';
+    }
+
+    function assigneeBadge(name) {
+      if (!name) return '';
+      const isAgent = workspaceMembers.some(m => m.display_name === name && m.role === 'agent');
+      const initials = name.split(/[\s-]+/).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+      return `<span class="task-assignee${isAgent ? ' agent' : ''}"><span class="avatar">${initials}</span>${esc(name)}</span>`;
     }
 
     function planningChips(t) {
@@ -525,6 +610,7 @@
       document.getElementById('task-status').value = 'backlog';
       document.getElementById('task-priority').value = 'medium';
       document.getElementById('task-project').value = '';
+      document.getElementById('task-assigned').value = '';
       document.getElementById('task-due').value = '';
       document.getElementById('task-effort').value = '';
       document.getElementById('task-context').value = '';
@@ -545,6 +631,7 @@
       document.getElementById('task-status').value = task.status;
       document.getElementById('task-priority').value = task.priority;
       document.getElementById('task-project').value = task.project || '';
+      document.getElementById('task-assigned').value = task.assigned_to || '';
       document.getElementById('task-due').value = task.due_date || '';
       document.getElementById('task-effort').value = task.effort || '';
       document.getElementById('task-context').value = task.context || '';
@@ -597,6 +684,7 @@
         status: document.getElementById('task-status').value,
         priority: document.getElementById('task-priority').value,
         project: document.getElementById('task-project').value || null,
+        assigned_to: document.getElementById('task-assigned').value || null,
         due_date: document.getElementById('task-due').value || null,
         effort: document.getElementById('task-effort').value || null,
         context: document.getElementById('task-context').value || null,
