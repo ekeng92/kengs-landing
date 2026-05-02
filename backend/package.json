@@ -19,7 +19,8 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
     "hono": "^4.12.14",
-    "postgres": "^3.4.9"
+    "postgres": "^3.4.9",
+    "zod": "^4.4.2"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240806.0",
