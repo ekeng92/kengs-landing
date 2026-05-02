@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <link rel="manifest" href="../manifest.json" />
+  <title>Users — Keng's Landing</title>
+  <link rel="stylesheet" href="../css/app-shell.css" />
+  <style>
+    :root { --bg:#0f1117; --surface:#1a1d27; --surface2:#222633; --border:#2e3345; --text:#e2e4ea; --muted:#8b90a0; --accent:#4ade80; --danger:#f87171; }
+    body { margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,sans-serif; padding-bottom:80px; }
+    header { display:none; }
+    main { max-width:1100px; margin:0 auto; padding:24px; }
+    h1 { font-size:1.35rem; margin:0 0 6px; }
+    .muted { color:var(--muted); font-size:.9rem; }
+    .panel { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px; margin-top:18px; }
+    .grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+    input, select { width:100%; background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:9px 10px; }
+    button { background:#1e4a35; color:var(--accent); border:1px solid #2f7c55; border-radius:8px; padding:9px 12px; cursor:pointer; font-weight:600; }
+    button.danger { background:transparent; color:var(--danger); border-color:#7f1d1d; }
+    .member { border-top:1px solid var(--border); padding:16px 0; display:grid; grid-template-columns:1.2fr .8fr 2fr auto; gap:14px; align-items:start; }
+    .member:first-child { border-top:0; }
+    .name { font-weight:700; }
+    .features { display:grid; grid-template-columns:repeat(2,minmax(130px,1fr)); gap:8px; }
+    .feature { display:grid; grid-template-columns:1fr 90px; align-items:center; gap:6px; font-size:.8rem; color:var(--muted); }
+    @media (max-width:800px){ .grid,.member{grid-template-columns:1fr}.features{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+  <header><h1>Users</h1></header>
+  <main>
+    <h1>Users & Access</h1>
+    <div class="muted">Add users, assign roles, and override access by feature. Owner/admin has full control.</div>
+
+    <section class="panel">
+      <h2 style="margin-top:0;font-size:1rem">Add user</h2>
+      <div class="grid">
+        <input id="new-email" type="email" placeholder="email@example.com" />
+        <input id="new-name" placeholder="Display name" />
+        <select id="new-role">
+          <option value="reviewer">Reviewer</option>
+          <option value="manager">Manager</option>
+          <option value="accountant">Accountant</option>
+          <option value="admin">Admin</option>
+          <option value="agent">Agent</option>
+        </select>
+        <button onclick="addUser()">Add / Invite</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 style="margin-top:0;font-size:1rem">Workspace members</h2>
+      <div id="members" class="muted">Loading…</div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/app-shell.js"></script>
+  <script>
+    const FEATURES = ['dashboard','tasks','finances','bookings','expenses','mileage','imports','properties','users','settings'];
+    const LEVELS = ['none','read','write','admin'];
+    let workspaceId = null;
+    let members = [];
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const session = await Auth.requireLogin();
+      if (!session) return;
+      workspaceId = await Auth.getWorkspaceId();
+      await loadMembers();
+    });
+
+    async function loadMembers() {
+      const res = await Auth.apiFetch(`/workspaces/${workspaceId}/members`);
+      if (!res.ok) { document.getElementById('members').textContent = await res.text(); return; }
+      members = (await res.json()).data || [];
+      renderMembers();
+    }
+
+    function renderMembers() {
+      const root = document.getElementById('members');
+      if (!members.length) { root.textContent = 'No members yet.'; return; }
+      root.className = '';
+      root.innerHTML = members.map(m => `
+        <div class="member" data-id="${m.id}">
+          <div><div class="name">${esc(m.display_name || m.email || m.user_id)}</div><div class="muted">${esc(m.email || m.user_id || '')}</div></div>
+          <select data-field="role">
+            ${['owner','admin','manager','reviewer','accountant','agent'].map(r => `<option value="${r}" ${m.role===r?'selected':''}>${r}</option>`).join('')}
+          </select>
+          <div class="features">
+            ${FEATURES.map(f => `<label class="feature">${f}<select data-feature="${f}">${LEVELS.map(l => `<option value="${l}" ${(m.feature_access||{})[f]===l?'selected':''}>${l}</option>`).join('')}</select></label>`).join('')}
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap"><button onclick="saveMember('${m.id}')">Save</button><button class="danger" onclick="removeMember('${m.id}')">Remove</button></div>
+        </div>`).join('');
+    }
+
+    async function addUser() {
+      const email = document.getElementById('new-email').value.trim();
+      const display_name = document.getElementById('new-name').value.trim();
+      const role = document.getElementById('new-role').value;
+      if (!email && !display_name) return alert('Email or display name required');
+      const res = await Auth.apiFetch(`/workspaces/${workspaceId}/members`, { method:'POST', body: JSON.stringify({ email: email || undefined, display_name: display_name || email, role }) });
+      if (!res.ok) return alert(await res.text());
+      document.getElementById('new-email').value = ''; document.getElementById('new-name').value = '';
+      await loadMembers();
+    }
+
+    async function saveMember(id) {
+      const row = document.querySelector(`.member[data-id="${id}"]`);
+      const feature_access = {};
+      row.querySelectorAll('[data-feature]').forEach(s => { if (s.value) feature_access[s.dataset.feature] = s.value; });
+      const role = row.querySelector('[data-field="role"]').value;
+      const res = await Auth.apiFetch(`/workspaces/${workspaceId}/members/${id}`, { method:'PATCH', body: JSON.stringify({ role, feature_access }) });
+      if (!res.ok) return alert(await res.text());
+      if (window.showToast) showToast('Member saved');
+      await loadMembers();
+    }
+
+    async function removeMember(id) {
+      if (!confirm('Remove this member?')) return;
+      const res = await Auth.apiFetch(`/workspaces/${workspaceId}/members/${id}`, { method:'DELETE' });
+      if (!res.ok) return alert(await res.text());
+      await loadMembers();
+    }
+
+    function esc(s){ const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+  </script>
+</body>
+</html>

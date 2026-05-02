@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generate Icons — Keng's Landing</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #1a1d27; color: #e2e4ea; padding: 40px; }
+    h1 { margin-bottom: 8px; }
+    p { color: #8b90a0; margin-bottom: 24px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+    .card { background: #0f1117; border: 1px solid #2e3345; border-radius: 12px; padding: 20px; text-align: center; }
+    .card canvas { border: 1px solid #2e3345; border-radius: 8px; margin-bottom: 12px; }
+    button { background: #2f7c55; color: #fff; border: none; border-radius: 8px; padding: 10px 20px; cursor: pointer; font-size: 0.9rem; }
+    button:hover { background: #4ade80; color: #0f1117; }
+    .label { font-size: 0.85rem; color: #8b90a0; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <h1>Icon Generator</h1>
+  <p>Renders the SVG favicon to canvas and provides downloadable PNGs at standard sizes.</p>
+  <div class="grid" id="grid"></div>
+
+  <script>
+    const sizes = [
+      { name: 'favicon-16x16.png', size: 16 },
+      { name: 'favicon-32x32.png', size: 32 },
+      { name: 'apple-touch-icon.png', size: 180 },
+      { name: 'icon-192x192.png', size: 192 },
+    ];
+
+    const svgURL = 'favicon.svg';
+
+    async function init() {
+      const resp = await fetch(svgURL);
+      const svgText = await resp.text();
+      const blob = new Blob([svgText], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+
+      const grid = document.getElementById('grid');
+
+      for (const { name, size } of sizes) {
+        const card = document.createElement('div');
+        card.className = 'card';
+
+        const label = document.createElement('div');
+        label.className = 'label';
+        label.textContent = `${name} (${size}×${size})`;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        canvas.style.width = Math.max(size, 64) + 'px';
+        canvas.style.height = Math.max(size, 64) + 'px';
+        canvas.style.imageRendering = size <= 32 ? 'pixelated' : 'auto';
+
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        img.onload = () => {
+          ctx.drawImage(img, 0, 0, size, size);
+        };
+        img.src = url;
+
+        const btn = document.createElement('button');
+        btn.textContent = `Download ${name}`;
+        btn.onclick = () => {
+          const link = document.createElement('a');
+          link.download = name;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+        };
+
+        card.appendChild(label);
+        card.appendChild(canvas);
+        card.appendChild(document.createElement('br'));
+        card.appendChild(btn);
+        grid.appendChild(card);
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
