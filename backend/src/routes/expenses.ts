@@ -2,7 +2,13 @@ import { Hono } from 'hono'
 import { requireAuth, type AuthVariables } from '../lib/auth'
 import { createSupabaseClient } from '../lib/supabase'
 import type { Env } from '../types/env'
-import type { ExpenseReviewState, RecordStatus } from '../types/schema'
+import {
+  ExpenseListQuery,
+  CreateExpenseBody,
+  UpdateExpenseBody,
+  formatZodError,
+  mapDbError,
+} from '../lib/validation'
 
 type Bindings = Env
 type Variables = AuthVariables
@@ -17,32 +23,50 @@ expensesRouter.use('*', requireAuth)
  */
 expensesRouter.get('/', async (c) => {
   const supabase = createSupabaseClient(c.env)
-  const workspaceId = c.req.query('workspace_id')
-  const propertyId = c.req.query('property_id')
-  const reviewState = c.req.query('review_state') as ExpenseReviewState | undefined
-  const status = c.req.query('status') as RecordStatus | undefined
 
-  if (!workspaceId) return c.json({ error: 'workspace_id is required' }, 400)
+  const parsed = ExpenseListQuery.safeParse({
+    workspace_id: c.req.query('workspace_id'),
+    property_id: c.req.query('property_id') || undefined,
+    review_state: c.req.query('review_state') || undefined,
+    status: c.req.query('status') || undefined,
+  })
 
-  let query = supabase.from('expenses').select('*').eq('workspace_id', workspaceId)
+  if (!parsed.success) return c.json({ error: formatZodError(parsed.error) }, 400)
 
-  if (propertyId) query = query.eq('property_id', propertyId)
-  if (reviewState) query = query.eq('review_state', reviewState)
+  const { workspace_id, property_id, review_state, status } = parsed.data
+
+  let query = supabase.from('expenses').select('*').eq('workspace_id', workspace_id)
+
+  if (property_id) query = query.eq('property_id', property_id)
+  if (review_state) query = query.eq('review_state', review_state)
   if (status) query = query.eq('status', status)
 
   const { data, error } = await query.order('transaction_date', { ascending: false })
 
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) {
+    const mapped = mapDbError(error)
+    return c.json({ error: mapped.message }, mapped.status as any)
+  }
   return c.json({ data })
 })
 
 /** Create a single expense record */
 expensesRouter.post('/', async (c) => {
   const supabase = createSupabaseClient(c.env)
-  const body = await c.req.json()
+
+  const raw = await c.req.json().catch(() => null)
+  if (!raw) return c.json({ error: 'Invalid JSON' }, 400)
+
+  const parsed = CreateExpenseBody.safeParse(raw)
+  if (!parsed.success) return c.json({ error: formatZodError(parsed.error) }, 400)
+
+  const body = parsed.data
 
   const { data, error } = await supabase.from('expenses').insert(body).select().single()
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) {
+    const mapped = mapDbError(error)
+    return c.json({ error: mapped.message }, mapped.status as any)
+  }
   return c.json({ data }, 201)
 })
 
@@ -65,7 +89,14 @@ expensesRouter.get('/:id', async (c) => {
  */
 expensesRouter.patch('/:id', async (c) => {
   const supabase = createSupabaseClient(c.env)
-  const body = await c.req.json()
+
+  const raw = await c.req.json().catch(() => null)
+  if (!raw) return c.json({ error: 'Invalid JSON' }, 400)
+
+  const parsed = UpdateExpenseBody.safeParse(raw)
+  if (!parsed.success) return c.json({ error: formatZodError(parsed.error) }, 400)
+
+  const body = parsed.data
 
   const { data, error } = await supabase
     .from('expenses')
@@ -74,7 +105,10 @@ expensesRouter.patch('/:id', async (c) => {
     .select()
     .single()
 
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) {
+    const mapped = mapDbError(error)
+    return c.json({ error: mapped.message }, mapped.status as any)
+  }
   return c.json({ data })
 })
 

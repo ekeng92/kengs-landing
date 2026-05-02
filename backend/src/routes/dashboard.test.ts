@@ -45,7 +45,7 @@ describe('dashboard route contracts', () => {
 
     expect(res.status).toBe(400)
     const json: any = await res.json()
-    expect(json.error).toContain('required')
+    expect(json.error).toContain('property_id')
   })
 
   it('computes metrics correctly from bookings, expenses, and mileage', async () => {

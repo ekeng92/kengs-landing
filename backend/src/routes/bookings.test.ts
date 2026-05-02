@@ -34,7 +34,8 @@ describe('bookings route contracts', () => {
     const res = await app.request('/bookings', {}, { ...baseEnv, TEST_SUPABASE: mock.client })
 
     expect(res.status).toBe(400)
-    await expect(res.json()).resolves.toEqual({ error: 'workspace_id is required' })
+    const json: any = await res.json()
+    expect(json.error).toContain('workspace_id')
   })
 
   it('lists bookings with optional filters', async () => {

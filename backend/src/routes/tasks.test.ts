@@ -199,4 +199,159 @@ describe('tasks route contracts', () => {
       })]],
     })
   })
+
+  it('creates a task with agent management fields (clarification_notes, assigned_agent, session_id)', async () => {
+    const agentTask = { ...sampleTask, assigned_agent: 'aeon-test', session_id: 'shift-2026-05-02', clarification_notes: null }
+    const mock = createMockSupabase([{ data: agentTask, error: null }])
+    const res = await app.request('/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        workspace_id: TEST_WORKSPACE,
+        title: 'Add pagination to list endpoints',
+        priority: 'medium',
+        assigned_agent: 'aeon-test',
+        session_id: 'shift-2026-05-02',
+      }),
+    }, { ...baseEnv, TEST_SUPABASE: mock.client })
+
+    expect(res.status).toBe(201)
+    expect(mock.builders[0]?.calls[0]).toEqual({
+      method: 'insert',
+      args: [expect.objectContaining({
+        workspace_id: TEST_WORKSPACE,
+        title: 'Add pagination to list endpoints',
+        assigned_agent: 'aeon-test',
+        session_id: 'shift-2026-05-02',
+      })],
+    })
+  })
+
+  it('filters tasks by assigned_agent query param', async () => {
+    const mock = createMockSupabase([{ data: [sampleTask], error: null }])
+    const res = await app.request(
+      `/tasks?workspace_id=${TEST_WORKSPACE}&assigned_agent=aeon-dev`,
+      {},
+      { ...baseEnv, TEST_SUPABASE: mock.client }
+    )
+
+    expect(res.status).toBe(200)
+    expect(mock.builders[0]?.calls).toEqual(
+      expect.arrayContaining([
+        { method: 'eq', args: ['assigned_agent', 'aeon-dev'] },
+      ])
+    )
+  })
+
+  it('filters tasks by session_id query param', async () => {
+    const mock = createMockSupabase([{ data: [sampleTask], error: null }])
+    const res = await app.request(
+      `/tasks?workspace_id=${TEST_WORKSPACE}&session_id=shift-2026-05-02`,
+      {},
+      { ...baseEnv, TEST_SUPABASE: mock.client }
+    )
+
+    expect(res.status).toBe(200)
+    expect(mock.builders[0]?.calls).toEqual(
+      expect.arrayContaining([
+        { method: 'eq', args: ['session_id', 'shift-2026-05-02'] },
+      ])
+    )
+  })
+
+  it('filters unassigned agent tasks with assigned_agent=unassigned', async () => {
+    const mock = createMockSupabase([{ data: [], error: null }])
+    const res = await app.request(
+      `/tasks?workspace_id=${TEST_WORKSPACE}&assigned_agent=unassigned`,
+      {},
+      { ...baseEnv, TEST_SUPABASE: mock.client }
+    )
+
+    expect(res.status).toBe(200)
+    expect(mock.builders[0]?.calls).toEqual(
+      expect.arrayContaining([
+        { method: 'is', args: ['assigned_agent', null] },
+      ])
+    )
+  })
+
+  it('updates a task with clarification_notes and moves to waiting', async () => {
+    const updated = { ...sampleTask, status: 'waiting', clarification_notes: 'Need SAGE to confirm tax bucket classification', blocked_reason: 'Needs SAGE clarification' }
+    const mock = createMockSupabase([{ data: updated, error: null }])
+    const res = await app.request('/tasks/AEON-006', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        status: 'waiting',
+        clarification_notes: 'Need SAGE to confirm tax bucket classification',
+        blocked_reason: 'Needs SAGE clarification',
+      }),
+    }, { ...baseEnv, TEST_SUPABASE: mock.client })
+
+    expect(res.status).toBe(200)
+    expect(mock.builders[0]?.calls[0]).toEqual({
+      method: 'update',
+      args: [expect.objectContaining({
+        status: 'waiting',
+        clarification_notes: 'Need SAGE to confirm tax bucket classification',
+        blocked_reason: 'Needs SAGE clarification',
+      })],
+    })
+  })
+
+  it('falls back gracefully when V021 columns do not exist during create', async () => {
+    const created = { ...sampleTask, created_by: TEST_USER }
+    const mock = createMockSupabase([
+      { data: null, error: { message: 'column tasks.assigned_agent does not exist', code: '42703' } },
+      { data: created, error: null },
+    ])
+    const res = await app.request('/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        workspace_id: TEST_WORKSPACE,
+        title: 'Test V021 fallback',
+        assigned_agent: 'aeon-test',
+        session_id: 'shift-test',
+      }),
+    }, { ...baseEnv, TEST_SUPABASE: mock.client })
+
+    expect(res.status).toBe(201)
+    await expect(res.json()).resolves.toEqual({ data: created })
+    // Second insert should NOT contain V021 fields
+    const retryInsert = mock.builders[1]?.calls[0]
+    expect(retryInsert?.method).toBe('insert')
+    const retryRow = retryInsert?.args?.[0] as Record<string, unknown>
+    expect(retryRow).not.toHaveProperty('assigned_agent')
+    expect(retryRow).not.toHaveProperty('session_id')
+    expect(retryRow).not.toHaveProperty('clarification_notes')
+  })
+
+  it('falls back gracefully when V021 columns do not exist during update', async () => {
+    const updated = { ...sampleTask, status: 'in_progress' }
+    const mock = createMockSupabase([
+      { data: null, error: { message: 'column tasks.assigned_agent does not exist', code: '42703' } },
+      { data: updated, error: null },
+    ])
+    const res = await app.request('/tasks/AEON-001', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        status: 'in_progress',
+        assigned_agent: 'aeon-dev',
+        session_id: 'shift-test',
+      }),
+    }, { ...baseEnv, TEST_SUPABASE: mock.client })
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual({ data: updated })
+    // Retry should strip V021 fields
+    const retryUpdate = mock.builders[1]?.calls[0]
+    expect(retryUpdate?.method).toBe('update')
+    const retryBody = retryUpdate?.args?.[0] as Record<string, unknown>
+    expect(retryBody).not.toHaveProperty('assigned_agent')
+    expect(retryBody).not.toHaveProperty('session_id')
+    expect(retryBody).not.toHaveProperty('clarification_notes')
+    expect(retryBody).toHaveProperty('status', 'in_progress')
+  })
 })

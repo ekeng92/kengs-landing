@@ -8,9 +8,10 @@ import {
   UpdateTaskBody,
   MoveTaskBody,
   BulkCreateTasksBody,
+  formatZodError,
+  mapDbError,
 } from '../lib/validation'
 import type { Env } from '../types/env'
-import { type ZodError } from 'zod'
 
 type Bindings = Env
 type Variables = AuthVariables
@@ -18,18 +19,6 @@ type Variables = AuthVariables
 export const tasksRouter = new Hono<{ Bindings: Bindings; Variables: Variables }>()
 
 tasksRouter.use('*', requireAuth)
-
-/** Format Zod errors into a client-friendly message */
-function formatZodError(err: ZodError): string {
-  return err.issues.map(e => `${e.path.join('.')}: ${e.message}`).join('; ')
-}
-
-/** Map Supabase/Postgres errors to safe client responses */
-function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
-  if (error.code === '23505') return { status: 409, message: 'Duplicate entry' }
-  if (error.code === '23503') return { status: 422, message: 'Referenced entity not found' }
-  return { status: 500, message: 'Internal server error' }
-}
 
 /** List tasks with optional filters */
 tasksRouter.get('/', async (c) => {
@@ -44,13 +33,15 @@ tasksRouter.get('/', async (c) => {
     priority: c.req.query('priority') || undefined,
     context: c.req.query('context') || undefined,
     assigned_to: c.req.query('assigned_to') || undefined,
+    assigned_agent: c.req.query('assigned_agent') || undefined,
+    session_id: c.req.query('session_id') || undefined,
   })
 
   if (!parsed.success) {
     return c.json({ error: formatZodError(parsed.error) }, 400)
   }
 
-  const { workspace_id, status, project, priority, context, assigned_to } = parsed.data
+  const { workspace_id, status, project, priority, context, assigned_to, assigned_agent, session_id } = parsed.data
 
   const forbidden = await requireWorkspaceFeature(c, workspace_id, 'tasks', 'read')
   if (forbidden) return forbidden
@@ -69,6 +60,12 @@ tasksRouter.get('/', async (c) => {
   } else if (assigned_to) {
     query = query.eq('assigned_to', assigned_to)
   }
+  if (assigned_agent === 'unassigned') {
+    query = query.is('assigned_agent', null)
+  } else if (assigned_agent) {
+    query = query.eq('assigned_agent', assigned_agent)
+  }
+  if (session_id) query = query.eq('session_id', session_id)
 
   // Try ordering by due_date first (V016); fall back to created_at only if column doesn't exist
   let result = await query
@@ -76,7 +73,7 @@ tasksRouter.get('/', async (c) => {
     .order('created_at', { ascending: false })
 
   if (result.error?.code === '42703') {
-    // Column doesn't exist yet (V016 not applied) — retry without it
+    // Column doesn't exist yet (V016/V021 not applied) — retry without optional columns
     let fallback = supabase
       .from('tasks')
       .select('*')
@@ -90,6 +87,7 @@ tasksRouter.get('/', async (c) => {
     } else if (assigned_to) {
       fallback = fallback.eq('assigned_to', assigned_to)
     }
+    // V021 filters omitted from fallback — columns may not exist
 
     result = await fallback.order('created_at', { ascending: false })
   }
@@ -164,12 +162,31 @@ tasksRouter.post('/', async (c) => {
   if (body.context !== undefined) row.context = body.context
   if (body.blocked_reason !== undefined) row.blocked_reason = body.blocked_reason
   if (body.completion_notes !== undefined) row.completion_notes = body.completion_notes
+  if (body.clarification_notes !== undefined) row.clarification_notes = body.clarification_notes
+  if (body.assigned_agent !== undefined) row.assigned_agent = body.assigned_agent
+  if (body.session_id !== undefined) row.session_id = body.session_id
 
   const { data, error } = await supabase
     .from('tasks')
     .insert(row)
     .select()
     .single()
+
+  if (error?.code === '42703') {
+    // V021 columns don't exist yet — strip them and retry
+    const { clarification_notes, assigned_agent, session_id, ...safeRow } = row
+    const retryResult = await supabase
+      .from('tasks')
+      .insert(safeRow)
+      .select()
+      .single()
+
+    if (retryResult.error) {
+      const mapped = mapDbError(retryResult.error)
+      return c.json({ error: mapped.message }, mapped.status as any)
+    }
+    return c.json({ data: retryResult.data }, 201)
+  }
 
   if (error) {
     const mapped = mapDbError(error)
@@ -211,6 +228,23 @@ tasksRouter.patch('/:idOrRef', async (c) => {
     .eq(column, isRef ? param.toUpperCase() : param)
     .select()
     .single()
+
+  if (error?.code === '42703') {
+    // V021 columns don't exist yet — strip them and retry
+    const { clarification_notes, assigned_agent, session_id, ...safeBody } = body as Record<string, unknown>
+    const retryResult = await supabase
+      .from('tasks')
+      .update({ ...safeBody, updated_at: new Date().toISOString() })
+      .eq(column, isRef ? param.toUpperCase() : param)
+      .select()
+      .single()
+
+    if (retryResult.error) {
+      const mapped = mapDbError(retryResult.error)
+      return c.json({ error: mapped.message }, mapped.status as any)
+    }
+    return c.json({ data: retryResult.data })
+  }
 
   if (error) {
     const mapped = mapDbError(error)
