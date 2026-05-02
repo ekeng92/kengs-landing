@@ -10,7 +10,23 @@
 
 // ─── Canonical enumerations ───────────────────────────────────────────────────
 
-export type WorkspaceMemberRole = 'owner' | 'reviewer' | 'accountant'
+export type WorkspaceMemberRole = 'owner' | 'admin' | 'manager' | 'reviewer' | 'accountant' | 'agent'
+
+export type FeatureAccessLevel = 'none' | 'read' | 'write' | 'admin'
+
+export type FeatureAccess = Partial<Record<
+  | 'dashboard'
+  | 'tasks'
+  | 'finances'
+  | 'bookings'
+  | 'expenses'
+  | 'mileage'
+  | 'imports'
+  | 'properties'
+  | 'users'
+  | 'settings',
+  FeatureAccessLevel
+>>
 
 export type RecordStatus = 'draft' | 'committed' | 'voided'
 
@@ -38,6 +54,9 @@ export interface WorkspaceMembership {
   workspace_id: string
   user_id: string
   role: WorkspaceMemberRole
+  display_name: string | null
+  email: string | null
+  feature_access: FeatureAccess | null
   created_at: string
   updated_at: string
 }

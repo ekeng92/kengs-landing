@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { requireAuth, type AuthVariables } from '../lib/auth'
 import { createSupabaseClient } from '../lib/supabase'
+import { requireWorkspaceFeature, validFeatureAccess, type FeatureAccess } from '../lib/permissions'
 import type { Env } from '../types/env'
 
 type Bindings = Env
@@ -12,12 +13,12 @@ workspacesRouter.use('*', requireAuth)
 
 /** List workspaces the authenticated user belongs to */
 workspacesRouter.get('/', async (c) => {
-  const userId = c.var.userId
+  const userId = c.get('userId')
   const supabase = createSupabaseClient(c.env)
 
   const { data, error } = await supabase
     .from('workspace_memberships')
-    .select('workspace_id, role, workspaces(*)')
+    .select('workspace_id, role, display_name, email, feature_access, workspaces(*)')
     .eq('user_id', userId)
 
   if (error) return c.json({ error: error.message }, 500)
@@ -26,7 +27,7 @@ workspacesRouter.get('/', async (c) => {
 
 /** Create a new workspace and assign the creator as owner */
 workspacesRouter.post('/', async (c) => {
-  const userId = c.var.userId
+  const userId = c.get('userId')
   const supabase = createSupabaseClient(c.env)
   const body = await c.req.json<{ name: string }>()
 
@@ -48,7 +49,7 @@ workspacesRouter.post('/', async (c) => {
 
 /** Get a single workspace (requires membership) */
 workspacesRouter.get('/:id', async (c) => {
-  const userId = c.var.userId
+  const userId = c.get('userId')
   const supabase = createSupabaseClient(c.env)
   const id = c.req.param('id')
 
@@ -68,19 +69,12 @@ workspacesRouter.get('/:id', async (c) => {
 
 /** Update workspace name (owner only) */
 workspacesRouter.patch('/:id', async (c) => {
-  const userId = c.var.userId
   const supabase = createSupabaseClient(c.env)
   const id = c.req.param('id')
   const body = await c.req.json<{ name?: string }>()
 
-  const { data: membership } = await supabase
-    .from('workspace_memberships')
-    .select('role')
-    .eq('workspace_id', id)
-    .eq('user_id', userId)
-    .single()
-
-  if (!membership || membership.role !== 'owner') return c.json({ error: 'Forbidden' }, 403)
+  const forbidden = await requireWorkspaceFeature(c, id, 'settings', 'admin')
+  if (forbidden) return forbidden
 
   const { data, error } = await supabase
     .from('workspaces')
@@ -104,9 +98,12 @@ workspacesRouter.get('/:id/members', async (c) => {
   const supabase = createSupabaseClient(c.env)
   const workspaceId = c.req.param('id')
 
+  const forbidden = await requireWorkspaceFeature(c, workspaceId, 'users', 'read')
+  if (forbidden) return forbidden
+
   const { data, error } = await supabase
     .from('workspace_memberships')
-    .select('id, user_id, role, display_name, created_at')
+    .select('id, user_id, role, display_name, email, feature_access, created_at, updated_at')
     .eq('workspace_id', workspaceId)
     .order('created_at', { ascending: true })
 
@@ -128,80 +125,110 @@ workspacesRouter.get('/:id/members', async (c) => {
 
 /**
  * Add a member or agent to a workspace.
- * For agents: provide display_name and role='agent'. user_id is auto-generated.
- * For humans: provide user_id and display_name.
+ * Humans can be added by existing Supabase user_id, or by email invite when Supabase Admin is available.
+ * Agents can use role='agent' and omit user_id; a placeholder UUID is generated.
  */
 workspacesRouter.post('/:id/members', async (c) => {
   const supabase = createSupabaseClient(c.env)
   const workspaceId = c.req.param('id')
+
+  const forbidden = await requireWorkspaceFeature(c, workspaceId, 'users', 'admin')
+  if (forbidden) return forbidden
+
   const body = await c.req.json<{
-    display_name: string
+    display_name?: string
+    email?: string
     role?: string
     user_id?: string
+    feature_access?: FeatureAccess
+    send_invite?: boolean
   }>()
 
-  if (!body.display_name) {
-    return c.json({ error: 'display_name is required' }, 400)
-  }
-
   const role = body.role ?? 'reviewer'
-  const validRoles = ['owner', 'reviewer', 'accountant', 'agent']
+  const validRoles = ['owner', 'admin', 'manager', 'reviewer', 'accountant', 'agent']
   if (!validRoles.includes(role)) {
     return c.json({ error: `Invalid role. Must be one of: ${validRoles.join(', ')}` }, 400)
   }
+  if (!validFeatureAccess(body.feature_access)) {
+    return c.json({ error: 'Invalid feature_access. Values must be one of: none, read, write, admin' }, 400)
+  }
 
-  // For agents, generate a random UUID as user_id placeholder
-  const userId = body.user_id ?? crypto.randomUUID()
+  const displayName = body.display_name || body.email || (role === 'agent' ? 'Agent' : '')
+  if (!displayName) return c.json({ error: 'display_name or email is required' }, 400)
+
+  let userId = body.user_id
+  if (!userId && role === 'agent') userId = crypto.randomUUID()
+
+  if (!userId && body.email) {
+    const admin = (supabase as any).auth?.admin
+    if (!admin?.inviteUserByEmail) {
+      return c.json({ error: 'user_id is required when email invite is unavailable' }, 400)
+    }
+    const invite = await admin.inviteUserByEmail(body.email)
+    if (invite.error || !invite.data?.user?.id) {
+      return c.json({ error: invite.error?.message ?? 'Failed to invite user' }, 500)
+    }
+    userId = invite.data.user.id
+  }
+
+  if (!userId) return c.json({ error: 'user_id or email is required' }, 400)
 
   const row: Record<string, unknown> = {
     workspace_id: workspaceId,
     user_id: userId,
     role,
+    display_name: displayName,
+    email: body.email ?? null,
+    feature_access: body.feature_access ?? {},
   }
 
-  // display_name may not exist in DB yet (V017 migration)
   const { data, error } = await supabase
     .from('workspace_memberships')
-    .insert({ ...row, display_name: body.display_name })
+    .insert(row)
     .select()
     .single()
 
-  if (error) {
-    if (error.message?.includes('display_name')) {
-      const { data: fallback, error: fallbackErr } = await supabase
-        .from('workspace_memberships')
-        .insert(row)
-        .select()
-        .single()
-      if (fallbackErr) return c.json({ error: fallbackErr.message }, 500)
-      return c.json({ data: fallback }, 201)
-    }
-    return c.json({ error: error.message }, 500)
-  }
+  if (error) return c.json({ error: error.message }, 500)
   return c.json({ data }, 201)
 })
 
 /**
- * Update a workspace member (change display_name or role).
+ * Update a workspace member (display name, role, email, or feature access).
  */
 workspacesRouter.patch('/:id/members/:memberId', async (c) => {
   const supabase = createSupabaseClient(c.env)
+  const workspaceId = c.req.param('id')
   const memberId = c.req.param('memberId')
+
+  const forbidden = await requireWorkspaceFeature(c, workspaceId, 'users', 'admin')
+  if (forbidden) return forbidden
+
   const body = await c.req.json<{
     display_name?: string
+    email?: string | null
     role?: string
+    feature_access?: FeatureAccess
   }>()
 
-  const patch: Record<string, unknown> = {
-    updated_at: new Date().toISOString(),
+  const validRoles = ['owner', 'admin', 'manager', 'reviewer', 'accountant', 'agent']
+  if (body.role !== undefined && !validRoles.includes(body.role)) {
+    return c.json({ error: `Invalid role. Must be one of: ${validRoles.join(', ')}` }, 400)
   }
+  if (!validFeatureAccess(body.feature_access)) {
+    return c.json({ error: 'Invalid feature_access. Values must be one of: none, read, write, admin' }, 400)
+  }
+
+  const patch: Record<string, unknown> = { updated_at: new Date().toISOString() }
   if (body.display_name !== undefined) patch.display_name = body.display_name
+  if (body.email !== undefined) patch.email = body.email
   if (body.role !== undefined) patch.role = body.role
+  if (body.feature_access !== undefined) patch.feature_access = body.feature_access
 
   const { data, error } = await supabase
     .from('workspace_memberships')
     .update(patch)
     .eq('id', memberId)
+    .eq('workspace_id', workspaceId)
     .select()
     .single()
 
@@ -214,12 +241,17 @@ workspacesRouter.patch('/:id/members/:memberId', async (c) => {
  */
 workspacesRouter.delete('/:id/members/:memberId', async (c) => {
   const supabase = createSupabaseClient(c.env)
+  const workspaceId = c.req.param('id')
   const memberId = c.req.param('memberId')
+
+  const forbidden = await requireWorkspaceFeature(c, workspaceId, 'users', 'admin')
+  if (forbidden) return forbidden
 
   const { error } = await supabase
     .from('workspace_memberships')
     .delete()
     .eq('id', memberId)
+    .eq('workspace_id', workspaceId)
 
   if (error) return c.json({ error: error.message }, 500)
   return c.json({ success: true })
