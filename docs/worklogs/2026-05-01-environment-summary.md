@@ -60,3 +60,26 @@
 - Create local backend `.dev.vars` from the example file when Supabase credentials are available
 - Complete `gh auth login`
 - Decide whether to keep task tracking markdown-only or add a GitHub Projects mirror later
+
+## Checkpoint 5 — 2026-05-01
+
+### Completed
+
+- Confirmed current environment state via `scripts/environment-status.ps1`: Node.js v24.15.0, Wrangler 3.114.17, node_modules present, both repos on `main`
+- Committed backend TypeScript strict null-safety pass (commit `ef62b96`) — airbnb-parser, expense-import parse, ical-sync, tsconfig; typecheck passes
+- Committed all pending environment infrastructure (commit `f2217ba`) — bootstrap script, status script, dev-environment doc, worklog, prompt file, TASKS.md — 6 files that were untracked and at risk of being lost
+- Enhanced `scripts/environment-status.ps1`: added Node.js version, Wrangler version, frontend surface checks, better-labeled sections, and improved `.dev.vars` hint
+
+### Current Environment State
+
+- Repo: branch=main, clean (after commits)
+- Node.js: v24.15.0 | Wrangler: 3.114.17
+- Backend node_modules: present
+- Backend .dev.vars: still missing (Supabase credentials needed)
+- GitHub CLI: not authenticated
+- Both frontend/index.html and business/finances/dashboard.html: present
+
+### Remaining Blockers (unchanged)
+
+- `backend/.dev.vars` requires Supabase service-role key — cannot run `wrangler dev` without it
+- GitHub CLI requires `gh auth login` — blocks PR/issue/project automation
