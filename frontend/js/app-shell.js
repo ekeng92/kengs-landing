@@ -17,6 +17,7 @@
     { id: 'dash',     href: '/dashboard/',       icon: '📊', label: 'Dashboard', match: p => p.startsWith('/dashboard') },
     { id: 'expenses', href: '/expense-review/',  icon: '🧾', label: 'Expenses',  match: p => p.startsWith('/expense-review') },
     { id: 'bookings', href: '/booking-review/',  icon: '📅', label: 'Bookings',  match: p => p.startsWith('/booking-review') },
+    { id: 'users',    href: '/users/',           icon: '👥', label: 'Users',     match: p => p.startsWith('/users') },
   ];
 
   const activePage = NAV_ITEMS.find(n => n.match(path));
