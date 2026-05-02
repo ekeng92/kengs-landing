@@ -70,14 +70,35 @@ tasksRouter.get('/', async (c) => {
     query = query.eq('assigned_to', assigned_to)
   }
 
-  const { data, error } = await query
+  // Try ordering by due_date first (V016); fall back to created_at only if column doesn't exist
+  let result = await query
     .order('due_date', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false })
-  if (error) {
-    const mapped = mapDbError(error)
+
+  if (result.error?.code === '42703') {
+    // Column doesn't exist yet (V016 not applied) — retry without it
+    let fallback = supabase
+      .from('tasks')
+      .select('*')
+      .eq('workspace_id', workspace_id)
+
+    if (status) fallback = fallback.eq('status', status)
+    if (project) fallback = fallback.eq('project', project)
+    if (priority) fallback = fallback.eq('priority', priority)
+    if (assigned_to === 'unassigned') {
+      fallback = fallback.is('assigned_to', null)
+    } else if (assigned_to) {
+      fallback = fallback.eq('assigned_to', assigned_to)
+    }
+
+    result = await fallback.order('created_at', { ascending: false })
+  }
+
+  if (result.error) {
+    const mapped = mapDbError(result.error)
     return c.json({ error: mapped.message }, mapped.status as any)
   }
-  return c.json({ data })
+  return c.json({ data: result.data })
 })
 
 /** Get a single task by ID or ref_code */
