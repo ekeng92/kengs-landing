@@ -43,10 +43,22 @@ lastUpdated: '2026-05-02'
 
 ## Testing
 
+**Testing is mandatory for every route and feature.** No code ships without tests.
+
 - Use `createMockSupabase()` pattern — inject via `TEST_SUPABASE` env binding
-- Test structure: describe block per endpoint, cover happy path + validation + error cases
-- Always update tests when changing route behavior or adding status values
-- Run `npx vitest run` before every commit
+- Test file co-located with route: `src/routes/<entity>.test.ts`
+- **Every route file must have a test file.** Adding a new route without tests is a defect
+- Test structure: `describe` block per endpoint, cover:
+  - Happy path (returns correct data/status)
+  - Input validation (missing required params → 400)
+  - Not found → 404
+  - Business rule rejections → 422
+  - DB errors → 500 with safe message (never raw error)
+  - Schema migration graceful fallbacks (e.g. missing columns → retry without)
+- Always update tests when changing route behavior, adding status values, or modifying Zod schemas
+- **Run `npx vitest run` before every commit.** The deploy pipeline enforces this (`npm run predeploy`)
+- When adding V016+ columns referenced in queries, add a fallback test that simulates `42703` (column not found) to ensure the route degrades gracefully before migrations are applied
+- Mock-supabase supports: `select`, `eq`, `neq`, `is`, `in`, `gte`, `lte`, `gt`, `lt`, `order`, `limit`, `insert`, `update`, `delete`, `single`, `maybeSingle`
 
 ## Task Status Lifecycle
 
