@@ -169,8 +169,10 @@ function parseIcal(text: string): IcalEvent[] {
   const blocks = text.split('BEGIN:VEVENT')
 
   for (let i = 1; i < blocks.length; i++) {
-    const block = blocks[i]?.split('END:VEVENT')[0]
-    if (!block) continue
+    const rawBlock = blocks[i]
+    if (!rawBlock) continue
+
+    const block = rawBlock.split('END:VEVENT')[0] ?? rawBlock
 
     const uid = extractField(block, 'UID')
     const summary = extractField(block, 'SUMMARY')

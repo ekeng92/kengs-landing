@@ -3,12 +3,12 @@
     "target": "ES2022",
     "module": "ES2022",
     "moduleResolution": "bundler",
-    "lib": ["ES2022"],
-    "types": ["@cloudflare/workers-types", "node"],
-    "skipLibCheck": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["@cloudflare/workers-types"],
     "strict": true,
     "noUncheckedIndexedAccess": true,
-    "noEmit": true
+    "noEmit": true,
+    "skipLibCheck": true
   },
   "include": ["src/**/*"]
 }
