@@ -70,12 +70,14 @@ export function parseCsvText(text: string): AirbnbCsvRow[] {
 
   const headerLine = lines[0]
   if (!headerLine) return []
+
   const headers = splitCsvLine(headerLine)
   const rows: AirbnbCsvRow[] = []
 
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i]
     if (!line) continue
+
     const values = splitCsvLine(line)
     const row: AirbnbCsvRow = {}
     headers.forEach((h, idx) => {
@@ -312,8 +314,10 @@ function parseDate(raw: string | undefined): string | null {
   // MM/DD/YYYY or M/D/YYYY
   const mdyMatch = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)
   if (mdyMatch) {
-    const [, m = '', d = '', y = ''] = mdyMatch
-    const padded = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
+    const [, monthRaw, dayRaw, yearRaw] = mdyMatch
+    if (!monthRaw || !dayRaw || !yearRaw) return null
+
+    const padded = `${yearRaw}-${monthRaw.padStart(2, '0')}-${dayRaw.padStart(2, '0')}`
     const date = new Date(padded)
     return isNaN(date.getTime()) ? null : padded
   }

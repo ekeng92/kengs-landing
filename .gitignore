@@ -18,6 +18,8 @@ Thumbs.db
 # Dashboard build output (legacy prototype)
 business/finances/dashboard/node_modules/
 business/finances/dashboard/dist/
+finances/dashboard/node_modules/
+finances/dashboard/dist/
 
 # Backend
 backend/node_modules/
