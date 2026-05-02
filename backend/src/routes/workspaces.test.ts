@@ -96,6 +96,40 @@ describe('workspaces route contracts', () => {
     expect(json.data).toEqual([sampleMember])
   })
 
+  it('returns display_name and email so frontend avoids showing raw UUIDs', async () => {
+    const memberWithNames = {
+      ...sampleMember,
+      display_name: 'Eric Keng',
+      email: 'eric@example.com',
+    }
+    const memberEmailOnly = {
+      ...sampleMember,
+      id: 'mem-002',
+      display_name: null,
+      email: 'fallback@example.com',
+    }
+    const mock = createMockSupabase([{ data: [memberWithNames, memberEmailOnly], error: null }])
+    const res = await app.request(
+      `/workspaces/${TEST_WORKSPACE}/members`,
+      {},
+      { ...baseEnv, TEST_SUPABASE: mock.client }
+    )
+
+    expect(res.status).toBe(200)
+    const json: any = await res.json()
+    expect(json.data).toHaveLength(2)
+
+    // Frontend fallback chain: display_name || email || user_id
+    const resolveName = (m: any) => m.display_name || m.email || m.user_id
+    expect(resolveName(json.data[0])).toBe('Eric Keng')
+    expect(resolveName(json.data[1])).toBe('fallback@example.com')
+    // Neither should resolve to a raw UUID
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    json.data.forEach((m: any) => {
+      expect(resolveName(m)).not.toMatch(uuidPattern)
+    })
+  })
+
   it('falls back gracefully when display_name column missing', async () => {
     const mock = createMockSupabase([
       { data: null, error: { message: 'column display_name does not exist' } },

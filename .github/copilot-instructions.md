@@ -24,12 +24,13 @@ Also serves as a test domain for a potential product: an STR finance tool any Ai
 |------|------|
 | `backend/src/` | Hono routes, auth middleware, Supabase client |
 | `backend/db/migrations/` | Flyway-style SQL migrations (V001–V021+) |
+| `backend/scripts/` | Migration runner (`migrate.mjs`), deploy pipeline |
 | `backend/test/` | Test utilities (`createMockSupabase`) |
-| `frontend/` | Multi-page HTML: dashboard, tasks kanban, expense review, booking review, hub |
+| `frontend/` | Multi-page HTML: dashboard, tasks kanban, expense review, booking review, hub, operations, settings |
 | `business/finances/` | Legacy finance prototype (tracker, import scripts) — being superseded by the backend |
 | `docs/` | Product brief, architecture, roadmap, workflow specs |
 | `business/operations/` | Leases, checklists, house rules, guest comms |
-| `scripts/` | Environment status, migration runner |
+| `scripts/` | Environment status script |
 
 ## Task Management
 
@@ -59,7 +60,7 @@ All endpoints require auth except `/health`. Routes: `/workspaces`, `/properties
 - **Input validation**: Zod schemas on every endpoint (in progress)
 - **Error handling**: Never expose raw DB errors to clients — use error mapping
 - **Testing**: Vitest with `createMockSupabase()` pattern. Run tests before every commit
-- **Migrations**: Flyway-compatible, idempotent SQL. Applied via `scripts/migrate.mjs`
+- **Migrations**: Flyway-compatible, idempotent SQL. Applied via `backend/scripts/migrate.mjs`
 - **No `console.log` in production code** — use structured logging (planned)
 
 ## Conventions
