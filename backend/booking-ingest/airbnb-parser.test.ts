@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { checkDedup, normalizeAirbnbRow, parseCsvText, type NormalizedBookingRow } from './airbnb-parser'
+import { checkDedup, filterReservationRows, normalizeAirbnbRow, parseCsvText, type NormalizedBookingRow } from './airbnb-parser'
 
 const validRow = {
   'Confirmation Code': 'HMABC123',
@@ -167,5 +167,120 @@ describe('Airbnb booking dedupe', () => {
     expect(checkDedup({ ...normalized, source_confirmation_code: 'HMNEW999' }, 'property-1', existing)).toEqual({
       outcome: 'new',
     })
+  })
+})
+
+// ─── New Format (April 2026+) ─────────────────────────────────────────────────
+
+const newFormatRow = {
+  Type: 'Reservation',
+  'Confirmation code': 'HMABC456',
+  Guest: 'John Doe',
+  'Start date': '04/10/2026',
+  'End date': '04/13/2026',
+  Nights: '3',
+  'Gross earnings': '$610.00',
+  'Cleaning fee': '$85.00',
+  'Service fee': '($18.30)',
+  'Airbnb remitted tax': '$48.80',
+  Amount: '$591.70',
+}
+
+describe('Airbnb CSV parser — new format (April 2026+)', () => {
+  it('normalizes new-format column names (case variations + renames)', () => {
+    const parsed = normalizeAirbnbRow(newFormatRow)
+
+    expect(parsed.initial_review_status).toBe('pending')
+    expect(parsed.validation_errors).toEqual([])
+    expect(parsed.normalized).toMatchObject({
+      source_platform: 'airbnb',
+      source_confirmation_code: 'HMABC456',
+      guest_name: 'John Doe',
+      check_in_date: '2026-04-10',
+      check_out_date: '2026-04-13',
+      nights: 3,
+      gross_revenue_amount: 610,
+      cleaning_fee_amount: 85,
+      platform_fee_amount: -18.3,
+      tax_amount: 48.8,
+      net_payout_amount: 591.7,
+    })
+  })
+
+  it('parses a new-format CSV with mixed headers', () => {
+    const csv = [
+      'Type,Confirmation code,Guest,Start date,End date,Nights,Gross earnings,Cleaning fee,Service fee,Airbnb remitted tax,Amount',
+      'Reservation,HMABC456,John Doe,04/10/2026,04/13/2026,3,"$610.00","$85.00","($18.30)",$48.80,$591.70',
+    ].join('\n')
+
+    const rows = parseCsvText(csv)
+    expect(rows).toHaveLength(1)
+    expect(rows[0]['Confirmation code']).toBe('HMABC456')
+
+    const parsed = normalizeAirbnbRow(rows[0])
+    expect(parsed.initial_review_status).toBe('pending')
+    expect(parsed.normalized.source_confirmation_code).toBe('HMABC456')
+  })
+})
+
+describe('filterReservationRows', () => {
+  it('keeps only Reservation rows when Type column is present', () => {
+    const rows = [
+      { Type: 'Reservation', 'Confirmation code': 'HM001', Amount: '$100' },
+      { Type: 'Payout', 'Confirmation code': '', Amount: '$100' },
+      { Type: 'Reservation', 'Confirmation code': 'HM002', Amount: '$200' },
+    ]
+    const filtered = filterReservationRows(rows)
+    expect(filtered).toHaveLength(2)
+    expect(filtered[0]['Confirmation code']).toBe('HM001')
+    expect(filtered[1]['Confirmation code']).toBe('HM002')
+  })
+
+  it('keeps all rows when no Type column exists (old format backward compat)', () => {
+    const rows = [
+      { 'Confirmation Code': 'HM001', Amount: '$100' },
+      { 'Confirmation Code': 'HM002', Amount: '$200' },
+    ]
+    const filtered = filterReservationRows(rows)
+    expect(filtered).toHaveLength(2)
+  })
+
+  it('handles case-insensitive Type column matching', () => {
+    const rows = [
+      { type: 'reservation', 'Confirmation code': 'HM001', Amount: '$100' },
+      { type: 'payout', 'Confirmation code': '', Amount: '$100' },
+    ]
+    const filtered = filterReservationRows(rows)
+    expect(filtered).toHaveLength(1)
+  })
+
+  it('returns empty array for empty input', () => {
+    expect(filterReservationRows([])).toEqual([])
+  })
+
+  it('filters a full mixed CSV with Payout and Reservation rows', () => {
+    const csv = [
+      'Type,Confirmation code,Guest,Start date,End date,Nights,Gross earnings,Cleaning fee,Service fee,Airbnb remitted tax,Amount,Paid out',
+      'Payout,,,,,,,,,,,$318.74',
+      'Reservation,HMXYZ789,Alice Smith,04/15/2026,04/18/2026,3,"$400.00","$50.00","($12.00)",$32.00,$318.74,',
+      'Reservation,HMXYZ790,Bob Jones,04/20/2026,04/22/2026,2,"$300.00","$50.00","($9.00)",$24.00,$241.00,',
+    ].join('\n')
+
+    const allRows = parseCsvText(csv)
+    expect(allRows).toHaveLength(3)
+
+    const filtered = filterReservationRows(allRows)
+    expect(filtered).toHaveLength(2)
+
+    // Verify both reservation rows normalize correctly
+    const first = normalizeAirbnbRow(filtered[0])
+    expect(first.normalized.source_confirmation_code).toBe('HMXYZ789')
+    expect(first.normalized.guest_name).toBe('Alice Smith')
+    expect(first.initial_review_status).toBe('pending')
+
+    const second = normalizeAirbnbRow(filtered[1])
+    expect(second.normalized.source_confirmation_code).toBe('HMXYZ790')
+    expect(second.normalized.guest_name).toBe('Bob Jones')
+    expect(second.initial_review_status).toBe('pending')
   })
 })
