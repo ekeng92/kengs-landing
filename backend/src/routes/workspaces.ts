@@ -87,6 +87,65 @@ workspacesRouter.patch('/:id', async (c) => {
   return c.json({ data })
 })
 
+// ─── User Profile (self-service) ──────────────────────────────────────────────
+
+/**
+ * Get the authenticated user's own membership in a workspace.
+ * No admin permission required — users can always read their own profile.
+ */
+workspacesRouter.get('/:id/profile', async (c) => {
+  const supabase = createSupabaseClient(c.env)
+  const workspaceId = c.req.param('id')
+  const userId = c.get('userId')
+
+  const { data, error } = await supabase
+    .from('workspace_memberships')
+    .select('id, user_id, role, display_name, email, feature_access, created_at, updated_at')
+    .eq('workspace_id', workspaceId)
+    .eq('user_id', userId)
+    .single()
+
+  if (error) {
+    if (error.code === 'PGRST116') return c.json({ error: 'Not a member of this workspace' }, 404)
+    return c.json({ error: error.message }, 500)
+  }
+  return c.json({ data })
+})
+
+/**
+ * Update the authenticated user's own display_name.
+ * No admin permission required — users can always update their own profile.
+ */
+workspacesRouter.patch('/:id/profile', async (c) => {
+  const supabase = createSupabaseClient(c.env)
+  const workspaceId = c.req.param('id')
+  const userId = c.get('userId')
+
+  const body = await c.req.json<{ display_name?: string }>()
+
+  if (!body.display_name || typeof body.display_name !== 'string' || body.display_name.trim().length === 0) {
+    return c.json({ error: 'display_name is required and must be a non-empty string' }, 400)
+  }
+
+  if (body.display_name.length > 200) {
+    return c.json({ error: 'display_name must be 200 characters or less' }, 400)
+  }
+
+  const { data, error } = await supabase
+    .from('workspace_memberships')
+    .update({ display_name: body.display_name.trim(), updated_at: new Date().toISOString() })
+    .eq('workspace_id', workspaceId)
+    .eq('user_id', userId)
+    .select()
+    .single()
+
+  if (error) {
+    if (error.code === 'PGRST116') return c.json({ error: 'Not a member of this workspace' }, 404)
+    return c.json({ error: error.message }, 500)
+  }
+  return c.json({ data })
+})
+
 // ─── Workspace Members (assignee management) ─────────────────────────────────
 
 /**

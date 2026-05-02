@@ -73,6 +73,7 @@
           ?
           <div class="user-menu" id="user-menu">
             <div class="user-menu-email" id="user-menu-email">Loading...</div>
+            <a class="user-menu-item" href="/settings/">Settings</a>
             <button class="user-menu-item danger" onclick="Auth.signOut()">Sign Out</button>
           </div>
         </div>

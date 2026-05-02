@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings — Keng's Landing</title>
+  <link rel="stylesheet" href="../css/app-shell.css" />
+  <style>
+    :root { --bg:#0f1117; --surface:#1a1d27; --surface2:#222633; --border:#2e3345; --text:#e2e4ea; --muted:#8b90a0; --accent:#4ade80; }
+    body { margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,sans-serif; padding-bottom:80px; }
+    header { display:none; }
+    main { max-width:600px; margin:0 auto; padding:24px; }
+    h1 { font-size:1.35rem; margin:0 0 6px; }
+    .muted { color:var(--muted); font-size:.9rem; }
+    .panel { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px; margin-top:18px; }
+    .panel h2 { margin:0 0 14px; font-size:1rem; }
+    .field { margin-bottom:14px; }
+    .field label { display:block; font-size:.8rem; color:var(--muted); margin-bottom:4px; }
+    .field input { width:100%; background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:10px 12px; font-size:.9rem; }
+    .field input:disabled { opacity:.6; cursor:not-allowed; }
+    .field .hint { font-size:.75rem; color:var(--muted); margin-top:4px; }
+    .info-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); font-size:.9rem; }
+    .info-row:last-child { border-bottom:0; }
+    .info-label { color:var(--muted); }
+    .info-value { font-weight:600; }
+    .btn { background:#1e4a35; color:var(--accent); border:1px solid #2f7c55; border-radius:8px; padding:10px 20px; cursor:pointer; font-weight:600; font-size:.9rem; }
+    .btn:disabled { opacity:.5; cursor:not-allowed; }
+    .actions { display:flex; gap:10px; margin-top:16px; }
+    .avatar-preview { width:48px; height:48px; border-radius:50%; background:#1e4a35; color:var(--accent); display:flex; align-items:center; justify-content:center; font-size:1.2rem; font-weight:700; margin-bottom:14px; }
+  </style>
+</head>
+<body>
+  <header><h1>Settings</h1></header>
+  <main>
+    <h1>Settings</h1>
+    <div class="muted">Manage your profile and account preferences.</div>
+
+    <section class="panel">
+      <h2>Profile</h2>
+      <div class="avatar-preview" id="avatar-preview">?</div>
+
+      <div class="field">
+        <label for="display-name">Display name</label>
+        <input id="display-name" type="text" placeholder="Your display name" maxlength="200" />
+        <div class="hint">This is how your name appears to other workspace members.</div>
+      </div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" type="email" disabled />
+        <div class="hint">Email is managed through your login account and cannot be changed here.</div>
+      </div>
+
+      <div class="actions">
+        <button class="btn" id="save-btn" onclick="saveProfile()" disabled>Save Changes</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Workspace</h2>
+      <div id="workspace-info" class="muted">Loading...</div>
+    </section>
+
+    <section class="panel">
+      <h2>Account</h2>
+      <div class="info-row">
+        <span class="info-label">Sign out of your account</span>
+        <button class="btn" style="background:transparent;color:#f87171;border-color:#7f1d1d" onclick="Auth.signOut()">Sign Out</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/app-shell.js"></script>
+  <script>
+    let workspaceId = null;
+    let membershipId = null;
+    let originalName = '';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const session = await Auth.requireLogin();
+      if (!session) return;
+
+      // Set email
+      const email = session.user?.email || '';
+      document.getElementById('email').value = email;
+      document.getElementById('avatar-preview').textContent = email ? email[0].toUpperCase() : '?';
+
+      // Load workspace + profile
+      workspaceId = await Auth.getWorkspaceId();
+      if (!workspaceId) {
+        document.getElementById('workspace-info').textContent = 'No workspace found.';
+        return;
+      }
+
+      await loadProfile();
+      await loadWorkspaceInfo();
+
+      // Enable save when name changes
+      document.getElementById('display-name').addEventListener('input', () => {
+        const current = document.getElementById('display-name').value.trim();
+        document.getElementById('save-btn').disabled = (current === originalName || current.length === 0);
+      });
+    });
+
+    async function loadProfile() {
+      const res = await Auth.apiFetch(`/workspaces/${workspaceId}/profile`);
+      if (!res.ok) return;
+      const { data } = await res.json();
+      if (data) {
+        membershipId = data.id;
+        originalName = data.display_name || '';
+        document.getElementById('display-name').value = originalName;
+
+        // Update avatar with display name initial if available
+        if (originalName) {
+          document.getElementById('avatar-preview').textContent = originalName[0].toUpperCase();
+        }
+      }
+    }
+
+    async function loadWorkspaceInfo() {
+      const ws = await Auth.getWorkspace();
+      const el = document.getElementById('workspace-info');
+      if (!ws) { el.textContent = 'No workspace found.'; return; }
+
+      const profileRes = await Auth.apiFetch(`/workspaces/${workspaceId}/profile`);
+      let role = 'unknown';
+      if (profileRes.ok) {
+        const { data } = await profileRes.json();
+        if (data) role = data.role;
+      }
+
+      el.innerHTML = `
+        <div class="info-row">
+          <span class="info-label">Workspace</span>
+          <span class="info-value">${esc(ws.name || ws.workspace_id || workspaceId)}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Your role</span>
+          <span class="info-value" style="text-transform:capitalize">${esc(role)}</span>
+        </div>
+      `;
+    }
+
+    async function saveProfile() {
+      const btn = document.getElementById('save-btn');
+      const name = document.getElementById('display-name').value.trim();
+      if (!name || !workspaceId) return;
+
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      const res = await Auth.apiFetch(`/workspaces/${workspaceId}/profile`, {
+        method: 'PATCH',
+        body: JSON.stringify({ display_name: name }),
+      });
+
+      if (res.ok) {
+        originalName = name;
+        btn.textContent = 'Save Changes';
+        if (window.showToast) showToast('Profile updated');
+        // Update avatar
+        document.getElementById('avatar-preview').textContent = name[0].toUpperCase();
+      } else {
+        const err = await res.text();
+        btn.textContent = 'Save Changes';
+        btn.disabled = false;
+        alert('Failed to save: ' + err);
+      }
+    }
+
+    function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+  </script>
+</body>
+</html>
