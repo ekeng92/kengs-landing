@@ -98,19 +98,22 @@ curl -s -X POST "$API/tasks" -H "Content-Type: application/json" \
 ### Task Lifecycle (Manager View)
 
 ```
-                         DEV LEAD assigns
-                              ↓
-backlog → todo → in_progress → review → done
-                    ↑              ↑        ↑
-               SUBAGENT        DEV LEAD   SAGE
-               works here      validates  approves
-                              & moves
-                              here
+                    DEV LEAD assigns
+                         ↓
+backlog → todo → in_progress → QA validation → review → done
+                    ↑               ↑              ↑        ↑
+               DEV AGENT        QA AGENT       DEV LEAD   SAGE
+               implements       validates      approves   accepts
 ```
 
-- **Dev Lead** assigns `todo` tasks to subagents by setting `assigned_agent` + `status: in_progress`
-- **Subagent** does the work and reports back to Dev Lead
-- **Dev Lead** validates the work, then moves to `review` with `completion_notes`
+- **Dev Lead** assigns `todo` tasks to dev agents by setting `assigned_agent` + `status: in_progress`
+- **Dev agent** does the work and reports back to Dev Lead
+- **Dev Lead** does a quick sanity check, then dispatches **AEON QA** with the dev output + acceptance criteria
+- **QA agent** validates: runs full test suite, checks types, verifies acceptance criteria, writes regression tests, returns a QA report
+- **Dev Lead** reviews the QA report:
+  - **✅ APPROVED** → commit QA's regression tests, move to `review`
+  - **⚠️ APPROVED WITH NOTES** → fix warnings inline, move to `review`
+  - **❌ BLOCKED** → re-dispatch to dev agent with QA findings, iterate
 - **SAGE** reviews and moves to `done` or sends back to `in_progress` with feedback
 
 ---
@@ -149,6 +152,7 @@ Generate a **session ID** for this shift: `shift-YYYY-MM-DD-HHMM` (use current t
 |-------|----------|----------------|
 | `Explore` | Research, codebase exploration, finding patterns | Read-only, fast, safe to parallelize |
 | `aeon-test` | Writing tests, running test suites, fixing test failures | Needs test patterns, mock utilities |
+| `aeon-qa` | Post-dev validation, regression testing, acceptance verification | Needs dev report, acceptance criteria, changed files |
 | `aeon-review` | Code review, finding bugs, convention violations | Needs diff + conventions |
 | `aeon-pr` | Git commit/push, PR creation | Needs branch, commit context |
 | Main session (you) | Coordination, inline fixes, validation, small tasks | Your own context |
@@ -186,18 +190,59 @@ Every subagent prompt MUST include:
 6. **Known pitfalls**: Relevant entries from the learnings file
 7. **Return format**: What the agent should include in its response (files changed, test results, any issues found)
 
-### 3c. Review the output
+### 3c. Quick sanity check
 
-When a subagent returns:
-1. Read the files it changed
-2. Run the relevant tests
-3. Check TypeScript compilation
-4. If the work needs fixes → either fix inline (< 3 edits) or re-dispatch with a targeted prompt
-5. If the work passes → move the task to `review` via the API with `completion_notes`
+When a dev subagent returns:
+1. Read the files it changed — does the approach make sense?
+2. Run the relevant tests — do they pass?
+3. Check TypeScript compilation — is it clean?
+4. If obviously broken → fix inline (< 3 edits) or re-dispatch to dev with targeted prompt
+5. If sane → proceed to QA dispatch
 
-### 3d. Iterate
+### 3d. Dispatch QA
 
-If a subagent's work is 80% there, don't re-dispatch the whole thing. Fix the remaining 20% with a targeted re-dispatch or inline edit. The goal is 99% confidence, not 100% re-work.
+For every task that passes the sanity check, dispatch **AEON QA** with:
+
+```
+You are being dispatched by AEON Dev Lead as QA validator for task AEON-NNN.
+
+## Task
+<title + description>
+
+## What Was Done
+<dev agent's report — files changed, decisions made>
+
+## Work Type
+code / docs / migration / config / mixed
+
+## Files Changed
+- <exact path 1>
+- <exact path 2>
+
+## Acceptance Criteria
+- [ ] <criterion 1>
+- [ ] <criterion 2>
+
+## Repo Conventions
+- Read: kengs-landing/.github/instructions/03-backend-conventions.instructions.md
+- Read: kengs-landing/.github/instructions/04-ways-of-working.instructions.md
+- Test framework: Vitest with createMockSupabase()
+- Validation: Zod on all endpoints
+
+## Return Format
+Structured QA report with verdict, test results, findings, regression tests added
+```
+
+### 3e. Review QA report
+
+When QA returns:
+- **✅ APPROVED** → commit any regression tests QA wrote, move task to `review`
+- **⚠️ APPROVED WITH NOTES** → fix warnings (inline or re-dispatch), commit QA tests, move to `review`
+- **❌ BLOCKED** → re-dispatch to dev agent with QA's specific findings as new context. Iterate until QA approves
+
+### 3f. Iterate
+
+If dev or QA output is 80% there, don't re-dispatch the whole thing. Fix the remaining 20% with a targeted re-dispatch or inline edit. The goal is 99% confidence, not 100% re-work.
 
 ---
 
@@ -259,13 +304,16 @@ Better / Same / Worse — <one-line explanation>
 ## Standing Rules
 
 - **You are a coordinator, not an implementer.** Subagents write code. You plan, assign, validate, and report.
+- **Every code task goes through QA.** Dev builds it, QA validates it. No exceptions for "simple" changes.
 - **Small inline fixes are OK.** If a subagent's output needs a 1-line fix, do it yourself rather than re-dispatching.
 - **Never mark a task `done`** — agents move to `review`. SAGE moves to `done`.
 - **Completion notes are mandatory** — the SAGE should be able to assess the work from the notes alone.
 - **Clarification notes must be specific** — "need more info" is not acceptable. Ask the exact question.
 - **Session IDs link everything** — every task touched this shift gets tagged with the session ID.
 - **Subagent prompts are self-contained** — they get ONE chance. Front-load everything.
+- **QA regression tests are part of the deliverable** — commit them alongside the dev work.
 - **The learnings file is still yours** — if you discover a pattern during this shift, capture it.
+- **New agents read the ways-of-working first.** Point them to `.github/instructions/04-ways-of-working.instructions.md` — don't re-explain the workflow.
 
 ---
 
