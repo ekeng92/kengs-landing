@@ -191,4 +191,51 @@ describe('workspaces route contracts', () => {
     const json: any = await res.json()
     expect(json.success).toBe(true)
   })
+
+  // ── Profile (self-service) ────────────────────────────────────────
+
+  it('gets own profile for the authenticated user', async () => {
+    const profile = { ...sampleMember, user_id: TEST_USER }
+    const mock = createMockSupabase([{ data: profile, error: null }])
+    const res = await app.request(`/workspaces/${TEST_WORKSPACE}/profile`, {}, { ...baseEnv, TEST_SUPABASE: mock.client })
+
+    expect(res.status).toBe(200)
+    const json: any = await res.json()
+    expect(json.data.user_id).toBe(TEST_USER)
+    expect(json.data.display_name).toBe('Eric Keng')
+  })
+
+  it('returns 404 when user is not a workspace member', async () => {
+    const mock = createMockSupabase([{ data: null, error: { message: 'not found', code: 'PGRST116' } }])
+    const res = await app.request(`/workspaces/${TEST_WORKSPACE}/profile`, {}, { ...baseEnv, TEST_SUPABASE: mock.client })
+
+    expect(res.status).toBe(404)
+  })
+
+  it('updates own display_name via PATCH /profile', async () => {
+    const updated = { ...sampleMember, display_name: 'Eric K' }
+    const mock = createMockSupabase([{ data: updated, error: null }])
+    const res = await app.request(`/workspaces/${TEST_WORKSPACE}/profile`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ display_name: 'Eric K' }),
+    }, { ...baseEnv, TEST_SUPABASE: mock.client })
+
+    expect(res.status).toBe(200)
+    const json: any = await res.json()
+    expect(json.data.display_name).toBe('Eric K')
+  })
+
+  it('rejects empty display_name on PATCH /profile', async () => {
+    const mock = createMockSupabase([])
+    const res = await app.request(`/workspaces/${TEST_WORKSPACE}/profile`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ display_name: '' }),
+    }, { ...baseEnv, TEST_SUPABASE: mock.client })
+
+    expect(res.status).toBe(400)
+    const json: any = await res.json()
+    expect(json.error).toContain('display_name')
+  })
 })
