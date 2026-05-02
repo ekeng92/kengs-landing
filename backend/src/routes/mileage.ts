@@ -37,23 +37,27 @@ mileageRouter.get('/', async (c) => {
   const parsed = MileageListQuery.safeParse({
     workspace_id: c.req.query('workspace_id'),
     property_id: c.req.query('property_id') || undefined,
+    limit: c.req.query('limit') || undefined,
+    offset: c.req.query('offset') || undefined,
   })
 
   if (!parsed.success) return c.json({ error: formatZodError(parsed.error) }, 400)
 
-  const { workspace_id, property_id } = parsed.data
+  const { workspace_id, property_id, limit, offset } = parsed.data
 
-  let query = supabase.from('mileage_trips').select('*').eq('workspace_id', workspace_id)
+  let query = supabase.from('mileage_trips').select('*', { count: 'exact' }).eq('workspace_id', workspace_id)
 
   if (property_id) query = query.eq('property_id', property_id)
 
-  const { data, error } = await query.order('trip_date', { ascending: false })
+  const { data, error, count } = await query
+    .order('trip_date', { ascending: false })
+    .range(offset, offset + limit - 1)
 
   if (error) {
     const mapped = mapDbError(error)
     return c.json({ error: mapped.message }, mapped.status as any)
   }
-  return c.json({ data })
+  return c.json({ data, total: count, limit, offset })
 })
 
 /** Get a single mileage trip */

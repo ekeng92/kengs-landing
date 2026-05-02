@@ -29,25 +29,29 @@ expensesRouter.get('/', async (c) => {
     property_id: c.req.query('property_id') || undefined,
     review_state: c.req.query('review_state') || undefined,
     status: c.req.query('status') || undefined,
+    limit: c.req.query('limit') || undefined,
+    offset: c.req.query('offset') || undefined,
   })
 
   if (!parsed.success) return c.json({ error: formatZodError(parsed.error) }, 400)
 
-  const { workspace_id, property_id, review_state, status } = parsed.data
+  const { workspace_id, property_id, review_state, status, limit, offset } = parsed.data
 
-  let query = supabase.from('expenses').select('*').eq('workspace_id', workspace_id)
+  let query = supabase.from('expenses').select('*', { count: 'exact' }).eq('workspace_id', workspace_id)
 
   if (property_id) query = query.eq('property_id', property_id)
   if (review_state) query = query.eq('review_state', review_state)
   if (status) query = query.eq('status', status)
 
-  const { data, error } = await query.order('transaction_date', { ascending: false })
+  const { data, error, count } = await query
+    .order('transaction_date', { ascending: false })
+    .range(offset, offset + limit - 1)
 
   if (error) {
     const mapped = mapDbError(error)
     return c.json({ error: mapped.message }, mapped.status as any)
   }
-  return c.json({ data })
+  return c.json({ data, total: count, limit, offset })
 })
 
 /** Create a single expense record */

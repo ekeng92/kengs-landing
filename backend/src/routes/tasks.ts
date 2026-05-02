@@ -35,20 +35,22 @@ tasksRouter.get('/', async (c) => {
     assigned_to: c.req.query('assigned_to') || undefined,
     assigned_agent: c.req.query('assigned_agent') || undefined,
     session_id: c.req.query('session_id') || undefined,
+    limit: c.req.query('limit') || undefined,
+    offset: c.req.query('offset') || undefined,
   })
 
   if (!parsed.success) {
     return c.json({ error: formatZodError(parsed.error) }, 400)
   }
 
-  const { workspace_id, status, project, priority, context, assigned_to, assigned_agent, session_id } = parsed.data
+  const { workspace_id, status, project, priority, context, assigned_to, assigned_agent, session_id, limit, offset } = parsed.data
 
   const forbidden = await requireWorkspaceFeature(c, workspace_id, 'tasks', 'read')
   if (forbidden) return forbidden
 
   let query = supabase
     .from('tasks')
-    .select('*')
+    .select('*', { count: 'exact' })
     .eq('workspace_id', workspace_id)
 
   if (status) query = query.eq('status', status)
@@ -71,8 +73,9 @@ tasksRouter.get('/', async (c) => {
   let result = await query
     .order('due_date', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1)
 
-  if (result.error?.code === '42703') {
+  if (result.error?.code === '42703' || result.error?.code === 'PGRST204') {
     // Column doesn't exist yet (V016/V021 not applied) — retry without optional columns
     let fallback = supabase
       .from('tasks')
@@ -89,14 +92,14 @@ tasksRouter.get('/', async (c) => {
     }
     // V021 filters omitted from fallback — columns may not exist
 
-    result = await fallback.order('created_at', { ascending: false })
+    result = await fallback.order('created_at', { ascending: false }).range(offset, offset + limit - 1)
   }
 
   if (result.error) {
     const mapped = mapDbError(result.error)
     return c.json({ error: mapped.message }, mapped.status as any)
   }
-  return c.json({ data: result.data })
+  return c.json({ data: result.data, total: result.count, limit, offset })
 })
 
 /** Get a single task by ID or ref_code */
@@ -172,7 +175,7 @@ tasksRouter.post('/', async (c) => {
     .select()
     .single()
 
-  if (error?.code === '42703') {
+  if (error?.code === '42703' || error?.code === 'PGRST204' || error?.message?.includes('does not exist')) {
     // V021 columns don't exist yet — strip them and retry
     const { clarification_notes, assigned_agent, session_id, ...safeRow } = row
     const retryResult = await supabase
@@ -229,7 +232,7 @@ tasksRouter.patch('/:idOrRef', async (c) => {
     .select()
     .single()
 
-  if (error?.code === '42703') {
+  if (error?.code === '42703' || error?.code === 'PGRST204' || error?.message?.includes('does not exist')) {
     // V021 columns don't exist yet — strip them and retry
     const { clarification_notes, assigned_agent, session_id, ...safeBody } = body as Record<string, unknown>
     const retryResult = await supabase
