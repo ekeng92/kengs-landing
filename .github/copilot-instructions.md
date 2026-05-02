@@ -69,6 +69,7 @@ All endpoints require auth except `/health`. Routes: `/workspaces`, `/properties
 - PDFs committed for legal/governing docs
 - Markdown preferred for anything with version history
 - Use scoped files under `.github/instructions/` to govern planning and implementation — don't expand this file into a monolith
+- New agents read `.github/instructions/04-ways-of-working.instructions.md` for team workflow, task lifecycle, and QA protocol
 
 ## GitHub Account
 
