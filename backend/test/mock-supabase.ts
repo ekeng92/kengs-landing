@@ -16,6 +16,7 @@ class QueryBuilder implements PromiseLike<QueryResult> {
   lt(...args: unknown[]) { this.calls.push({ method: 'lt', args }); return this }
   order(...args: unknown[]) { this.calls.push({ method: 'order', args }); return this }
   limit(...args: unknown[]) { this.calls.push({ method: 'limit', args }); return this }
+  range(...args: unknown[]) { this.calls.push({ method: 'range', args }); return this }
   insert(...args: unknown[]) { this.calls.push({ method: 'insert', args }); return this }
   update(...args: unknown[]) { this.calls.push({ method: 'update', args }); return this }
   delete(...args: unknown[]) { this.calls.push({ method: 'delete', args }); return this }

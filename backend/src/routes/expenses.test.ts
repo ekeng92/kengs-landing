@@ -48,11 +48,14 @@ describe('expenses route contracts', () => {
     const json: any = await res.json()
     expect(json.data).toEqual([sampleExpense])
     expect(mock.tableCalls).toEqual(['expenses'])
+    expect(json.limit).toBe(100)
+    expect(json.offset).toBe(0)
     expect(mock.builders[0]?.calls).toEqual([
-      { method: 'select', args: ['*'] },
+      { method: 'select', args: ['*', { count: 'exact' }] },
       { method: 'eq', args: ['workspace_id', TEST_WORKSPACE] },
       { method: 'eq', args: ['review_state', 'Business'] },
       { method: 'order', args: ['transaction_date', { ascending: false }] },
+      { method: 'range', args: [0, 99] },
     ])
   })
 

@@ -48,16 +48,20 @@ describe('tasks route contracts', () => {
     )
 
     expect(res.status).toBe(200)
-    await expect(res.json()).resolves.toEqual({ data: [sampleTask] })
+    const json: any = await res.json()
+    expect(json.data).toEqual([sampleTask])
+    expect(json.limit).toBe(100)
+    expect(json.offset).toBe(0)
     expect(mock.tableCalls).toEqual(['tasks'])
     expect(mock.builders[0]?.calls).toEqual([
-      { method: 'select', args: ['*'] },
+      { method: 'select', args: ['*', { count: 'exact' }] },
       { method: 'eq', args: ['workspace_id', TEST_WORKSPACE] },
       { method: 'eq', args: ['project', 'kengs-landing'] },
       { method: 'eq', args: ['priority', 'high'] },
       { method: 'eq', args: ['context', 'computer'] },
       { method: 'order', args: ['due_date', { ascending: true, nullsFirst: false }] },
       { method: 'order', args: ['created_at', { ascending: false }] },
+      { method: 'range', args: [0, 99] },
     ])
   })
 
@@ -74,7 +78,10 @@ describe('tasks route contracts', () => {
     )
 
     expect(res.status).toBe(200)
-    await expect(res.json()).resolves.toEqual({ data: [sampleTask] })
+    const json2: any = await res.json()
+    expect(json2.data).toEqual([sampleTask])
+    expect(json2.limit).toBe(100)
+    expect(json2.offset).toBe(0)
     // Two queries: the failed one and the fallback
     expect(mock.tableCalls).toEqual(['tasks', 'tasks'])
     // Fallback query should NOT include due_date ordering
@@ -352,6 +359,28 @@ describe('tasks route contracts', () => {
     expect(retryBody).not.toHaveProperty('assigned_agent')
     expect(retryBody).not.toHaveProperty('session_id')
     expect(retryBody).not.toHaveProperty('clarification_notes')
+    expect(retryBody).toHaveProperty('status', 'in_progress')
+  })
+
+  it('handles PGRST204 error code (Supabase schema cache miss) during update', async () => {
+    const updated = { ...sampleTask, status: 'in_progress' }
+    const mock = createMockSupabase([
+      { data: null, error: { message: "Could not find the 'assigned_agent' column of 'tasks' in the schema cache", code: 'PGRST204' } },
+      { data: updated, error: null },
+    ])
+    const res = await app.request('/tasks/AEON-001', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        status: 'in_progress',
+        assigned_agent: 'aeon-dev',
+      }),
+    }, { ...baseEnv, TEST_SUPABASE: mock.client })
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual({ data: updated })
+    const retryBody = mock.builders[1]?.calls[0]?.args?.[0] as Record<string, unknown>
+    expect(retryBody).not.toHaveProperty('assigned_agent')
     expect(retryBody).toHaveProperty('status', 'in_progress')
   })
 })

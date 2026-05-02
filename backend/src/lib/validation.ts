@@ -11,6 +11,12 @@ export const taskEffort = z.enum(['quick', 'shallow', 'deep', 'errand', 'call'])
 
 export const taskContext = z.enum(['phone', 'computer', 'errand', 'anywhere', 'home', 'property', 'cpa', 'vendor'])
 
+// Pagination — reusable across all list queries
+export const paginationParams = {
+  limit: z.coerce.number().int().min(1).max(500).optional().default(100),
+  offset: z.coerce.number().int().min(0).optional().default(0),
+}
+
 // Query params for task list
 export const TaskListQuery = z.object({
   workspace_id: z.string().min(1, 'workspace_id is required'),
@@ -21,6 +27,7 @@ export const TaskListQuery = z.object({
   assigned_to: z.string().optional(),
   assigned_agent: z.string().optional(),
   session_id: z.string().optional(),
+  ...paginationParams,
 })
 
 // Create task body
@@ -104,6 +111,7 @@ export const BookingListQuery = z.object({
   property_id: z.string().optional(),
   status: recordStatus.optional(),
   source_platform: z.string().max(50).optional(),
+  ...paginationParams,
 })
 
 export const CreateBookingBody = z.object({
@@ -144,6 +152,7 @@ export const ExpenseListQuery = z.object({
   property_id: z.string().optional(),
   review_state: expenseReviewState.optional(),
   status: recordStatus.optional(),
+  ...paginationParams,
 })
 
 export const CreateExpenseBody = z.object({
@@ -182,6 +191,7 @@ export const UpdateExpenseBody = z.object({
 export const MileageListQuery = z.object({
   workspace_id: z.string().min(1, 'workspace_id is required'),
   property_id: z.string().optional(),
+  ...paginationParams,
 })
 
 export const CreateMileageBody = z.object({
