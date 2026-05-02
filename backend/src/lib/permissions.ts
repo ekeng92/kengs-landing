@@ -77,8 +77,12 @@ export async function requireWorkspaceFeature(
 ): Promise<Response | null> {
   if (!workspaceId) return c.json({ error: 'workspace_id is required' }, 400)
 
-  // Local route contract tests/dev bypass should not need membership fixtures unless explicitly configured.
-  if (c.env.DEV_BYPASS_AUTH === 'true' && !c.env.DEV_WORKSPACE_ID) return null
+  // Dev bypass: when DEV_BYPASS_AUTH is enabled, grant full access.
+  // If DEV_WORKSPACE_ID is set, constrain to that workspace only.
+  if (c.env.DEV_BYPASS_AUTH === 'true') {
+    if (!c.env.DEV_WORKSPACE_ID || workspaceId === c.env.DEV_WORKSPACE_ID) return null
+    return c.json({ error: 'Forbidden' }, 403)
+  }
 
   // Service-agent auth is constrained to its configured workspace and role-like feature set.
   const agentWorkspaceId = c.var.workspace_id || c.env.AGENT_WORKSPACE_ID
