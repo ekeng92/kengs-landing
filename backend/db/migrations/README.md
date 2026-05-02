@@ -12,7 +12,31 @@ Migration files use Flyway-compatible naming: `V{number}__{description}.sql`.
 
 ## Applying Migrations
 
-Plain SQL compatible with any Flyway-compatible runner or `psql` directly. Target migration tool TBD with backend stack selection.
+Migrations are applied automatically as part of `npm run deploy`. The runner
+(`scripts/migrate.mjs`) connects to Supabase via `DATABASE_URL`, tracks applied
+versions in a `_migrations` table, and applies pending files in order within
+transactions.
+
+```bash
+npm run migrate           # apply pending migrations
+npm run migrate:status    # show applied vs pending
+npm run migrate:dry-run   # preview what would run
+npm run deploy            # typecheck → test → migrate → wrangler deploy
+```
+
+Requires `DATABASE_URL` in `.dev.vars` or environment. Get the pooler connection
+string from Supabase Dashboard → Settings → Database → Connection string (Transaction mode).
+
+## Deploy Pipeline
+
+```
+npm run deploy
+  └─ predeploy
+      ├─ typecheck  (tsc --noEmit)
+      ├─ test       (vitest run)
+      └─ migrate    (apply pending SQL)
+  └─ wrangler deploy
+```
 
 ## Ordering
 

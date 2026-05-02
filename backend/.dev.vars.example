@@ -2,3 +2,7 @@
 # .dev.vars is git-ignored. Never commit real credentials.
 SUPABASE_URL=https://<project-ref>.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=<service-role-key-from-supabase-dashboard>
+
+# Direct Postgres connection for migrations (Settings > Database in Supabase Dashboard)
+# Use the "Transaction" pooler connection string (port 6543) for migrations.
+DATABASE_URL=postgresql://postgres.<project-ref>:<db-password>@aws-0-<region>.pooler.supabase.com:6543/postgres

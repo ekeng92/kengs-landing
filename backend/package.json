@@ -5,7 +5,11 @@
   "description": "STR Finance API — Keng's Landing backend (Hono + Cloudflare Workers + Supabase)",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
+    "deploy": "npm run predeploy && wrangler deploy",
+    "predeploy": "npm run typecheck && npm run test && npm run migrate",
+    "migrate": "node scripts/migrate.mjs",
+    "migrate:status": "node scripts/migrate.mjs --status",
+    "migrate:dry-run": "node scripts/migrate.mjs --dry-run",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -14,12 +18,12 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
-    "hono": "^4.12.14"
+    "hono": "^4.12.14",
+    "postgres": "^3.4.9"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240806.0",
     "@types/node": "^25.6.0",
-    "postgres": "^3.4.9",
     "typescript": "^5.5.0",
     "vitest": "^4.1.5",
     "wrangler": "^3.65.0"
