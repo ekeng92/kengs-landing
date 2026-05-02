@@ -1,4 +1,4 @@
-type QueryResult = { data?: unknown; error?: { message: string } | null; count?: number }
+type QueryResult = { data?: unknown; error?: { message: string; code?: string } | null; count?: number }
 
 class QueryBuilder implements PromiseLike<QueryResult> {
   calls: Array<{ method: string; args: unknown[] }> = []
@@ -7,11 +7,19 @@ class QueryBuilder implements PromiseLike<QueryResult> {
 
   select(...args: unknown[]) { this.calls.push({ method: 'select', args }); return this }
   eq(...args: unknown[]) { this.calls.push({ method: 'eq', args }); return this }
+  neq(...args: unknown[]) { this.calls.push({ method: 'neq', args }); return this }
+  is(...args: unknown[]) { this.calls.push({ method: 'is', args }); return this }
+  in(...args: unknown[]) { this.calls.push({ method: 'in', args }); return this }
+  gte(...args: unknown[]) { this.calls.push({ method: 'gte', args }); return this }
+  lte(...args: unknown[]) { this.calls.push({ method: 'lte', args }); return this }
+  gt(...args: unknown[]) { this.calls.push({ method: 'gt', args }); return this }
+  lt(...args: unknown[]) { this.calls.push({ method: 'lt', args }); return this }
   order(...args: unknown[]) { this.calls.push({ method: 'order', args }); return this }
   limit(...args: unknown[]) { this.calls.push({ method: 'limit', args }); return this }
   insert(...args: unknown[]) { this.calls.push({ method: 'insert', args }); return this }
   update(...args: unknown[]) { this.calls.push({ method: 'update', args }); return this }
   delete(...args: unknown[]) { this.calls.push({ method: 'delete', args }); return this }
+  maybeSingle() { this.calls.push({ method: 'maybeSingle', args: [] }); return Promise.resolve(this.result) }
 
   single(): Promise<QueryResult> {
     this.calls.push({ method: 'single', args: [] })

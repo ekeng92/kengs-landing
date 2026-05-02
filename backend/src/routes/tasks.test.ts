@@ -61,6 +61,29 @@ describe('tasks route contracts', () => {
     ])
   })
 
+  it('falls back to created_at-only ordering when due_date column does not exist (V016 not applied)', async () => {
+    // First query fails with 42703 (undefined column), second succeeds
+    const mock = createMockSupabase([
+      { data: null, error: { message: 'column tasks.due_date does not exist', code: '42703' } },
+      { data: [sampleTask], error: null },
+    ])
+    const res = await app.request(
+      `/tasks?workspace_id=${TEST_WORKSPACE}`,
+      {},
+      { ...baseEnv, TEST_SUPABASE: mock.client }
+    )
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual({ data: [sampleTask] })
+    // Two queries: the failed one and the fallback
+    expect(mock.tableCalls).toEqual(['tasks', 'tasks'])
+    // Fallback query should NOT include due_date ordering
+    const fallbackCalls = mock.builders[1]?.calls
+    expect(fallbackCalls?.find(c => c.method === 'order')).toEqual(
+      { method: 'order', args: ['created_at', { ascending: false }] }
+    )
+  })
+
   it('creates a task with planning metadata and authenticated user attribution', async () => {
     const created = { ...sampleTask, created_by: TEST_USER }
     const mock = createMockSupabase([{ data: created, error: null }])
