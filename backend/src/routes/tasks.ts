@@ -176,8 +176,8 @@ tasksRouter.post('/', async (c) => {
     .single()
 
   if (error?.code === '42703' || error?.code === 'PGRST204' || error?.message?.includes('does not exist')) {
-    // V021 columns don't exist yet — strip them and retry
-    const { clarification_notes, assigned_agent, session_id, ...safeRow } = row
+    // V020/V021 columns don't exist yet — strip them and retry
+    const { completion_notes, clarification_notes, assigned_agent, session_id, ...safeRow } = row
     const retryResult = await supabase
       .from('tasks')
       .insert(safeRow)
@@ -233,8 +233,8 @@ tasksRouter.patch('/:idOrRef', async (c) => {
     .single()
 
   if (error?.code === '42703' || error?.code === 'PGRST204' || error?.message?.includes('does not exist')) {
-    // V021 columns don't exist yet — strip them and retry
-    const { clarification_notes, assigned_agent, session_id, ...safeBody } = body as Record<string, unknown>
+    // V020/V021 columns don't exist yet — strip them and retry
+    const { completion_notes, clarification_notes, assigned_agent, session_id, ...safeBody } = body as Record<string, unknown>
     const retryResult = await supabase
       .from('tasks')
       .update({ ...safeBody, updated_at: new Date().toISOString() })
