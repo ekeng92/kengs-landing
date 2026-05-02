@@ -65,8 +65,8 @@
 
     /* Kanban board */
     .board {
-      max-width: 1400px; margin: 0 auto; padding: 24px;
-      display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px;
+      max-width: 1600px; margin: 0 auto; padding: 24px;
+      display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px;
       min-height: calc(100vh - 200px);
     }
     .column {
@@ -240,6 +240,13 @@
       </div>
       <div class="column-body" data-status="in_progress"></div>
     </div>
+    <div class="column" data-status="review">
+      <div class="column-header">
+        <span class="column-title">Review</span>
+        <span class="column-count" id="count-review">0</span>
+      </div>
+      <div class="column-body" data-status="review"></div>
+    </div>
     <div class="column" data-status="waiting">
       <div class="column-header">
         <span class="column-title">Waiting / Blocked</span>
@@ -276,6 +283,7 @@
             <option value="backlog">Backlog</option>
             <option value="todo">To Do</option>
             <option value="in_progress">In Progress</option>
+            <option value="review">Review</option>
             <option value="waiting">Waiting / Blocked</option>
             <option value="done">Done</option>
           </select>
@@ -358,7 +366,7 @@
     let editingId = null;
     let workspaceMembers = [];
 
-    const COLUMNS = ['backlog', 'todo', 'in_progress', 'waiting', 'done'];
+    const COLUMNS = ['backlog', 'todo', 'in_progress', 'review', 'waiting', 'done'];
 
     const KENGS_LANDING_SEED_TASKS = [
       {

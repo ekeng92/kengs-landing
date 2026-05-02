@@ -1,7 +1,16 @@
 import { Hono } from 'hono'
 import { requireAuth, type AuthVariables } from '../lib/auth'
 import { createSupabaseClient } from '../lib/supabase'
+import { requireWorkspaceFeature } from '../lib/permissions'
+import {
+  TaskListQuery,
+  CreateTaskBody,
+  UpdateTaskBody,
+  MoveTaskBody,
+  BulkCreateTasksBody,
+} from '../lib/validation'
 import type { Env } from '../types/env'
+import { type ZodError } from 'zod'
 
 type Bindings = Env
 type Variables = AuthVariables
@@ -10,37 +19,64 @@ export const tasksRouter = new Hono<{ Bindings: Bindings; Variables: Variables }
 
 tasksRouter.use('*', requireAuth)
 
+/** Format Zod errors into a client-friendly message */
+function formatZodError(err: ZodError): string {
+  return err.issues.map(e => `${e.path.join('.')}: ${e.message}`).join('; ')
+}
+
+/** Map Supabase/Postgres errors to safe client responses */
+function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
+  if (error.code === '23505') return { status: 409, message: 'Duplicate entry' }
+  if (error.code === '23503') return { status: 422, message: 'Referenced entity not found' }
+  return { status: 500, message: 'Internal server error' }
+}
+
 /** List tasks with optional filters */
 tasksRouter.get('/', async (c) => {
   const supabase = createSupabaseClient(c.env)
-  const workspaceId = c.req.query('workspace_id')
-  const status = c.req.query('status')
-  const project = c.req.query('project')
-  const priority = c.req.query('priority')
-  const context = c.req.query('context')
-  const assignedTo = c.req.query('assigned_to')
 
-  if (!workspaceId) return c.json({ error: 'workspace_id is required' }, 400)
+  if (!c.req.query('workspace_id')) return c.json({ error: 'workspace_id is required' }, 400)
+
+  const parsed = TaskListQuery.safeParse({
+    workspace_id: c.req.query('workspace_id'),
+    status: c.req.query('status') || undefined,
+    project: c.req.query('project') || undefined,
+    priority: c.req.query('priority') || undefined,
+    context: c.req.query('context') || undefined,
+    assigned_to: c.req.query('assigned_to') || undefined,
+  })
+
+  if (!parsed.success) {
+    return c.json({ error: formatZodError(parsed.error) }, 400)
+  }
+
+  const { workspace_id, status, project, priority, context, assigned_to } = parsed.data
+
+  const forbidden = await requireWorkspaceFeature(c, workspace_id, 'tasks', 'read')
+  if (forbidden) return forbidden
 
   let query = supabase
     .from('tasks')
     .select('*')
-    .eq('workspace_id', workspaceId)
+    .eq('workspace_id', workspace_id)
 
   if (status) query = query.eq('status', status)
   if (project) query = query.eq('project', project)
   if (priority) query = query.eq('priority', priority)
   if (context) query = query.eq('context', context)
-  if (assignedTo === 'unassigned') {
+  if (assigned_to === 'unassigned') {
     query = query.is('assigned_to', null)
-  } else if (assignedTo) {
-    query = query.eq('assigned_to', assignedTo)
+  } else if (assigned_to) {
+    query = query.eq('assigned_to', assigned_to)
   }
 
   const { data, error } = await query
     .order('due_date', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false })
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) {
+    const mapped = mapDbError(error)
+    return c.json({ error: mapped.message }, mapped.status as any)
+  }
   return c.json({ data })
 })
 
@@ -60,48 +96,48 @@ tasksRouter.get('/:idOrRef', async (c) => {
     .single()
 
   if (error || !data) return c.json({ error: 'Not found' }, 404)
+
+  const forbidden = await requireWorkspaceFeature(c, (data as { workspace_id?: string }).workspace_id, 'tasks', 'read')
+  if (forbidden) return forbidden
+
   return c.json({ data })
 })
 
 /** Create a task */
 tasksRouter.post('/', async (c) => {
   const supabase = createSupabaseClient(c.env)
-  const body = await c.req.json<{
-    workspace_id: string
-    title: string
-    description?: string
-    status?: string
-    priority?: string
-    project?: string
-    tags?: string[]
-    assigned_to?: string
-    due_date?: string | null
-    effort?: string | null
-    context?: string | null
-    blocked_reason?: string | null
-  }>()
 
-  if (!body.workspace_id || !body.title) {
+  const raw = await c.req.json().catch(() => null)
+  if (!raw) return c.json({ error: 'Invalid JSON' }, 400)
+
+  if (!raw.workspace_id || !raw.title) {
     return c.json({ error: 'workspace_id and title are required' }, 400)
   }
 
-  const userId = c.var.userId
+  const parsed = CreateTaskBody.safeParse(raw)
+  if (!parsed.success) {
+    return c.json({ error: formatZodError(parsed.error) }, 400)
+  }
 
-  // Build insert payload with only fields that the DB has.
-  // V016 fields (due_date, effort, context, blocked_reason) may not exist yet.
+  const body = parsed.data
+  const forbidden = await requireWorkspaceFeature(c, body.workspace_id, 'tasks', 'write')
+  if (forbidden) return forbidden
+
+  const userId = c.get('userId')
+
+  // Build insert payload — V016 fields conditionally included
   const row: Record<string, unknown> = {
     workspace_id: body.workspace_id,
     title: body.title,
     description: body.description ?? null,
-    status: body.status ?? 'backlog',
-    priority: body.priority ?? 'medium',
+    status: body.status,
+    priority: body.priority,
     project: body.project ?? null,
-    tags: body.tags ?? [],
+    tags: body.tags,
     created_by: userId,
     assigned_to: body.assigned_to ?? null,
   }
 
-  // Conditionally include V016 fields only if provided
   if (body.due_date !== undefined) row.due_date = body.due_date
   if (body.effort !== undefined) row.effort = body.effort
   if (body.context !== undefined) row.context = body.context
@@ -113,7 +149,10 @@ tasksRouter.post('/', async (c) => {
     .select()
     .single()
 
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) {
+    const mapped = mapDbError(error)
+    return c.json({ error: mapped.message }, mapped.status as any)
+  }
   return c.json({ data }, 201)
 })
 
@@ -121,22 +160,28 @@ tasksRouter.post('/', async (c) => {
 tasksRouter.patch('/:idOrRef', async (c) => {
   const supabase = createSupabaseClient(c.env)
   const param = c.req.param('idOrRef')
-  const body = await c.req.json<Partial<{
-    title: string
-    description: string
-    status: string
-    priority: string
-    project: string
-    tags: string[]
-    assigned_to: string
-    due_date: string | null
-    effort: string | null
-    context: string | null
-    blocked_reason: string | null
-  }>>()
 
+  const raw = await c.req.json().catch(() => null)
+  if (!raw) return c.json({ error: 'Invalid JSON' }, 400)
+
+  const parsed = UpdateTaskBody.safeParse(raw)
+  if (!parsed.success) {
+    return c.json({ error: formatZodError(parsed.error) }, 400)
+  }
+
+  const body = parsed.data
   const isRef = /^AEON-\d+$/i.test(param)
   const column = isRef ? 'ref_code' : 'id'
+
+  if (c.env.DEV_BYPASS_AUTH !== 'true' || c.env.DEV_WORKSPACE_ID) {
+    const { data: existing } = await supabase
+      .from('tasks')
+      .select('workspace_id')
+      .eq(column, isRef ? param.toUpperCase() : param)
+      .single()
+    const forbidden = await requireWorkspaceFeature(c, (existing as { workspace_id?: string } | null)?.workspace_id, 'tasks', 'write')
+    if (forbidden) return forbidden
+  }
 
   const { data, error } = await supabase
     .from('tasks')
@@ -145,7 +190,10 @@ tasksRouter.patch('/:idOrRef', async (c) => {
     .select()
     .single()
 
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) {
+    const mapped = mapDbError(error)
+    return c.json({ error: mapped.message }, mapped.status as any)
+  }
   return c.json({ data })
 })
 
@@ -153,15 +201,28 @@ tasksRouter.patch('/:idOrRef', async (c) => {
 tasksRouter.patch('/:idOrRef/move', async (c) => {
   const supabase = createSupabaseClient(c.env)
   const param = c.req.param('idOrRef')
-  const { status } = await c.req.json<{ status: string }>()
 
-  const validStatuses = ['backlog', 'todo', 'in_progress', 'waiting', 'done', 'archived']
-  if (!validStatuses.includes(status)) {
-    return c.json({ error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` }, 400)
+  const raw = await c.req.json().catch(() => null)
+  if (!raw) return c.json({ error: 'Invalid JSON' }, 400)
+
+  const parsed = MoveTaskBody.safeParse(raw)
+  if (!parsed.success) {
+    return c.json({ error: `Invalid status. Must be one of: ${MoveTaskBody.shape.status.options.join(', ')}` }, 400)
   }
 
+  const { status } = parsed.data
   const isRef = /^AEON-\d+$/i.test(param)
   const column = isRef ? 'ref_code' : 'id'
+
+  if (c.env.DEV_BYPASS_AUTH !== 'true' || c.env.DEV_WORKSPACE_ID) {
+    const { data: existing } = await supabase
+      .from('tasks')
+      .select('workspace_id')
+      .eq(column, isRef ? param.toUpperCase() : param)
+      .single()
+    const forbidden = await requireWorkspaceFeature(c, (existing as { workspace_id?: string } | null)?.workspace_id, 'tasks', 'write')
+    if (forbidden) return forbidden
+  }
 
   const { data, error } = await supabase
     .from('tasks')
@@ -170,7 +231,10 @@ tasksRouter.patch('/:idOrRef/move', async (c) => {
     .select()
     .single()
 
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) {
+    const mapped = mapDbError(error)
+    return c.json({ error: mapped.message }, mapped.status as any)
+  }
   return c.json({ data })
 })
 
@@ -182,48 +246,55 @@ tasksRouter.delete('/:idOrRef', async (c) => {
   const isRef = /^AEON-\d+$/i.test(param)
   const column = isRef ? 'ref_code' : 'id'
 
+  if (c.env.DEV_BYPASS_AUTH !== 'true' || c.env.DEV_WORKSPACE_ID) {
+    const { data: existing } = await supabase
+      .from('tasks')
+      .select('workspace_id')
+      .eq(column, isRef ? param.toUpperCase() : param)
+      .single()
+    const forbidden = await requireWorkspaceFeature(c, (existing as { workspace_id?: string } | null)?.workspace_id, 'tasks', 'admin')
+    if (forbidden) return forbidden
+  }
+
   const { error } = await supabase
     .from('tasks')
     .delete()
     .eq(column, isRef ? param.toUpperCase() : param)
 
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) {
+    const mapped = mapDbError(error)
+    return c.json({ error: mapped.message }, mapped.status as any)
+  }
   return c.json({ success: true })
 })
 
 /** Bulk create tasks (for brainstorm dumps) */
 tasksRouter.post('/bulk', async (c) => {
   const supabase = createSupabaseClient(c.env)
-  const userId = c.var.userId
-  const { workspace_id, tasks } = await c.req.json<{
-    workspace_id: string
-    tasks: Array<{
-      title: string
-      description?: string
-      status?: string
-      priority?: string
-      project?: string
-      tags?: string[]
-      due_date?: string | null
-      effort?: string | null
-      context?: string | null
-      blocked_reason?: string | null
-    }>
-  }>()
+  const userId = c.get('userId')
 
-  if (!workspace_id || !tasks?.length) {
-    return c.json({ error: 'workspace_id and tasks array are required' }, 400)
+  const raw = await c.req.json().catch(() => null)
+  if (!raw) return c.json({ error: 'Invalid JSON' }, 400)
+
+  const parsed = BulkCreateTasksBody.safeParse(raw)
+  if (!parsed.success) {
+    return c.json({ error: formatZodError(parsed.error) }, 400)
   }
+
+  const { workspace_id, tasks } = parsed.data
+
+  const forbidden = await requireWorkspaceFeature(c, workspace_id, 'tasks', 'write')
+  if (forbidden) return forbidden
 
   const rows = tasks.map(t => {
     const row: Record<string, unknown> = {
       workspace_id,
       title: t.title,
       description: t.description ?? null,
-      status: t.status ?? 'backlog',
-      priority: t.priority ?? 'medium',
+      status: t.status,
+      priority: t.priority,
       project: t.project ?? null,
-      tags: t.tags ?? [],
+      tags: t.tags,
       created_by: userId,
     }
     if (t.due_date !== undefined) row.due_date = t.due_date
@@ -238,6 +309,9 @@ tasksRouter.post('/bulk', async (c) => {
     .insert(rows)
     .select()
 
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) {
+    const mapped = mapDbError(error)
+    return c.json({ error: mapped.message }, mapped.status as any)
+  }
   return c.json({ data, count: data.length }, 201)
 })
