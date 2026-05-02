@@ -83,10 +83,10 @@ body {
 
 /* ── User Menu (dropdown on avatar tap) ──────────────────────────────── */
 .user-menu {
-  display: none; position: absolute; top: 100%; right: 0; margin-top: 8px;
+  display: none; position: fixed;
   background: var(--surface2); border: 1px solid var(--border2);
   border-radius: var(--radius); padding: 8px 0;
-  min-width: 200px; z-index: 300;
+  min-width: 200px; z-index: 1000;
   box-shadow: 0 8px 24px rgba(0,0,0,0.4);
 }
 .user-menu.open { display: block; }

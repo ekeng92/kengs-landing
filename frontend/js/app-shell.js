@@ -69,14 +69,7 @@
         ${isHome ? '<small>Operations Hub</small>' : ''}
       </div>
       <div class="app-header-actions" id="app-header-actions">
-        <div class="app-header-avatar" id="app-avatar" aria-label="Account menu">
-          ?
-          <div class="user-menu" id="user-menu">
-            <div class="user-menu-email" id="user-menu-email">Loading...</div>
-            <a class="user-menu-item" href="/settings/">Settings</a>
-            <button class="user-menu-item danger" onclick="Auth.signOut()">Sign Out</button>
-          </div>
-        </div>
+        <div class="app-header-avatar" id="app-avatar" aria-label="Account menu">?</div>
       </div>
     `;
 
@@ -105,15 +98,36 @@
     // Inject bottom nav
     buildBottomNav();
 
-    // Wire avatar menu
+    // Create user menu and append to body (outside header to avoid sticky/backdrop-filter clipping)
     const avatar = document.getElementById('app-avatar');
-    const menu = document.getElementById('user-menu');
-    if (avatar && menu) {
+    const menu = document.createElement('div');
+    menu.className = 'user-menu';
+    menu.id = 'user-menu';
+    menu.innerHTML = `
+      <div class="user-menu-email" id="user-menu-email">Loading...</div>
+      <a class="user-menu-item" href="/settings/">Settings</a>
+      <button class="user-menu-item danger" onclick="Auth.signOut()">Sign Out</button>
+    `;
+    document.body.appendChild(menu);
+
+    function positionMenu() {
+      if (!avatar) return;
+      const rect = avatar.getBoundingClientRect();
+      menu.style.top = (rect.bottom + 8) + 'px';
+      menu.style.right = (window.innerWidth - rect.right) + 'px';
+    }
+
+    if (avatar) {
       avatar.addEventListener('click', (e) => {
         e.stopPropagation();
+        positionMenu();
         menu.classList.toggle('open');
       });
-      document.addEventListener('click', () => menu.classList.remove('open'));
+      document.addEventListener('click', (e) => {
+        if (!menu.contains(e.target)) menu.classList.remove('open');
+      });
+      window.addEventListener('resize', () => menu.classList.remove('open'));
+      window.addEventListener('scroll', () => menu.classList.remove('open'), true);
     }
 
     // Set user email + avatar initials
