@@ -28,6 +28,32 @@
 - [ ] **Depreciation Schedule sheet** — blocked on tax assessment data
 - [ ] **Annual CC statement archive** — at year-end, download full Robinhood CC + Chase transaction histories to `finances/2026/`
 
+## AEON Watch Suggestions
+
+- [ ] **Create an owner-ready monthly close checklist** — turn the current finance workflow into a repeatable month-end sequence: import statements, review uncategorized expenses, reconcile bookings, archive receipts, export tax snapshot.
+- [ ] **Add a tax-prep packet export** — one-click/year-end bundle for CPA: Schedule E worksheet, depreciation schedule, mileage log, categorized expenses, booking revenue, and source audit trail.
+- [ ] **Build review queue guardrails** — flag transactions over a threshold, missing receipts, ambiguous vendor categories, duplicate-looking expenses, and pre-service vs operational edge cases before they hit final reports.
+- [ ] **Add property-level profitability view** — compare 360 / Ironwood / Marlow by revenue, expenses, mileage allocation, supplies, capex, and owner cash recovery.
+- [ ] **Create an operations evidence vault** — link receipts, invoices, deeds, insurance, lease docs, maintenance records, and improvement photos to the relevant property/tax bucket.
+- [ ] **Add booking platform reconciliation** — compare Airbnb/VRBO payouts, fees, taxes, cleaning fees, refunds, and deposits against bank deposits so revenue ties out cleanly.
+
+## AEON Watch / Local PC Setup
+
+- [x] **Create shared VS Code workspace for ChatKey + Keng's Landing** — workspace file created at `C:/Users/Keng/Projects/KengRepos.code-workspace` so both repos open together
+- [x] **Open the finance task board on the web** — GitHub view confirmed at `https://github.com/ekeng92/kengs-landing/blob/main/business/finances/TASKS.md`
+- [x] **Check in VS Code task runner for local workflows** — added `.vscode/tasks.json` with backend install/dev/typecheck plus dashboard/task-board launch tasks
+- [x] **Document local environment workflow** — added `docs/dev-environment.md` with context-loading order, startup paths, and current gaps
+- [x] **Add one-command backend bootstrap** — added `backend/scripts/bootstrap-dev.ps1` plus a VS Code task to verify `.dev.vars`, install backend deps, and report readiness before `wrangler dev`
+- [x] **Add environment status report** — added `scripts/environment-status.ps1` plus a VS Code task to summarize repo state, backend readiness, GitHub auth, and task-board freshness
+- [ ] **Decide board strategy: markdown only vs GitHub Projects mirror** — current repo has no open Projects board; decide whether to keep the markdown file as the canonical board or sync to GitHub Projects after auth is configured
+- [ ] **Create local backend `.dev.vars`** — copy `backend/.dev.vars.example` to `.dev.vars` and fill in Supabase URL/service-role credentials so `wrangler dev` can run on this PC
+- [ ] **Authenticate this PC for GitHub** — complete `gh auth login` so AEON Watch can pull private repos, create issues/PRs, and sync task board changes with approval.
+- [ ] **Give AEON Watch dashboard API write access** — provide a safe auth path/service token or agent account so tasks can be created through the Keng's Landing `/tasks` API instead of only local markdown.
+- [ ] **Evaluate Ubuntu path for the mini PC** — decide between staying Windows-native, adding WSL2 Ubuntu, or reinstalling Ubuntu Server for simpler automation and long-running services.
+- [ ] **Set up local model/tooling baseline** — install/test a practical local model runtime if hardware allows, plus CLI tools AEON Watch needs for repo audits, docs indexing, and background jobs.
+- [ ] **Create an AEON Watch ops dashboard** — local status page or markdown report for gateway health, tasks audit, cron jobs, repo sync status, disk, and recent work log.
+- [ ] **Define standing autonomy levels** — document which actions AEON Watch can do silently, which need approval, and which are never allowed without Eric.
+
 ## Completed
 
 - [x] Airbnb CSV import (3 bookings enriched)
