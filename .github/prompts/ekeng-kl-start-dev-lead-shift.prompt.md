@@ -131,7 +131,8 @@ Generate a **session ID** for this shift: `shift-YYYY-MM-DD-HHMM` (use current t
 1. Run `bash kengs-landing/scripts/environment-status.sh`
 2. `git log --oneline -8` on kengs-landing
 3. Start local backend if not running
-4. Query the task board:
+4. **Check for pending migrations** — run `node backend/scripts/migrate.mjs` to apply any unapplied migrations. The Dev Lead workflow depends on columns added by V020+ (completion_notes, assigned_agent, session_id, clarification_notes). If these migrations haven't been applied, task updates will silently fail with 500 errors.
+5. Query the task board:
    - All `todo` tasks (the assignment pool)
    - Any `in_progress` tasks (check if work was abandoned mid-session)
    - Any `waiting` tasks (check if SAGE answered clarifications)
