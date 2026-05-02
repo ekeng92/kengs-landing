@@ -3,7 +3,7 @@ import { requireAuth, type AuthVariables } from '../lib/auth'
 import { createSupabaseClient } from '../lib/supabase'
 import type { Env } from '../types/env'
 import type { ImportRowReviewStatus, ExpenseReviewState, DocumentationStatus } from '../types/schema'
-import { parseCsvText, normalizeAirbnbRow, checkDedup } from '../../booking-ingest/airbnb-parser'
+import { parseCsvText, normalizeAirbnbRow, checkDedup, filterReservationRows } from '../../booking-ingest/airbnb-parser'
 import { parseBankCsv } from '../../expense-import/parse'
 import { promoteRow, recordClassificationEvent, tryAdvanceJobStatus } from '../../expense-import/promote'
 
@@ -175,7 +175,8 @@ importsRouter.post('/:jobId/parse-bookings', async (c) => {
   const committed = existingBookings ?? []
 
   // Parse and normalize
-  const rawRows = parseCsvText(body.csv)
+  const allRows = parseCsvText(body.csv)
+  const rawRows = filterReservationRows(allRows)
 
   if (rawRows.length === 0) {
     return c.json({ error: 'CSV is empty or has no data rows' }, 422)

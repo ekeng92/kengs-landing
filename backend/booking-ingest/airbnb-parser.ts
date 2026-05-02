@@ -43,20 +43,39 @@ export type ParsedRow = {
   dedupe_key_template: string  // property_id is a placeholder until caller fills it in
 }
 
-// ─── Column Mappings ──────────────────────────────────────────────────────────
+// ─── Column Lookup (case-insensitive + aliases) ──────────────────────────────
 
-const COL = {
-  CONFIRMATION_CODE: 'Confirmation Code',
-  GUEST_NAME: 'Guest Name',
-  START_DATE: 'Start Date',
-  END_DATE: 'End Date',
-  NIGHTS: 'Nights',
-  GROSS_EARNINGS: 'Gross Earnings',
-  CLEANING_FEE: 'Cleaning Fee',
-  HOST_SERVICE_FEE: 'Host Service Fee',
-  TAXES: 'Taxes',
-  AMOUNT: 'Amount',
-} as const
+/**
+ * Find a column value by trying each alias against the row's keys (case-insensitive).
+ * Returns the trimmed value of the first match, or empty string if none found.
+ */
+function findColumn(row: AirbnbCsvRow, ...aliases: string[]): string {
+  const keys = Object.keys(row)
+  for (const alias of aliases) {
+    const lower = alias.toLowerCase()
+    const match = keys.find((k) => k.toLowerCase() === lower)
+    if (match !== undefined && row[match] !== undefined) {
+      return row[match]!.trim()
+    }
+  }
+  return ''
+}
+
+// ─── Row-Type Filtering ───────────────────────────────────────────────────────
+
+/**
+ * Filter parsed CSV rows to only Reservation rows.
+ * If the CSV has no 'Type' column, all rows are kept (backward compat with old format).
+ */
+export function filterReservationRows(rows: AirbnbCsvRow[]): AirbnbCsvRow[] {
+  if (rows.length === 0) return rows
+  // Check if any row has a Type column (case-insensitive)
+  const hasTypeColumn = rows.some((row) =>
+    Object.keys(row).some((k) => k.toLowerCase() === 'type')
+  )
+  if (!hasTypeColumn) return rows
+  return rows.filter((row) => findColumn(row, 'Type').toLowerCase() === 'reservation')
+}
 
 // ─── CSV Parsing ──────────────────────────────────────────────────────────────
 
@@ -125,17 +144,17 @@ export function normalizeAirbnbRow(row: AirbnbCsvRow): ParsedRow {
   const errors: ValidationError[] = []
 
   // Confirmation code (soft if missing)
-  const confirmationCode = row[COL.CONFIRMATION_CODE] || null
+  const confirmationCode = findColumn(row, 'Confirmation Code', 'Confirmation code') || null
   if (!confirmationCode) {
     errors.push({ field: 'source_confirmation_code', reason: 'Confirmation code absent — dedup fallback will run', severity: 'soft' })
   }
 
   // Guest name (optional)
-  const guestName = row[COL.GUEST_NAME] || null
+  const guestName = findColumn(row, 'Guest Name', 'Guest') || null
 
   // Dates
-  const checkInRaw = row[COL.START_DATE]
-  const checkOutRaw = row[COL.END_DATE]
+  const checkInRaw = findColumn(row, 'Start Date', 'Start date')
+  const checkOutRaw = findColumn(row, 'End Date', 'End date')
   const checkIn = parseDate(checkInRaw)
   const checkOut = parseDate(checkOutRaw)
 
@@ -151,7 +170,7 @@ export function normalizeAirbnbRow(row: AirbnbCsvRow): ParsedRow {
 
   // Nights
   let nights: number | null = null
-  const nightsRaw = row[COL.NIGHTS]
+  const nightsRaw = findColumn(row, 'Nights')
   if (nightsRaw) {
     nights = parseInt(nightsRaw, 10)
     if (isNaN(nights)) nights = null
@@ -168,11 +187,11 @@ export function normalizeAirbnbRow(row: AirbnbCsvRow): ParsedRow {
   }
 
   // Currency fields
-  const grossRevenue = parseCurrency(row[COL.GROSS_EARNINGS])
-  const cleaningFee = parseCurrency(row[COL.CLEANING_FEE])
-  const platformFee = parseCurrency(row[COL.HOST_SERVICE_FEE])
-  const tax = parseCurrency(row[COL.TAXES])
-  const netPayout = parseCurrency(row[COL.AMOUNT])
+  const grossRevenue = parseCurrency(findColumn(row, 'Gross Earnings', 'Gross earnings'))
+  const cleaningFee = parseCurrency(findColumn(row, 'Cleaning Fee', 'Cleaning fee'))
+  const platformFee = parseCurrency(findColumn(row, 'Host Service Fee', 'Service fee', 'Host service fee'))
+  const tax = parseCurrency(findColumn(row, 'Taxes', 'Airbnb remitted tax', 'Tax'))
+  const netPayout = parseCurrency(findColumn(row, 'Amount', 'Paid out'))
 
   if (netPayout === null) {
     errors.push({ field: 'net_payout_amount', reason: 'Amount is missing or non-numeric — row cannot be committed', severity: 'blocking' })
