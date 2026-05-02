@@ -4,6 +4,7 @@ import { Hono } from 'hono'
 import { requireAuth, type AuthVariables } from '../lib/auth'
 import { createSupabaseClient } from '../lib/supabase'
 import type { Env } from '../types/env'
+import { DashboardMetricsQuery, DashboardExportQuery, formatZodError } from '../lib/validation'
 
 type Bindings = Env
 type Variables = AuthVariables
@@ -18,13 +19,17 @@ dashboardRouter.use('*', requireAuth)
 
 dashboardRouter.get('/metrics', async (c: any) => {
   const supabase = createSupabaseClient(c.env)
-  const workspaceId = c.req.query('workspace_id')
-  const propertyId = c.req.query('property_id')
-  const dateFrom = c.req.query('date_from')
-  const dateTo = c.req.query('date_to')
-  if (!workspaceId || !propertyId || !dateFrom || !dateTo) {
-    return c.json({ error: 'workspace_id, property_id, date_from, date_to required' }, 400)
-  }
+
+  const parsed = DashboardMetricsQuery.safeParse({
+    workspace_id: c.req.query('workspace_id'),
+    property_id: c.req.query('property_id'),
+    date_from: c.req.query('date_from'),
+    date_to: c.req.query('date_to'),
+  })
+
+  if (!parsed.success) return c.json({ error: formatZodError(parsed.error) }, 400)
+
+  const { workspace_id: workspaceId, property_id: propertyId, date_from: dateFrom, date_to: dateTo } = parsed.data
   // Query bookings
   const { data: bookings, error: bookingsErr } = await supabase
     .from('bookings')
@@ -84,13 +89,21 @@ dashboardRouter.get('/metrics', async (c: any) => {
 
 dashboardRouter.get('/export/expenses', async (c: any) => {
   const supabase = createSupabaseClient(c.env)
-  const workspaceId = c.req.query('workspace_id')
-  const propertyId = c.req.query('property_id')
-  const dateFrom = c.req.query('date_from')
-  const dateTo = c.req.query('date_to')
-  if (!workspaceId || !propertyId || !dateFrom || !dateTo) {
-    return c.json({ error: 'workspace_id, property_id, date_from, date_to required' }, 400)
-  }
+
+  const parsed = DashboardExportQuery.safeParse({
+    workspace_id: c.req.query('workspace_id'),
+    property_id: c.req.query('property_id'),
+    date_from: c.req.query('date_from'),
+    date_to: c.req.query('date_to'),
+    tax_period: c.req.query('tax_period') || undefined,
+    category: c.req.query('category') || undefined,
+    review_state: c.req.query('review_state') || undefined,
+  })
+
+  if (!parsed.success) return c.json({ error: formatZodError(parsed.error) }, 400)
+
+  const { workspace_id: workspaceId, property_id: propertyId, date_from: dateFrom, date_to: dateTo } = parsed.data
+
   let query = supabase
     .from('expenses')
     .select('*')
@@ -120,13 +133,19 @@ dashboardRouter.get('/export/expenses', async (c: any) => {
 
 dashboardRouter.get('/export/bookings', async (c: any) => {
   const supabase = createSupabaseClient(c.env)
-  const workspaceId = c.req.query('workspace_id')
-  const propertyId = c.req.query('property_id')
-  const dateFrom = c.req.query('date_from')
-  const dateTo = c.req.query('date_to')
-  if (!workspaceId || !propertyId || !dateFrom || !dateTo) {
-    return c.json({ error: 'workspace_id, property_id, date_from, date_to required' }, 400)
-  }
+
+  const parsed = DashboardExportQuery.safeParse({
+    workspace_id: c.req.query('workspace_id'),
+    property_id: c.req.query('property_id'),
+    date_from: c.req.query('date_from'),
+    date_to: c.req.query('date_to'),
+    source_platform: c.req.query('source_platform') || undefined,
+  })
+
+  if (!parsed.success) return c.json({ error: formatZodError(parsed.error) }, 400)
+
+  const { workspace_id: workspaceId, property_id: propertyId, date_from: dateFrom, date_to: dateTo, source_platform: sourcePlatform } = parsed.data
+
   let query = supabase
     .from('bookings')
     .select('*')
@@ -135,7 +154,6 @@ dashboardRouter.get('/export/bookings', async (c: any) => {
     .eq('status', 'committed')
     .gte('check_in_date', dateFrom)
     .lte('check_out_date', dateTo)
-  const sourcePlatform = c.req.query('source_platform')
   if (sourcePlatform) query = query.eq('source_platform', sourcePlatform)
   const { data, error } = await query
   if (error) return c.json({ error: error.message }, 500)

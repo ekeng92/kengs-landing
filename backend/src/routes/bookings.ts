@@ -16,6 +16,13 @@ import { requireAuth, type AuthVariables } from '../lib/auth'
 import { createSupabaseClient } from '../lib/supabase'
 import type { Env } from '../types/env'
 import type { RecordStatus } from '../types/schema'
+import {
+  BookingListQuery,
+  CreateBookingBody,
+  UpdateBookingBody,
+  formatZodError,
+  mapDbError,
+} from '../lib/validation'
 
 type Bindings = Env
 type Variables = AuthVariables
@@ -29,22 +36,30 @@ bookingsRouter.use('*', requireAuth)
  */
 bookingsRouter.get('/', async (c) => {
   const supabase = createSupabaseClient(c.env)
-  const workspaceId = c.req.query('workspace_id')
-  const propertyId = c.req.query('property_id')
-  const status = c.req.query('status') as RecordStatus | undefined
-  const platform = c.req.query('source_platform')
 
-  if (!workspaceId) return c.json({ error: 'workspace_id is required' }, 400)
+  const parsed = BookingListQuery.safeParse({
+    workspace_id: c.req.query('workspace_id'),
+    property_id: c.req.query('property_id') || undefined,
+    status: c.req.query('status') || undefined,
+    source_platform: c.req.query('source_platform') || undefined,
+  })
 
-  let query = supabase.from('bookings').select('*').eq('workspace_id', workspaceId)
+  if (!parsed.success) return c.json({ error: formatZodError(parsed.error) }, 400)
 
-  if (propertyId) query = query.eq('property_id', propertyId)
+  const { workspace_id, property_id, status, source_platform } = parsed.data
+
+  let query = supabase.from('bookings').select('*').eq('workspace_id', workspace_id)
+
+  if (property_id) query = query.eq('property_id', property_id)
   if (status) query = query.eq('status', status)
-  if (platform) query = query.eq('source_platform', platform)
+  if (source_platform) query = query.eq('source_platform', source_platform)
 
   const { data, error } = await query.order('check_in_date', { ascending: false })
 
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) {
+    const mapped = mapDbError(error)
+    return c.json({ error: mapped.message }, mapped.status as any)
+  }
   return c.json({ data })
 })
 
@@ -71,19 +86,17 @@ bookingsRouter.get('/:id', async (c) => {
 bookingsRouter.post('/', async (c) => {
   const supabase = createSupabaseClient(c.env)
   const userId = c.var.userId
-  const body = await c.req.json()
 
-  const { workspace_id, property_id, check_in_date, check_out_date, net_payout_amount } = body
+  const raw = await c.req.json().catch(() => null)
+  if (!raw) return c.json({ error: 'Invalid JSON' }, 400)
 
-  // Required field validation
-  if (!workspace_id) return c.json({ error: 'workspace_id is required' }, 400)
-  if (!property_id) return c.json({ error: 'property_id is required' }, 400)
-  if (!check_in_date) return c.json({ error: 'check_in_date is required' }, 400)
-  if (!check_out_date) return c.json({ error: 'check_out_date is required' }, 400)
-  if (net_payout_amount == null) return c.json({ error: 'net_payout_amount is required' }, 400)
+  const parsed = CreateBookingBody.safeParse(raw)
+  if (!parsed.success) return c.json({ error: formatZodError(parsed.error) }, 400)
+
+  const body = parsed.data
 
   // Date ordering
-  if (check_out_date <= check_in_date) {
+  if (body.check_out_date <= body.check_in_date) {
     return c.json({ error: 'check_out_date must be after check_in_date' }, 422)
   }
 
@@ -91,29 +104,29 @@ bookingsRouter.post('/', async (c) => {
   const { data: property } = await supabase
     .from('properties')
     .select('id, workspace_id')
-    .eq('id', property_id)
-    .eq('workspace_id', workspace_id)
+    .eq('id', body.property_id)
+    .eq('workspace_id', body.workspace_id)
     .single()
 
   if (!property) return c.json({ error: 'Property not found in this workspace' }, 422)
 
   const now = new Date().toISOString()
-  const nights = nightsBetween(check_in_date, check_out_date)
+  const nights = nightsBetween(body.check_in_date, body.check_out_date)
 
   const booking = {
-    workspace_id,
-    property_id,
-    source_platform: body.source_platform ?? 'direct',
+    workspace_id: body.workspace_id,
+    property_id: body.property_id,
+    source_platform: body.source_platform,
     source_confirmation_code: body.source_confirmation_code ?? null,
     guest_name: body.guest_name ?? null,
-    check_in_date,
-    check_out_date,
+    check_in_date: body.check_in_date,
+    check_out_date: body.check_out_date,
     nights,
-    gross_revenue_amount: body.gross_revenue_amount != null ? Number(body.gross_revenue_amount) : null,
-    cleaning_fee_amount: body.cleaning_fee_amount != null ? Number(body.cleaning_fee_amount) : null,
-    platform_fee_amount: body.platform_fee_amount != null ? Number(body.platform_fee_amount) : null,
-    tax_amount: body.tax_amount != null ? Number(body.tax_amount) : null,
-    net_payout_amount: Number(net_payout_amount),
+    gross_revenue_amount: body.gross_revenue_amount ?? null,
+    cleaning_fee_amount: body.cleaning_fee_amount ?? null,
+    platform_fee_amount: body.platform_fee_amount ?? null,
+    tax_amount: body.tax_amount ?? null,
+    net_payout_amount: body.net_payout_amount,
     status: 'committed' as const,
     source_import_row_id: null,
     created_at: now,
@@ -121,11 +134,14 @@ bookingsRouter.post('/', async (c) => {
   }
 
   const { data, error } = await supabase.from('bookings').insert(booking).select().single()
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) {
+    const mapped = mapDbError(error)
+    return c.json({ error: mapped.message }, mapped.status as any)
+  }
 
   // Audit: created via manual entry
   await supabase.from('audit_events').insert({
-    workspace_id,
+    workspace_id: body.workspace_id,
     actor_user_id: userId,
     entity_type: 'booking',
     entity_id: data.id,
@@ -142,7 +158,14 @@ bookingsRouter.post('/', async (c) => {
 /** Update editable fields on a booking (guest_name, notes, etc.) */
 bookingsRouter.patch('/:id', async (c) => {
   const supabase = createSupabaseClient(c.env)
-  const body = await c.req.json()
+
+  const raw = await c.req.json().catch(() => null)
+  if (!raw) return c.json({ error: 'Invalid JSON' }, 400)
+
+  const parsed = UpdateBookingBody.safeParse(raw)
+  if (!parsed.success) return c.json({ error: formatZodError(parsed.error) }, 400)
+
+  const body = parsed.data
 
   const { data, error } = await supabase
     .from('bookings')
@@ -151,7 +174,10 @@ bookingsRouter.patch('/:id', async (c) => {
     .select()
     .single()
 
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) {
+    const mapped = mapDbError(error)
+    return c.json({ error: mapped.message }, mapped.status as any)
+  }
   return c.json({ data })
 })
 

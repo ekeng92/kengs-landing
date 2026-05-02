@@ -30,7 +30,8 @@ describe('mileage route contracts', () => {
     const res = await app.request('/mileage', {}, { ...baseEnv, TEST_SUPABASE: mock.client })
 
     expect(res.status).toBe(400)
-    await expect(res.json()).resolves.toEqual({ error: 'workspace_id is required' })
+    const json: any = await res.json()
+    expect(json.error).toContain('workspace_id')
     expect(mock.tableCalls).toEqual([])
   })
 

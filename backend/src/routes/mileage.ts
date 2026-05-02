@@ -10,6 +10,13 @@ import { Hono } from 'hono'
 import { requireAuth, type AuthVariables } from '../lib/auth'
 import { createSupabaseClient } from '../lib/supabase'
 import type { Env } from '../types/env'
+import {
+  MileageListQuery,
+  CreateMileageBody,
+  UpdateMileageBody,
+  formatZodError,
+  mapDbError,
+} from '../lib/validation'
 
 type Bindings = Env
 type Variables = AuthVariables
@@ -26,18 +33,26 @@ const DEFAULT_DEDUCTION_RATE = 0.70
  */
 mileageRouter.get('/', async (c) => {
   const supabase = createSupabaseClient(c.env)
-  const workspaceId = c.req.query('workspace_id')
-  const propertyId = c.req.query('property_id')
 
-  if (!workspaceId) return c.json({ error: 'workspace_id is required' }, 400)
+  const parsed = MileageListQuery.safeParse({
+    workspace_id: c.req.query('workspace_id'),
+    property_id: c.req.query('property_id') || undefined,
+  })
 
-  let query = supabase.from('mileage_trips').select('*').eq('workspace_id', workspaceId)
+  if (!parsed.success) return c.json({ error: formatZodError(parsed.error) }, 400)
 
-  if (propertyId) query = query.eq('property_id', propertyId)
+  const { workspace_id, property_id } = parsed.data
+
+  let query = supabase.from('mileage_trips').select('*').eq('workspace_id', workspace_id)
+
+  if (property_id) query = query.eq('property_id', property_id)
 
   const { data, error } = await query.order('trip_date', { ascending: false })
 
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) {
+    const mapped = mapDbError(error)
+    return c.json({ error: mapped.message }, mapped.status as any)
+  }
   return c.json({ data })
 })
 
@@ -62,38 +77,36 @@ mileageRouter.get('/:id', async (c) => {
  */
 mileageRouter.post('/', async (c) => {
   const supabase = createSupabaseClient(c.env)
-  const body = await c.req.json()
 
-  const { workspace_id, property_id, trip_date, miles } = body
+  const raw = await c.req.json().catch(() => null)
+  if (!raw) return c.json({ error: 'Invalid JSON' }, 400)
 
-  if (!workspace_id) return c.json({ error: 'workspace_id is required' }, 400)
-  if (!property_id) return c.json({ error: 'property_id is required' }, 400)
-  if (!trip_date) return c.json({ error: 'trip_date is required' }, 400)
-  if (miles == null || miles <= 0) return c.json({ error: 'miles must be a positive number' }, 400)
+  const parsed = CreateMileageBody.safeParse(raw)
+  if (!parsed.success) return c.json({ error: formatZodError(parsed.error) }, 400)
+
+  const body = parsed.data
 
   // Verify property belongs to workspace
   const { data: property } = await supabase
     .from('properties')
     .select('id, workspace_id')
-    .eq('id', property_id)
-    .eq('workspace_id', workspace_id)
+    .eq('id', body.property_id)
+    .eq('workspace_id', body.workspace_id)
     .single()
 
   if (!property) return c.json({ error: 'Property not found in this workspace' }, 422)
 
   const now = new Date().toISOString()
-  const deductionRate = body.deduction_rate != null ? Number(body.deduction_rate) : DEFAULT_DEDUCTION_RATE
-  const deductionAmount = body.deduction_amount != null
-    ? Number(body.deduction_amount)
-    : Math.round(Number(miles) * deductionRate * 100) / 100
+  const deductionRate = body.deduction_rate ?? DEFAULT_DEDUCTION_RATE
+  const deductionAmount = body.deduction_amount ?? Math.round(body.miles * deductionRate * 100) / 100
 
   const trip = {
-    workspace_id,
-    property_id,
-    trip_date,
+    workspace_id: body.workspace_id,
+    property_id: body.property_id,
+    trip_date: body.trip_date,
     origin: body.origin ?? null,
     destination: body.destination ?? null,
-    miles: Number(miles),
+    miles: body.miles,
     purpose: body.purpose ?? null,
     deduction_rate: deductionRate,
     deduction_amount: deductionAmount,
@@ -107,7 +120,10 @@ mileageRouter.post('/', async (c) => {
     .select()
     .single()
 
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) {
+    const mapped = mapDbError(error)
+    return c.json({ error: mapped.message }, mapped.status as any)
+  }
   return c.json({ data }, 201)
 })
 
@@ -118,7 +134,14 @@ mileageRouter.post('/', async (c) => {
 mileageRouter.patch('/:id', async (c) => {
   const supabase = createSupabaseClient(c.env)
   const id = c.req.param('id')
-  const body = await c.req.json()
+
+  const raw = await c.req.json().catch(() => null)
+  if (!raw) return c.json({ error: 'Invalid JSON' }, 400)
+
+  const parsed = UpdateMileageBody.safeParse(raw)
+  if (!parsed.success) return c.json({ error: formatZodError(parsed.error) }, 400)
+
+  const body = parsed.data
 
   // Fetch existing to merge for deduction recalculation
   const { data: existing } = await supabase
@@ -136,16 +159,16 @@ mileageRouter.patch('/:id', async (c) => {
   if (body.trip_date !== undefined) patch['trip_date'] = body.trip_date
   if (body.origin !== undefined) patch['origin'] = body.origin
   if (body.destination !== undefined) patch['destination'] = body.destination
-  if (body.miles !== undefined) patch['miles'] = Number(body.miles)
+  if (body.miles !== undefined) patch['miles'] = body.miles
   if (body.purpose !== undefined) patch['purpose'] = body.purpose
-  if (body.deduction_rate !== undefined) patch['deduction_rate'] = Number(body.deduction_rate)
+  if (body.deduction_rate !== undefined) patch['deduction_rate'] = body.deduction_rate
 
   // Recalculate deduction_amount if miles or rate changed
   if (body.deduction_amount !== undefined) {
-    patch['deduction_amount'] = Number(body.deduction_amount)
+    patch['deduction_amount'] = body.deduction_amount
   } else if (body.miles !== undefined || body.deduction_rate !== undefined) {
-    const finalMiles = body.miles != null ? Number(body.miles) : existing.miles
-    const finalRate = body.deduction_rate != null ? Number(body.deduction_rate) : existing.deduction_rate
+    const finalMiles = body.miles ?? existing.miles
+    const finalRate = body.deduction_rate ?? existing.deduction_rate
     if (finalRate != null) {
       patch['deduction_amount'] = Math.round(finalMiles * finalRate * 100) / 100
     }
@@ -158,7 +181,10 @@ mileageRouter.patch('/:id', async (c) => {
     .select()
     .single()
 
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) {
+    const mapped = mapDbError(error)
+    return c.json({ error: mapped.message }, mapped.status as any)
+  }
   return c.json({ data })
 })
 

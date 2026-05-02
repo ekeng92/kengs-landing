@@ -31,7 +31,8 @@ describe('expenses route contracts', () => {
     const res = await app.request('/expenses', {}, { ...baseEnv, TEST_SUPABASE: mock.client })
 
     expect(res.status).toBe(400)
-    await expect(res.json()).resolves.toEqual({ error: 'workspace_id is required' })
+    const json: any = await res.json()
+    expect(json.error).toContain('workspace_id')
     expect(mock.tableCalls).toEqual([])
   })
 
@@ -62,6 +63,8 @@ describe('expenses route contracts', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         workspace_id: TEST_WORKSPACE,
+        property_id: 'prop-001',
+        transaction_date: '2026-04-15',
         merchant_name: 'Home Depot',
         amount: 45.99,
       }),
