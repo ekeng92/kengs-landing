@@ -66,7 +66,14 @@ Valid statuses: `backlog`, `todo`, `in_progress`, `review`, `waiting`, `done`, `
 
 Standard flow: `backlog → todo → in_progress → review → done`
 
-`review` = work is complete, needs SAGE acceptance. `waiting` = blocked on external dependency.
+- `review` = work is complete, needs SAGE acceptance. Agents move tasks here, never to `done`.
+- `waiting` = blocked on external dependency. Requires `blocked_reason`.
+- `completion_notes` (TEXT, max 5000 chars) = required when moving to `review`. Describes what was built, how it was validated, and which commits contain the change. This is the evidence trail.
+
+## Security
+
+- API key comparison uses timing-safe comparison (`timingSafeEqual` in `auth.ts`) — never use `===` for secrets
+- `DEV_BYPASS_AUTH` must never be set in non-local environments
 
 ## What NOT to Do
 
