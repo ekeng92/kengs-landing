@@ -44,7 +44,7 @@
 - [x] **Check in VS Code task runner for local workflows** — added `.vscode/tasks.json` with backend install/dev/typecheck plus dashboard/task-board launch tasks
 - [x] **Document local environment workflow** — added `docs/dev-environment.md` with context-loading order, startup paths, and current gaps
 - [x] **Add one-command backend bootstrap** — added `backend/scripts/bootstrap-dev.ps1` plus a VS Code task to verify `.dev.vars`, install backend deps, and report readiness before `wrangler dev`
-- [x] **Add environment status report** — added `scripts/environment-status.ps1` plus a VS Code task to summarize repo state, backend readiness, GitHub auth, and task-board freshness
+- [x] **Add environment status report** — added `scripts/environment-status.ps1` plus a VS Code task to summarize repo state, backend readiness, GitHub auth, and task-board freshness; enhanced in May 2026 session to add Node.js/Wrangler versions, frontend surface checks, and better-labeled output
 - [ ] **Decide board strategy: markdown only vs GitHub Projects mirror** — current repo has no open Projects board; decide whether to keep the markdown file as the canonical board or sync to GitHub Projects after auth is configured
 - [ ] **Create local backend `.dev.vars`** — copy `backend/.dev.vars.example` to `.dev.vars` and fill in Supabase URL/service-role credentials so `wrangler dev` can run on this PC
 - [ ] **Authenticate this PC for GitHub** — complete `gh auth login` so AEON Watch can pull private repos, create issues/PRs, and sync task board changes with approval.
