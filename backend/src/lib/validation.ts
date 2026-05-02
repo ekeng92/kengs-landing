@@ -35,6 +35,7 @@ export const CreateTaskBody = z.object({
   effort: taskEffort.nullable().optional(),
   context: taskContext.nullable().optional(),
   blocked_reason: z.string().max(1000).nullable().optional(),
+  completion_notes: z.string().max(5000).nullable().optional(),
 })
 
 // Update task body (all fields optional)
@@ -50,6 +51,7 @@ export const UpdateTaskBody = z.object({
   effort: taskEffort.nullable().optional(),
   context: taskContext.nullable().optional(),
   blocked_reason: z.string().max(1000).nullable().optional(),
+  completion_notes: z.string().max(5000).nullable().optional(),
 }).refine(obj => Object.keys(obj).length > 0, {
   message: 'At least one field must be provided for update',
 })
@@ -73,5 +75,6 @@ export const BulkCreateTasksBody = z.object({
     effort: taskEffort.nullable().optional(),
     context: taskContext.nullable().optional(),
     blocked_reason: z.string().max(1000).nullable().optional(),
+    completion_notes: z.string().max(5000).nullable().optional(),
   })).min(1, 'tasks array must have at least one item').max(100),
 })

@@ -163,6 +163,7 @@ tasksRouter.post('/', async (c) => {
   if (body.effort !== undefined) row.effort = body.effort
   if (body.context !== undefined) row.context = body.context
   if (body.blocked_reason !== undefined) row.blocked_reason = body.blocked_reason
+  if (body.completion_notes !== undefined) row.completion_notes = body.completion_notes
 
   const { data, error } = await supabase
     .from('tasks')
@@ -322,6 +323,7 @@ tasksRouter.post('/bulk', async (c) => {
     if (t.effort !== undefined) row.effort = t.effort
     if (t.context !== undefined) row.context = t.context
     if (t.blocked_reason !== undefined) row.blocked_reason = t.blocked_reason
+    if (t.completion_notes !== undefined) row.completion_notes = t.completion_notes
     return row
   })
 

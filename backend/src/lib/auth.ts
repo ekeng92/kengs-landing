@@ -2,6 +2,19 @@ import { createMiddleware } from 'hono/factory'
 import { createClient } from '@supabase/supabase-js'
 import type { Env } from '../types/env'
 
+/** Timing-safe string comparison to prevent timing attacks on secret comparison */
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false
+  const encoder = new TextEncoder()
+  const bufA = encoder.encode(a)
+  const bufB = encoder.encode(b)
+  let result = 0
+  for (let i = 0; i < bufA.length; i++) {
+    result |= (bufA[i] ?? 0) ^ (bufB[i] ?? 0)
+  }
+  return result === 0
+}
+
 export type AuthVariables = {
   userId: string
   workspace_id?: string
@@ -27,7 +40,7 @@ export const requireAuth = createMiddleware<{
 
   // API key auth: service accounts (e.g. AEON Watch) use X-API-Key header
   const apiKey = c.req.header('X-API-Key')
-  if (apiKey && c.env.AGENT_API_KEY && apiKey === c.env.AGENT_API_KEY) {
+  if (apiKey && c.env.AGENT_API_KEY && timingSafeEqual(apiKey, c.env.AGENT_API_KEY)) {
     c.set('userId', c.env.AGENT_USER_ID || '00000000-0000-0000-0000-000000000001')
     c.set('workspace_id', c.env.AGENT_WORKSPACE_ID || '')
     await next()
