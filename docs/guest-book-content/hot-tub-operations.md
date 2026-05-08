@@ -100,6 +100,20 @@ The cover has a **metal assist bar** that helps guide it on and off. There's als
 
 The cover has some cosmetic rips and tears on the outer layer — that's just the protective shell. The inner foam core has been **resealed and re-wrapped**, so insulation is solid.
 
+
+---
+
+## Longer Stays: Keeping the Water Fresh
+
+If you are staying multiple nights and plan to use the jacuzzi regularly, please add shock after each use. This keeps body oils, lotions, and normal use from making the water cloudy or stale.
+
+1. When you are done soaking, leave the cover open.
+2. Add **two capfuls of spa shock** from the supply cabinet near the hot tub.
+3. Turn the jets on and let them run with the cover open for about **10 minutes**.
+4. Then turn the jets off and replace the cover.
+
+Please do not add extra shock beyond this. If the water ever looks cloudy or smells off, message the host and we will help.
+
 ---
 
 ## Tips
