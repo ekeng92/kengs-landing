@@ -10,6 +10,9 @@ import { dashboardRouter } from './routes/dashboard'
 import { icalSyncRouter, runIcalSync } from './routes/ical-sync'
 import { tasksRouter } from './routes/tasks'
 import { mileageRouter } from './routes/mileage'
+import { cleanPublicRouter, cleaningAdminRouter } from './routes/cleaning'
+import { invitePublicRouter, inviteAdminRouter } from './routes/invites'
+import { propertyTasksRouter } from './routes/property-tasks'
 
 export const app = new Hono<{ Bindings: Env }>()
 
@@ -38,6 +41,11 @@ app.route('/dashboard', dashboardRouter)
 app.route('/ical-sync', icalSyncRouter)
 app.route('/tasks', tasksRouter)
 app.route('/mileage', mileageRouter)
+app.route('/clean', cleanPublicRouter)
+app.route('/cleaning', cleaningAdminRouter)
+app.route('/invites/accept', invitePublicRouter)
+app.route('/invites', inviteAdminRouter)
+app.route('/property-tasks', propertyTasksRouter)
 
 export default {
   fetch: app.fetch,

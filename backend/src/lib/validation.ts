@@ -275,6 +275,43 @@ export const UpdateWorkspaceBody = z.object({
   message: 'At least one field must be provided for update',
 })
 
+// ─── Property Tasks ───────────────────────────────────────────────────────────
+
+export const propertyTaskStatus = z.enum(['pending', 'in_progress', 'completed', 'expired'])
+export const propertyTaskPriority = z.enum(['low', 'medium', 'high', 'urgent'])
+
+export const PropertyTaskListQuery = z.object({
+  workspace_id: z.string().min(1, 'workspace_id is required'),
+  property_id: z.string().optional(),
+  status: propertyTaskStatus.optional(),
+  priority: propertyTaskPriority.optional(),
+  ...paginationParams,
+})
+
+export const CreatePropertyTaskBody = z.object({
+  workspace_id: z.string().min(1, 'workspace_id is required'),
+  property_id: z.string().min(1, 'property_id is required'),
+  title: z.string().min(1, 'title is required').max(500),
+  description: z.string().max(5000).optional(),
+  status: propertyTaskStatus.optional().default('pending'),
+  priority: propertyTaskPriority.optional().default('medium'),
+  due_date: z.string().date().nullable().optional(),
+  auto_expire: z.boolean().optional().default(false),
+  notes: z.string().max(5000).nullable().optional(),
+})
+
+export const UpdatePropertyTaskBody = z.object({
+  title: z.string().min(1).max(500).optional(),
+  description: z.string().max(5000).nullable().optional(),
+  status: propertyTaskStatus.optional(),
+  priority: propertyTaskPriority.optional(),
+  due_date: z.string().date().nullable().optional(),
+  auto_expire: z.boolean().optional(),
+  notes: z.string().max(5000).nullable().optional(),
+}).refine(obj => Object.keys(obj).length > 0, {
+  message: 'At least one field must be provided for update',
+})
+
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 
 /** Format Zod errors into a client-friendly message */
