@@ -240,6 +240,72 @@
     .btn-submit:disabled { opacity: .5; cursor: not-allowed; }
     .btn-submit:active:not(:disabled) { opacity: .8; }
 
+    /* ── View Toggle ── */
+    .view-toggle {
+      display: flex;
+      gap: 8px;
+      padding: 8px 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .view-btn {
+      flex: 1;
+      padding: 6px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: transparent;
+      font-size: .78rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all .15s;
+    }
+    .view-btn.active {
+      background: var(--green);
+      color: #fff;
+      border-color: var(--green);
+    }
+
+    /* ── Overview (compact) mode ── */
+    .app.overview-mode .item {
+      padding: 4px 0;
+      gap: 8px;
+    }
+    .app.overview-mode .item-text {
+      font-size: .82rem;
+      line-height: 1.3;
+    }
+    .app.overview-mode .item-hint {
+      display: none;
+    }
+    .app.overview-mode .group {
+      padding: 0 12px;
+    }
+    .app.overview-mode .group-title {
+      padding: 8px 0 4px;
+      font-size: .68rem;
+    }
+    .app.overview-mode .section-label {
+      padding: 6px 12px;
+      font-size: .68rem;
+    }
+
+    /* ── Print styles ── */
+    @media print {
+      .progress-bar, .view-toggle, .tip, .notes-section { display: none !important; }
+      .app { padding: 0; max-width: 100%; }
+      .header { position: static; }
+      .item { break-inside: avoid; }
+      .item input[type="checkbox"] {
+        width: 14px; height: 14px; min-width: 14px;
+        border: 1.5px solid #999;
+      }
+      .item-text { font-size: .8rem; }
+      .section-label { padding: 4px 12px; font-size: .7rem; }
+      .group-title { font-size: .65rem; padding: 6px 0 3px; }
+    }
+
     /* ── Notes ── */
     .notes-section {
       padding: 16px;
@@ -329,6 +395,12 @@
 
     <div class="tip" id="tip-banner" style="display:none">
       ⭐ START LAUNDRY FIRST — strip all beds and start the washer before anything else.
+    </div>
+
+    <div class="view-toggle">
+      <button class="view-btn active" onclick="setView('normal')">📋 Full View</button>
+      <button class="view-btn" onclick="setView('overview')">📄 Overview</button>
+      <button class="view-btn" onclick="window.print()">🖨 Print</button>
     </div>
 
     <!-- Checklist items rendered dynamically from DB -->
@@ -591,11 +663,31 @@
       const checked = document.querySelectorAll('.item.checked')
       const total = items.length
       const done = checked.length
-      const pct = total > 0 ? Math.round((done / total) * 100) : 0
+
+      // Split required vs frequency-based (optional)
+      let requiredTotal = 0, requiredDone = 0, bonusDone = 0
+      items.forEach(item => {
+        const key = item.dataset.key
+        const dbItem = listItems.find(i => i.item_key === key)
+        const isRequired = !dbItem || dbItem.is_required !== false
+        const isChecked = item.classList.contains('checked')
+        if (isRequired) {
+          requiredTotal++
+          if (isChecked) requiredDone++
+        } else {
+          if (isChecked) bonusDone++
+        }
+      })
+
+      const pct = requiredTotal > 0 ? Math.round((requiredDone / requiredTotal) * 100) : 0
 
       document.getElementById('progress-fill').style.width = pct + '%'
-      document.getElementById('progress-text').textContent = done + ' / ' + total + ' items'
-      document.getElementById('btn-submit').disabled = done === 0
+
+      let text = requiredDone + ' / ' + requiredTotal + ' required'
+      if (bonusDone > 0) text += ' + ' + bonusDone + ' bonus'
+      document.getElementById('progress-text').textContent = text
+
+      document.getElementById('btn-submit').disabled = requiredDone === 0
     }
 
     // ── Local Storage ──
@@ -706,6 +798,21 @@
         alert('Connection error. Please check your internet and try again.')
         btn.disabled = false
         btn.textContent = 'Submit ✓'
+      }
+    }
+
+    // ── View Toggle ──
+    function setView(mode) {
+      const app = document.getElementById('app')
+      const btns = document.querySelectorAll('.view-btn')
+      btns.forEach(b => b.classList.remove('active'))
+
+      if (mode === 'overview') {
+        app.classList.add('overview-mode')
+        btns[1].classList.add('active')
+      } else {
+        app.classList.remove('overview-mode')
+        btns[0].classList.add('active')
       }
     }
 
