@@ -14,6 +14,8 @@ export type AppFeature =
   | 'properties'
   | 'users'
   | 'settings'
+  | 'cleaning'
+  | 'operations'
 
 export type AccessLevel = 'none' | 'read' | 'write' | 'admin'
 
@@ -27,23 +29,28 @@ export const ROLE_FEATURE_ACCESS: Record<string, FeatureAccess> = {
   manager: {
     dashboard: 'read', tasks: 'admin', finances: 'write', bookings: 'write', expenses: 'write',
     mileage: 'write', imports: 'write', properties: 'write', users: 'read', settings: 'none',
+    cleaning: 'write', operations: 'write',
   },
   accountant: {
     dashboard: 'read', tasks: 'write', finances: 'admin', bookings: 'read', expenses: 'admin',
     mileage: 'admin', imports: 'write', properties: 'read', users: 'none', settings: 'none',
+    cleaning: 'none', operations: 'none',
   },
   reviewer: {
     dashboard: 'read', tasks: 'write', finances: 'read', bookings: 'read', expenses: 'write',
     mileage: 'read', imports: 'none', properties: 'read', users: 'none', settings: 'none',
+    cleaning: 'read', operations: 'read',
   },
   agent: {
     dashboard: 'read', tasks: 'admin', finances: 'write', bookings: 'write', expenses: 'write',
     mileage: 'write', imports: 'write', properties: 'read', users: 'none', settings: 'none',
+    cleaning: 'write', operations: 'write',
   },
+  custom: allAccess('none'),
 }
 
 const LEVEL_RANK: Record<AccessLevel, number> = { none: 0, read: 1, write: 2, admin: 3 }
-const VALID_FEATURES: AppFeature[] = ['dashboard', 'tasks', 'finances', 'bookings', 'expenses', 'mileage', 'imports', 'properties', 'users', 'settings']
+const VALID_FEATURES: AppFeature[] = ['dashboard', 'tasks', 'finances', 'bookings', 'expenses', 'mileage', 'imports', 'properties', 'users', 'settings', 'cleaning', 'operations']
 
 function allAccess(level: AccessLevel): FeatureAccess {
   return {
@@ -57,6 +64,8 @@ function allAccess(level: AccessLevel): FeatureAccess {
     properties: level,
     users: level,
     settings: level,
+    cleaning: level,
+    operations: level,
   }
 }
 
