@@ -93,6 +93,24 @@
       .session-header { grid-template-columns:1fr auto; }
       .detail-grid { grid-template-columns:1fr 1fr; }
     }
+
+    /* List cards */
+    .list-card { border-top:1px solid var(--border); padding:14px 0; display:flex; justify-content:space-between; align-items:center; cursor:pointer; transition:background .15s; }
+    .list-card:hover { background:var(--surface2); }
+    .list-card:first-child { border-top:0; }
+    .list-card-name { font-weight:600; font-size:.9rem; }
+    .list-card-meta { color:var(--text-muted); font-size:.78rem; }
+
+    /* List item editor rows */
+    .list-item-row { display:grid; grid-template-columns:2fr 1fr .7fr auto; gap:8px; align-items:center; padding:8px 0; border-top:1px solid var(--border); font-size:.82rem; }
+    .list-item-row:first-child { border-top:0; }
+    .list-item-label { font-weight:500; }
+    .list-item-section { color:var(--text-muted); font-size:.75rem; }
+    .list-item-freq { color:var(--text-dim); font-size:.75rem; }
+    @media (max-width:600px) {
+      .list-item-row { grid-template-columns:1fr auto; }
+      .list-item-section, .list-item-freq { display:none; }
+    }
   </style>
 </head>
 <body>
@@ -104,6 +122,7 @@
     <nav class="tabs" id="tabs">
       <button class="active" data-tab="links">Links</button>
       <button data-tab="history">History</button>
+      <button data-tab="lists">Lists</button>
     </nav>
 
     <!-- ─── Links Tab ─── -->
@@ -145,6 +164,12 @@
             </select>
           </div>
           <div class="form-group">
+            <label>Checklist</label>
+            <select id="new-list">
+              <option value="">No checklist</option>
+            </select>
+          </div>
+          <div class="form-group">
             <label>&nbsp;</label>
             <button class="btn" id="btn-create-link">Create Link</button>
           </div>
@@ -173,6 +198,49 @@
         </div>
       </div>
     </div>
+
+    <!-- ─── Lists Tab ─── -->
+    <div class="tab-content" id="tab-lists">
+      <div class="panel">
+        <div class="panel-title">Cleaning Lists</div>
+        <div id="lists-list">
+          <div class="empty"><div class="icon">📝</div><p>Loading lists...</p></div>
+        </div>
+        <div style="margin-top:12px;">
+          <button class="btn" id="btn-create-list">+ New List</button>
+        </div>
+      </div>
+
+      <!-- List editor (shown when editing a list) -->
+      <div class="panel" id="list-editor" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <div class="panel-title" style="margin:0;" id="editor-title">Edit List</div>
+          <button class="btn btn-secondary btn-sm" onclick="closeEditor()">✕ Close</button>
+        </div>
+        <div class="form-grid" style="margin-bottom:16px;">
+          <div class="form-group">
+            <label>List Name</label>
+            <input id="edit-list-name" placeholder="e.g. 360 CR Turnover Checklist" />
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <input id="edit-list-desc" placeholder="Optional description" />
+          </div>
+          <div class="form-group">
+            <label>&nbsp;</label>
+            <button class="btn btn-sm" id="btn-save-list">Save</button>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div style="font-weight:600; font-size:.85rem;">Items</div>
+          <button class="btn btn-sm" id="btn-add-item">+ Add Item</button>
+        </div>
+        <div id="list-items-editor">
+          <div class="empty"><div class="icon">📝</div><p>No items yet</p></div>
+        </div>
+      </div>
+    </div>
   </main>
 
   <div class="toast" id="toast"></div>
@@ -196,6 +264,7 @@
           btn.classList.add('active');
           document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
           if (btn.dataset.tab === 'history') loadSessions();
+          if (btn.dataset.tab === 'lists') loadLists();
         });
       });
 
@@ -326,6 +395,7 @@
           cleaner_contact: document.getElementById('new-cleaner-contact').value.trim() || undefined,
           property_id: document.getElementById('new-property').value || undefined,
           cleaning_type: document.getElementById('new-cleaning-type').value,
+          list_id: document.getElementById('new-list').value || undefined,
         };
 
         const expDays = document.getElementById('new-expires').value;
@@ -488,9 +558,228 @@
       // Filter
       document.getElementById('filter-link').addEventListener('change', loadSessions);
 
+      // ── Lists ──
+      let cleaningLists = [];
+      let editingListId = null;
+
+      async function loadLists() {
+        try {
+          const resp = await fetch(API + '/cleaning-lists?workspace_id=' + workspaceId, { headers: await headers() });
+          const json = await resp.json();
+          cleaningLists = json.data || [];
+          renderLists();
+          // Also populate list dropdown in link creation if it exists
+          populateListDropdown();
+        } catch (e) {
+          document.getElementById('lists-list').innerHTML = '<div class="empty"><div class="icon">⚠️</div><p>Failed to load lists</p></div>';
+        }
+      }
+
+      function renderLists() {
+        const container = document.getElementById('lists-list');
+        if (!cleaningLists.length) {
+          container.innerHTML = '<div class="empty"><div class="icon">📝</div><p>No cleaning lists yet. Create one to get started.</p></div>';
+          return;
+        }
+        container.innerHTML = cleaningLists.map(l => {
+          const itemCount = l.cleaning_list_items?.[0]?.count ?? '?';
+          return `
+            <div class="list-card" onclick="openListEditor('${l.id}')">
+              <div>
+                <div class="list-card-name">${escapeHtml(l.name)}</div>
+                <div class="list-card-meta">${itemCount} items · ${l.is_template ? 'Template' : 'Active'} · Created ${formatDate(l.created_at)}</div>
+              </div>
+              <div style="display:flex; gap:6px;">
+                <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); copyList('${l.id}')">Copy</button>
+                <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); deleteList('${l.id}', '${escapeHtml(l.name)}')">Delete</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function populateListDropdown() {
+        // Add list dropdown to link creation form if not already there
+        let sel = document.getElementById('new-list');
+        if (!sel) return;
+        sel.innerHTML = '<option value="">No checklist</option>';
+        cleaningLists.forEach(l => {
+          const opt = document.createElement('option');
+          opt.value = l.id;
+          opt.textContent = l.name;
+          sel.appendChild(opt);
+        });
+      }
+
+      window.openListEditor = async function(id) {
+        editingListId = id;
+        document.getElementById('list-editor').style.display = 'block';
+        document.getElementById('editor-title').textContent = 'Loading...';
+
+        try {
+          const resp = await fetch(API + '/cleaning-lists/' + id, { headers: await headers() });
+          const list = await resp.json();
+
+          document.getElementById('editor-title').textContent = 'Edit: ' + list.name;
+          document.getElementById('edit-list-name').value = list.name || '';
+          document.getElementById('edit-list-desc').value = list.description || '';
+
+          renderListItems(list.items || []);
+        } catch (e) {
+          document.getElementById('editor-title').textContent = 'Error loading list';
+        }
+      };
+
+      function renderListItems(items) {
+        const container = document.getElementById('list-items-editor');
+        if (!items.length) {
+          container.innerHTML = '<div class="empty"><div class="icon">📝</div><p>No items yet. Add one above.</p></div>';
+          return;
+        }
+
+        // Group by section
+        let currentSection = '';
+        let html = '';
+        items.forEach(item => {
+          if (item.section !== currentSection) {
+            currentSection = item.section;
+            html += `<div class="section-divider">${escapeHtml(currentSection)}</div>`;
+          }
+          const freq = item.frequency_days ? `Every ${item.frequency_days}d` : 'Required';
+          const group = item.group_name ? escapeHtml(item.group_name) : '';
+          html += `
+            <div class="list-item-row">
+              <div class="list-item-label">${escapeHtml(item.item_label)}${item.item_hint ? ' <span style="color:var(--text-dim);font-size:.72rem">(' + escapeHtml(item.item_hint) + ')</span>' : ''}</div>
+              <div class="list-item-section">${group}</div>
+              <div class="list-item-freq">${freq}</div>
+              <button class="btn btn-sm btn-danger" onclick="deleteItem('${item.id}')">✕</button>
+            </div>
+          `;
+        });
+        container.innerHTML = html;
+      }
+
+      window.closeEditor = function() {
+        document.getElementById('list-editor').style.display = 'none';
+        editingListId = null;
+      };
+
+      // Save list metadata
+      document.getElementById('btn-save-list').addEventListener('click', async () => {
+        if (!editingListId) return;
+        const name = document.getElementById('edit-list-name').value.trim();
+        if (!name) { toast('Name is required'); return; }
+
+        try {
+          await fetch(API + '/cleaning-lists/' + editingListId, {
+            method: 'PATCH',
+            headers: await headers(),
+            body: JSON.stringify({
+              name,
+              description: document.getElementById('edit-list-desc').value.trim() || undefined,
+            }),
+          });
+          toast('List saved');
+          loadLists();
+          document.getElementById('editor-title').textContent = 'Edit: ' + name;
+        } catch (e) {
+          toast('Failed to save');
+        }
+      });
+
+      // Add item
+      document.getElementById('btn-add-item').addEventListener('click', async () => {
+        if (!editingListId) return;
+        const label = prompt('Item label:');
+        if (!label) return;
+        const section = prompt('Section (turnover, weekly, or monthly):', 'turnover');
+        if (!section) return;
+        const key = section + '.' + label.toLowerCase().replace(/[^a-z0-9]+/g, '_').slice(0, 40);
+
+        try {
+          await fetch(API + '/cleaning-lists/' + editingListId + '/items', {
+            method: 'POST',
+            headers: await headers(),
+            body: JSON.stringify({ item_key: key, item_label: label, section }),
+          });
+          toast('Item added');
+          openListEditor(editingListId);
+        } catch (e) {
+          toast('Failed to add item');
+        }
+      });
+
+      // Delete item
+      window.deleteItem = async function(itemId) {
+        if (!editingListId) return;
+        if (!confirm('Delete this item?')) return;
+        try {
+          await fetch(API + '/cleaning-lists/' + editingListId + '/items/' + itemId, {
+            method: 'DELETE',
+            headers: await headers(),
+          });
+          toast('Item deleted');
+          openListEditor(editingListId);
+        } catch (e) {
+          toast('Failed to delete item');
+        }
+      };
+
+      // Create new list
+      document.getElementById('btn-create-list').addEventListener('click', async () => {
+        const name = prompt('New list name:');
+        if (!name) return;
+        try {
+          const resp = await fetch(API + '/cleaning-lists', {
+            method: 'POST',
+            headers: await headers(),
+            body: JSON.stringify({ workspace_id: workspaceId, name }),
+          });
+          if (!resp.ok) { toast('Failed to create list'); return; }
+          toast('List created');
+          loadLists();
+          const list = await resp.json();
+          openListEditor(list.id);
+        } catch (e) {
+          toast('Failed to create list');
+        }
+      });
+
+      // Copy list
+      window.copyList = async function(id) {
+        try {
+          await fetch(API + '/cleaning-lists/' + id + '/copy', {
+            method: 'POST',
+            headers: await headers(),
+            body: JSON.stringify({}),
+          });
+          toast('List copied');
+          loadLists();
+        } catch (e) {
+          toast('Failed to copy list');
+        }
+      };
+
+      // Delete list
+      window.deleteList = async function(id, name) {
+        if (!confirm('Delete list "' + name + '"? This cannot be undone.')) return;
+        try {
+          await fetch(API + '/cleaning-lists/' + id, {
+            method: 'DELETE',
+            headers: await headers(),
+          });
+          toast('List deleted');
+          if (editingListId === id) closeEditor();
+          loadLists();
+        } catch (e) {
+          toast('Failed to delete list');
+        }
+      };
+
       // ── Init ──
       await loadProperties();
       await loadLinks();
+      await loadLists();
     })();
   </script>
 </body>
