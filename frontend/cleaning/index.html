@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0f1117" />
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <link rel="manifest" href="../manifest.json" />
+  <title>Cleaning — Keng's Landing</title>
+  <link rel="stylesheet" href="../css/app-shell.css" />
+  <style>
+    main { max-width:1100px; margin:0 auto; padding:16px 16px 80px; }
+    .page-title { font-size:1.3rem; font-weight:700; margin-bottom:4px; }
+    .page-sub { color:var(--text-muted); font-size:.85rem; margin-bottom:16px; }
+
+    /* Tabs */
+    nav.tabs { display:flex; gap:0; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; margin-bottom:18px; }
+    nav.tabs button { flex:1; background:none; border:none; color:var(--text-muted); padding:11px 14px; font-size:.82rem; cursor:pointer; border-bottom:2px solid transparent; transition:all .15s; white-space:nowrap; min-height:44px; }
+    nav.tabs button:hover { color:var(--text); background:var(--surface2); }
+    nav.tabs button.active { color:var(--accent-light); border-bottom-color:var(--accent-light); }
+
+    .tab-content { display:none; }
+    .tab-content.active { display:block; }
+
+    /* Panels */
+    .panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px; margin-bottom:16px; }
+    .panel-title { font-size:.95rem; font-weight:600; margin:0 0 12px; }
+    .muted { color:var(--text-muted); font-size:.85rem; }
+
+    /* Forms */
+    .form-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:10px; align-items:end; }
+    .form-group { display:flex; flex-direction:column; gap:4px; }
+    .form-group label { font-size:.72rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:.4px; }
+    input, select { width:100%; background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:var(--radius-sm); padding:8px 10px; font-size:.85rem; }
+    input:focus, select:focus { outline:none; border-color:var(--accent); }
+
+    /* Buttons */
+    .btn { padding:8px 14px; border-radius:var(--radius-sm); border:1px solid var(--accent); background:var(--accent-dim); color:var(--accent-light); cursor:pointer; font-size:.82rem; font-weight:600; transition:all .15s; white-space:nowrap; }
+    .btn:hover { background:var(--accent); color:#fff; }
+    .btn:disabled { opacity:.5; cursor:not-allowed; }
+    .btn-danger { background:transparent; color:var(--negative); border-color:#7f1d1d; }
+    .btn-danger:hover { background:rgba(248,113,113,.15); }
+    .btn-secondary { background:transparent; color:var(--text-muted); border-color:var(--border); }
+    .btn-secondary:hover { color:var(--text); background:var(--surface2); }
+    .btn-sm { padding:5px 10px; font-size:.75rem; }
+
+    /* Badges */
+    .badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:.7rem; font-weight:600; }
+    .badge-active { background:rgba(74,222,128,.15); color:var(--positive); }
+    .badge-inactive { background:rgba(248,113,113,.15); color:var(--negative); }
+    .badge-expired { background:rgba(90,95,114,.2); color:var(--text-dim); }
+    .badge-submitted { background:rgba(74,222,128,.15); color:var(--positive); }
+    .badge-in-progress { background:rgba(251,191,36,.15); color:var(--warning); }
+    .badge-abandoned { background:rgba(90,95,114,.2); color:var(--text-dim); }
+
+    /* Link rows */
+    .link-row { border-top:1px solid var(--border); padding:14px 0; display:grid; grid-template-columns:1.3fr .7fr .5fr auto; gap:10px; align-items:center; }
+    .link-row:first-child { border-top:0; }
+    .link-name { font-weight:600; font-size:.9rem; }
+    .link-meta { color:var(--text-muted); font-size:.78rem; }
+    .link-url { font-size:.72rem; color:var(--text-dim); word-break:break-all; cursor:pointer; }
+    .link-url:hover { color:var(--accent-light); }
+
+    /* Session rows */
+    .session-row { border-top:1px solid var(--border); padding:14px 0; cursor:pointer; transition:background .15s; }
+    .session-row:hover { background:var(--surface2); }
+    .session-row:first-child { border-top:0; }
+    .session-header { display:grid; grid-template-columns:1fr auto auto; gap:10px; align-items:center; }
+    .session-detail { display:none; margin-top:12px; padding:12px; background:var(--surface2); border-radius:var(--radius-sm); font-size:.82rem; }
+    .session-detail.open { display:block; }
+    .detail-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:8px; }
+    .detail-label { font-size:.7rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:.3px; }
+    .detail-value { color:var(--text); }
+    .checklist-summary { margin-top:10px; }
+    .checklist-item { display:flex; gap:8px; align-items:center; padding:3px 0; font-size:.82rem; }
+    .checklist-item .icon-check { color:var(--positive); }
+    .checklist-item .icon-skip { color:var(--text-dim); }
+    .section-divider { font-size:.72rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:.4px; margin:10px 0 4px; font-weight:600; }
+
+    /* Empty state */
+    .empty { text-align:center; padding:40px 20px; color:var(--text-muted); }
+    .empty .icon { font-size:36px; margin-bottom:8px; }
+
+    /* Toast */
+    .toast { position:fixed; bottom:80px; left:50%; transform:translateX(-50%); background:var(--surface2); color:var(--text); border:1px solid var(--border); padding:10px 20px; border-radius:var(--radius); font-size:.85rem; z-index:500; display:none; }
+    .toast.show { display:block; animation:fadeIn .2s; }
+    @keyframes fadeIn { from { opacity:0; transform:translateX(-50%) translateY(8px); } }
+
+    /* Responsive */
+    @media (max-width:600px) {
+      .link-row { grid-template-columns:1fr; gap:6px; }
+      .session-header { grid-template-columns:1fr auto; }
+      .detail-grid { grid-template-columns:1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header><h1>Cleaning</h1></header>
+  <main>
+    <h1 class="page-title">Cleaning Management</h1>
+    <p class="page-sub">Manage cleaning links, view history, and track submissions.</p>
+
+    <nav class="tabs" id="tabs">
+      <button class="active" data-tab="links">Links</button>
+      <button data-tab="history">History</button>
+    </nav>
+
+    <!-- ─── Links Tab ─── -->
+    <div class="tab-content active" id="tab-links">
+      <div class="panel">
+        <div class="panel-title">Create New Link</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Cleaner Name</label>
+            <input id="new-cleaner-name" placeholder="e.g. Julie" />
+          </div>
+          <div class="form-group">
+            <label>Contact (optional)</label>
+            <input id="new-cleaner-contact" placeholder="Phone or email" />
+          </div>
+          <div class="form-group">
+            <label>Property</label>
+            <select id="new-property">
+              <option value="">All Properties</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Cleaning Type</label>
+            <select id="new-cleaning-type">
+              <option value="all">All (Turnover + Weekly + Monthly)</option>
+              <option value="turnover">Turnover Only</option>
+              <option value="weekly">Weekly Only</option>
+              <option value="monthly">Monthly Only</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Expires</label>
+            <select id="new-expires">
+              <option value="">Never</option>
+              <option value="7">7 days</option>
+              <option value="30">30 days</option>
+              <option value="90">90 days</option>
+              <option value="365">1 year</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>&nbsp;</label>
+            <button class="btn" id="btn-create-link">Create Link</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Active Links</div>
+        <div id="links-list">
+          <div class="empty"><div class="icon">🔗</div><p>Loading links...</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── History Tab ─── -->
+    <div class="tab-content" id="tab-history">
+      <div class="panel">
+        <div class="panel-title">Cleaning Sessions</div>
+        <div style="margin-bottom:12px;">
+          <select id="filter-link" style="max-width:300px;">
+            <option value="">All Links</option>
+          </select>
+        </div>
+        <div id="sessions-list">
+          <div class="empty"><div class="icon">📋</div><p>Loading sessions...</p></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/app-shell.js"></script>
+  <script>
+    (async function () {
+      'use strict';
+
+      const session = await Auth.requireLogin();
+      const API = Auth.API;
+      const workspaceId = await Auth.getWorkspaceId();
+
+      // ── Tabs ──
+      document.querySelectorAll('#tabs button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#tabs button').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+          btn.classList.add('active');
+          document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+          if (btn.dataset.tab === 'history') loadSessions();
+        });
+      });
+
+      // ── Data ──
+      let links = [];
+      let properties = [];
+
+      async function headers() { return Auth.jsonHeaders(); }
+
+      function toast(msg) {
+        const el = document.getElementById('toast');
+        el.textContent = msg;
+        el.classList.add('show');
+        setTimeout(() => el.classList.remove('show'), 3000);
+      }
+
+      function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
+
+      function formatDate(iso) {
+        if (!iso) return '—';
+        const d = new Date(iso);
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+      }
+
+      function getPublicUrl(token) {
+        const base = location.hostname === 'localhost'
+          ? location.origin
+          : 'https://kengs-landing-frontend.pages.dev';
+        return base + '/clean/?t=' + encodeURIComponent(token);
+      }
+
+      function linkStatus(link) {
+        if (!link.is_active) return { label: 'Inactive', cls: 'badge-inactive' };
+        if (link.expires_at && new Date(link.expires_at) < new Date()) return { label: 'Expired', cls: 'badge-expired' };
+        return { label: 'Active', cls: 'badge-active' };
+      }
+
+      // ── Load properties for dropdown ──
+      async function loadProperties() {
+        try {
+          const resp = await fetch(API + '/properties?workspace_id=' + workspaceId, { headers: await headers() });
+          const json = await resp.json();
+          properties = json.data || json || [];
+          const sel = document.getElementById('new-property');
+          properties.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.id;
+            opt.textContent = p.name;
+            sel.appendChild(opt);
+          });
+        } catch (e) { /* ignore */ }
+      }
+
+      // ── Load links ──
+      async function loadLinks() {
+        try {
+          const resp = await fetch(API + '/cleaning/links?workspace_id=' + workspaceId, { headers: await headers() });
+          const json = await resp.json();
+          links = json.data || [];
+          renderLinks();
+          // Populate filter dropdown
+          const filterSel = document.getElementById('filter-link');
+          filterSel.innerHTML = '<option value="">All Links</option>';
+          links.forEach(l => {
+            const opt = document.createElement('option');
+            opt.value = l.id;
+            opt.textContent = escapeHtml(l.cleaner_name) + (l.is_active ? '' : ' (inactive)');
+            filterSel.appendChild(opt);
+          });
+        } catch (e) {
+          document.getElementById('links-list').innerHTML = '<div class="empty"><div class="icon">⚠️</div><p>Failed to load links</p></div>';
+        }
+      }
+
+      function renderLinks() {
+        const container = document.getElementById('links-list');
+        if (!links.length) {
+          container.innerHTML = '<div class="empty"><div class="icon">🔗</div><p>No cleaning links yet. Create one above.</p></div>';
+          return;
+        }
+        container.innerHTML = links.map(l => {
+          const st = linkStatus(l);
+          const url = getPublicUrl(l.token);
+          const propName = properties.find(p => p.id === l.property_id)?.name || 'All';
+          return `
+            <div class="link-row">
+              <div>
+                <div class="link-name">${escapeHtml(l.cleaner_name)}</div>
+                <div class="link-meta">${escapeHtml(propName)} · ${l.cleaning_type || 'all'}</div>
+                <div class="link-url" data-url="${escapeHtml(url)}" title="Click to copy">${escapeHtml(url)}</div>
+              </div>
+              <div>
+                <span class="badge ${st.cls}">${st.label}</span>
+                ${l.cleaner_contact ? '<div class="link-meta" style="margin-top:4px">' + escapeHtml(l.cleaner_contact) + '</div>' : ''}
+              </div>
+              <div class="link-meta">${formatDate(l.created_at)}</div>
+              <div>
+                <button class="btn btn-sm btn-secondary" onclick="copyUrl(this)" data-url="${escapeHtml(url)}">Copy</button>
+                ${l.is_active
+                  ? `<button class="btn btn-sm btn-danger" onclick="toggleLink('${l.id}', false)" style="margin-left:6px">Deactivate</button>`
+                  : `<button class="btn btn-sm" onclick="toggleLink('${l.id}', true)" style="margin-left:6px">Activate</button>`
+                }
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        // Click URL to copy
+        container.querySelectorAll('.link-url').forEach(el => {
+          el.addEventListener('click', () => {
+            navigator.clipboard.writeText(el.dataset.url).then(() => toast('Link copied!'));
+          });
+        });
+      }
+
+      // ── Create link ──
+      document.getElementById('btn-create-link').addEventListener('click', async () => {
+        const name = document.getElementById('new-cleaner-name').value.trim();
+        if (!name) { toast('Cleaner name is required'); return; }
+
+        const body = {
+          workspace_id: workspaceId,
+          cleaner_name: name,
+          cleaner_contact: document.getElementById('new-cleaner-contact').value.trim() || undefined,
+          property_id: document.getElementById('new-property').value || undefined,
+          cleaning_type: document.getElementById('new-cleaning-type').value,
+        };
+
+        const expDays = document.getElementById('new-expires').value;
+        if (expDays) {
+          const d = new Date();
+          d.setDate(d.getDate() + parseInt(expDays));
+          body.expires_at = d.toISOString();
+        }
+
+        try {
+          const resp = await fetch(API + '/cleaning/links', {
+            method: 'POST',
+            headers: await headers(),
+            body: JSON.stringify(body),
+          });
+          if (!resp.ok) {
+            const err = await resp.json();
+            toast(err.error || 'Failed to create link');
+            return;
+          }
+          document.getElementById('new-cleaner-name').value = '';
+          document.getElementById('new-cleaner-contact').value = '';
+          toast('Link created!');
+          loadLinks();
+        } catch (e) {
+          toast('Network error');
+        }
+      });
+
+      // ── Toggle link active/inactive ──
+      window.toggleLink = async function (id, active) {
+        try {
+          await fetch(API + '/cleaning/links/' + id, {
+            method: 'PATCH',
+            headers: await headers(),
+            body: JSON.stringify({ is_active: active }),
+          });
+          loadLinks();
+          toast(active ? 'Link activated' : 'Link deactivated');
+        } catch (e) {
+          toast('Failed to update link');
+        }
+      };
+
+      // ── Copy URL ──
+      window.copyUrl = function (btn) {
+        navigator.clipboard.writeText(btn.dataset.url).then(() => toast('Link copied!'));
+      };
+
+      // ── Load sessions ──
+      async function loadSessions() {
+        const linkId = document.getElementById('filter-link').value;
+        let url = API + '/cleaning/sessions?workspace_id=' + workspaceId;
+        if (linkId) url += '&link_id=' + linkId;
+
+        try {
+          const resp = await fetch(url, { headers: await headers() });
+          const json = await resp.json();
+          const sessions = json.data || [];
+          renderSessions(sessions);
+        } catch (e) {
+          document.getElementById('sessions-list').innerHTML = '<div class="empty"><div class="icon">⚠️</div><p>Failed to load sessions</p></div>';
+        }
+      }
+
+      function renderSessions(sessions) {
+        const container = document.getElementById('sessions-list');
+        if (!sessions.length) {
+          container.innerHTML = '<div class="empty"><div class="icon">📋</div><p>No cleaning sessions yet.</p></div>';
+          return;
+        }
+        container.innerHTML = sessions.map(s => {
+          const link = links.find(l => l.id === s.link_id);
+          const cleanerName = link ? link.cleaner_name : 'Unknown';
+          const statusCls = s.status === 'submitted' ? 'badge-submitted' : s.status === 'in_progress' ? 'badge-in-progress' : 'badge-abandoned';
+          return `
+            <div class="session-row" data-id="${s.id}">
+              <div class="session-header">
+                <div>
+                  <div style="font-weight:600; font-size:.9rem;">${escapeHtml(cleanerName)}</div>
+                  <div class="link-meta">${formatDate(s.opened_at)}${s.city ? ' · ' + escapeHtml(s.city) + (s.country ? ', ' + escapeHtml(s.country) : '') : ''}</div>
+                </div>
+                <span class="badge ${statusCls}">${s.status}</span>
+                <span class="link-meta" style="font-size:.7rem;">▸ details</span>
+              </div>
+              <div class="session-detail" id="detail-${s.id}"></div>
+            </div>
+          `;
+        }).join('');
+
+        container.querySelectorAll('.session-row').forEach(row => {
+          row.addEventListener('click', () => toggleDetail(row.dataset.id));
+        });
+      }
+
+      async function toggleDetail(id) {
+        const el = document.getElementById('detail-' + id);
+        if (el.classList.contains('open')) {
+          el.classList.remove('open');
+          return;
+        }
+
+        el.innerHTML = '<span class="muted">Loading...</span>';
+        el.classList.add('open');
+
+        try {
+          const resp = await fetch(API + '/cleaning/sessions/' + id, { headers: await headers() });
+          const data = await resp.json();
+          renderDetail(el, data);
+        } catch (e) {
+          el.innerHTML = '<span class="muted">Failed to load details</span>';
+        }
+      }
+
+      function renderDetail(el, data) {
+        const metaHtml = `
+          <div class="detail-grid">
+            <div><div class="detail-label">IP Address</div><div class="detail-value">${escapeHtml(data.ip_address || '—')}</div></div>
+            <div><div class="detail-label">City</div><div class="detail-value">${escapeHtml(data.city || '—')}</div></div>
+            <div><div class="detail-label">Country</div><div class="detail-value">${escapeHtml(data.country || '—')}</div></div>
+            <div><div class="detail-label">Timezone</div><div class="detail-value">${escapeHtml(data.timezone || '—')}</div></div>
+            <div><div class="detail-label">User Agent</div><div class="detail-value" style="font-size:.72rem; word-break:break-all;">${escapeHtml(data.user_agent || '—')}</div></div>
+            <div><div class="detail-label">Screen Size</div><div class="detail-value">${escapeHtml(data.screen_size || '—')}</div></div>
+            <div><div class="detail-label">Language</div><div class="detail-value">${escapeHtml(data.language || '—')}</div></div>
+            <div><div class="detail-label">Connection</div><div class="detail-value">${escapeHtml(data.connection_type || '—')}</div></div>
+            ${data.latitude ? `<div><div class="detail-label">GPS</div><div class="detail-value">${data.latitude}, ${data.longitude} (±${data.geo_accuracy || '?'}m)</div></div>` : ''}
+            <div><div class="detail-label">Opened</div><div class="detail-value">${formatDate(data.opened_at)}</div></div>
+            <div><div class="detail-label">Submitted</div><div class="detail-value">${formatDate(data.submitted_at)}</div></div>
+            ${data.notes ? `<div style="grid-column:1/-1"><div class="detail-label">Notes</div><div class="detail-value">${escapeHtml(data.notes)}</div></div>` : ''}
+          </div>
+        `;
+
+        let itemsHtml = '';
+        if (data.items && data.items.length > 0) {
+          let currentSection = '';
+          const sorted = [...data.items].sort((a, b) => (a.section || '').localeCompare(b.section || '') || a.item_key.localeCompare(b.item_key));
+          sorted.forEach(item => {
+            if (item.section !== currentSection) {
+              currentSection = item.section;
+              itemsHtml += `<div class="section-divider">${escapeHtml(currentSection || 'General')}</div>`;
+            }
+            const icon = item.checked ? '<span class="icon-check">✓</span>' : '<span class="icon-skip">—</span>';
+            const style = item.checked ? '' : 'opacity:.5';
+            itemsHtml += `<div class="checklist-item" style="${style}">${icon} ${escapeHtml(item.item_label)}</div>`;
+          });
+
+          const checked = data.items.filter(i => i.checked).length;
+          const total = data.items.length;
+          itemsHtml = `
+            <div class="checklist-summary">
+              <div class="detail-label" style="margin-bottom:6px">Checklist (${checked}/${total})</div>
+              ${itemsHtml}
+            </div>
+          `;
+        }
+
+        el.innerHTML = metaHtml + itemsHtml;
+      }
+
+      // Filter
+      document.getElementById('filter-link').addEventListener('change', loadSessions);
+
+      // ── Init ──
+      await loadProperties();
+      await loadLinks();
+    })();
+  </script>
+</body>
+</html>
