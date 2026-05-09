@@ -50,6 +50,7 @@ export const ROLE_FEATURE_ACCESS: Record<string, FeatureAccess> = {
 }
 
 const LEVEL_RANK: Record<AccessLevel, number> = { none: 0, read: 1, write: 2, admin: 3 }
+export const VALID_ROLES = Object.keys(ROLE_FEATURE_ACCESS)
 const VALID_FEATURES: AppFeature[] = ['dashboard', 'tasks', 'finances', 'bookings', 'expenses', 'mileage', 'imports', 'properties', 'users', 'settings', 'cleaning', 'operations']
 
 function allAccess(level: AccessLevel): FeatureAccess {
