@@ -332,13 +332,14 @@ cleaningAdminRouter.post('/links', async (c) => {
   const supabase = createSupabaseClient(c.env)
   const body = await c.req.json()
 
-  const { workspace_id, property_id, cleaner_name, cleaner_contact, cleaning_type, expires_at } = body as {
+  const { workspace_id, property_id, cleaner_name, cleaner_contact, cleaning_type, expires_at, list_id } = body as {
     workspace_id: string
     property_id?: string
     cleaner_name: string
     cleaner_contact?: string
     cleaning_type?: string
     expires_at?: string
+    list_id?: string
   }
 
   if (!workspace_id || !cleaner_name) {
@@ -357,6 +358,7 @@ cleaningAdminRouter.post('/links', async (c) => {
       cleaner_name,
       cleaner_contact: cleaner_contact || null,
       cleaning_type: cleaning_type || 'all',
+      list_id: list_id || null,
       expires_at: expires_at || null,
     })
     .select()
@@ -397,11 +399,15 @@ cleaningAdminRouter.patch('/links/:id', async (c) => {
   const supabase = createSupabaseClient(c.env)
   const body = await c.req.json()
 
-  const { is_active } = body as { is_active: boolean }
+  const { is_active, list_id } = body as { is_active?: boolean; list_id?: string }
+
+  const updates: Record<string, unknown> = {}
+  if (is_active !== undefined) updates.is_active = is_active
+  if (list_id !== undefined) updates.list_id = list_id
 
   const { data, error } = await supabase
     .from('cleaning_links')
-    .update({ is_active })
+    .update(updates)
     .eq('id', id)
     .select()
     .single()
