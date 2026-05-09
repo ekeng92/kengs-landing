@@ -14,6 +14,7 @@ import { cleanPublicRouter, cleaningAdminRouter } from './routes/cleaning'
 import { invitePublicRouter, inviteAdminRouter } from './routes/invites'
 import { propertyTasksRouter } from './routes/property-tasks'
 import { csvTemplatesRouter } from './routes/csv-templates'
+import { cleaningListsRouter, cleaningListPublicRouter } from './routes/cleaning-lists'
 
 export const app = new Hono<{ Bindings: Env }>()
 
@@ -48,6 +49,9 @@ app.route('/invites/accept', invitePublicRouter)
 app.route('/invites', inviteAdminRouter)
 app.route('/csv-templates', csvTemplatesRouter)
 app.route('/property-tasks', propertyTasksRouter)
+app.route('/cleaning-lists', cleaningListsRouter)
+// cleaningListPublicRouter is mounted under /clean — merge with existing cleanPublicRouter
+app.route('/clean', cleaningListPublicRouter)
 
 export default {
   fetch: app.fetch,
