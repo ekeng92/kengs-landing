@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { requireAuth, type AuthVariables } from '../lib/auth'
 import { createSupabaseClient } from '../lib/supabase'
-import { requireWorkspaceFeature, validFeatureAccess, type FeatureAccess } from '../lib/permissions'
+import { requireWorkspaceFeature, validFeatureAccess, VALID_ROLES, type FeatureAccess } from '../lib/permissions'
 import type { Env } from '../types/env'
 
 type Bindings = Env
@@ -204,9 +204,8 @@ workspacesRouter.post('/:id/members', async (c) => {
   }>()
 
   const role = body.role ?? 'reviewer'
-  const validRoles = ['owner', 'admin', 'manager', 'reviewer', 'accountant', 'agent', 'custom']
-  if (!validRoles.includes(role)) {
-    return c.json({ error: `Invalid role. Must be one of: ${validRoles.join(', ')}` }, 400)
+  if (!VALID_ROLES.includes(role)) {
+    return c.json({ error: `Invalid role. Must be one of: ${VALID_ROLES.join(', ')}` }, 400)
   }
   if (!validFeatureAccess(body.feature_access)) {
     return c.json({ error: 'Invalid feature_access. Values must be one of: none, read, write, admin' }, 400)
@@ -269,9 +268,8 @@ workspacesRouter.patch('/:id/members/:memberId', async (c) => {
     feature_access?: FeatureAccess
   }>()
 
-  const validRoles = ['owner', 'admin', 'manager', 'reviewer', 'accountant', 'agent', 'custom']
-  if (body.role !== undefined && !validRoles.includes(body.role)) {
-    return c.json({ error: `Invalid role. Must be one of: ${validRoles.join(', ')}` }, 400)
+  if (body.role !== undefined && !VALID_ROLES.includes(body.role)) {
+    return c.json({ error: `Invalid role. Must be one of: ${VALID_ROLES.join(', ')}` }, 400)
   }
   if (!validFeatureAccess(body.feature_access)) {
     return c.json({ error: 'Invalid feature_access. Values must be one of: none, read, write, admin' }, 400)

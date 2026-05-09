@@ -125,13 +125,7 @@
           </div>
           <div class="form-group">
             <label>Role</label>
-            <select id="add-role">
-              <option value="reviewer">Reviewer</option>
-              <option value="manager">Manager</option>
-              <option value="accountant">Accountant</option>
-              <option value="admin">Admin</option>
-              <option value="agent">Agent</option>
-            </select>
+            <select id="add-role"></select>
           </div>
           <div class="form-group">
             <label>&nbsp;</label>
@@ -336,13 +330,13 @@
         info.appendChild(meta);
         row.appendChild(info);
 
-        // Role select
+        // Role select (populated from DB roles)
         const roleSelect = document.createElement('select');
         roleSelect.setAttribute('data-field', 'role');
-        ['owner','admin','manager','reviewer','accountant','agent'].forEach(r => {
+        roles.forEach(r => {
           const opt = document.createElement('option');
-          opt.value = r; opt.textContent = r;
-          if (m.role === r) opt.selected = true;
+          opt.value = r.name.toLowerCase(); opt.textContent = r.name;
+          if (m.role === r.name.toLowerCase()) opt.selected = true;
           roleSelect.appendChild(opt);
         });
         row.appendChild(roleSelect);
@@ -582,13 +576,24 @@
     }
 
     function populateRoleDropdowns() {
-      const sel = document.getElementById('inv-role');
-      sel.innerHTML = '';
+      // Invite role dropdown
+      const invSel = document.getElementById('inv-role');
+      invSel.innerHTML = '';
       roles.forEach(r => {
         const opt = document.createElement('option');
         opt.value = r.id;
         opt.textContent = r.name + (r.is_system ? ' (system)' : '');
-        sel.appendChild(opt);
+        invSel.appendChild(opt);
+      });
+
+      // Add member role dropdown
+      const addSel = document.getElementById('add-role');
+      addSel.innerHTML = '';
+      roles.forEach(r => {
+        const opt = document.createElement('option');
+        opt.value = r.name.toLowerCase();
+        opt.textContent = r.name + (r.is_system ? ' (system)' : '');
+        addSel.appendChild(opt);
       });
     }
 
