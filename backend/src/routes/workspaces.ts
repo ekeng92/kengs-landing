@@ -204,7 +204,7 @@ workspacesRouter.post('/:id/members', async (c) => {
   }>()
 
   const role = body.role ?? 'reviewer'
-  const validRoles = ['owner', 'admin', 'manager', 'reviewer', 'accountant', 'agent']
+  const validRoles = ['owner', 'admin', 'manager', 'reviewer', 'accountant', 'agent', 'custom']
   if (!validRoles.includes(role)) {
     return c.json({ error: `Invalid role. Must be one of: ${validRoles.join(', ')}` }, 400)
   }
@@ -269,7 +269,7 @@ workspacesRouter.patch('/:id/members/:memberId', async (c) => {
     feature_access?: FeatureAccess
   }>()
 
-  const validRoles = ['owner', 'admin', 'manager', 'reviewer', 'accountant', 'agent']
+  const validRoles = ['owner', 'admin', 'manager', 'reviewer', 'accountant', 'agent', 'custom']
   if (body.role !== undefined && !validRoles.includes(body.role)) {
     return c.json({ error: `Invalid role. Must be one of: ${validRoles.join(', ')}` }, 400)
   }

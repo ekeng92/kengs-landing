@@ -2,128 +2,718 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0f1117" />
   <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
   <link rel="manifest" href="../manifest.json" />
   <title>Users — Keng's Landing</title>
   <link rel="stylesheet" href="../css/app-shell.css" />
   <style>
-    :root { --bg:#0f1117; --surface:#1a1d27; --surface2:#222633; --border:#2e3345; --text:#e2e4ea; --muted:#8b90a0; --accent:#4ade80; --danger:#f87171; }
-    body { margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,sans-serif; padding-bottom:80px; }
-    main { max-width:1100px; margin:0 auto; padding:24px; }
-    h1 { font-size:1.35rem; margin:0 0 6px; }
-    .muted { color:var(--muted); font-size:.9rem; }
-    .panel { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px; margin-top:18px; }
-    .grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
-    input, select { width:100%; background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:9px 10px; }
-    button { background:#1e4a35; color:var(--accent); border:1px solid #2f7c55; border-radius:8px; padding:9px 12px; cursor:pointer; font-weight:600; }
-    button.danger { background:transparent; color:var(--danger); border-color:#7f1d1d; }
+    main { max-width:1100px; margin:0 auto; padding:16px 16px 80px; }
+    .page-title { font-size:1.3rem; font-weight:700; margin-bottom:4px; }
+    .page-sub { color:var(--text-muted); font-size:.85rem; margin-bottom:16px; }
+
+    /* Tabs */
+    nav.tabs { display:flex; gap:0; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; margin-bottom:18px; }
+    nav.tabs button { flex:1; background:none; border:none; color:var(--text-muted); padding:11px 14px; font-size:.82rem; cursor:pointer; border-bottom:2px solid transparent; transition:all .15s; white-space:nowrap; min-height:44px; }
+    nav.tabs button:hover { color:var(--text); background:var(--surface2); }
+    nav.tabs button.active { color:var(--accent-light); border-bottom-color:var(--accent-light); }
+
+    .tab-content { display:none; }
+    .tab-content.active { display:block; }
+
+    /* Panels */
+    .panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px; margin-bottom:16px; }
+    .panel-title { font-size:.95rem; font-weight:600; margin:0 0 12px; }
+    .muted { color:var(--text-muted); font-size:.85rem; }
+
+    /* Forms */
+    .form-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:10px; align-items:end; }
+    .form-group { display:flex; flex-direction:column; gap:4px; }
+    .form-group label { font-size:.72rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:.4px; }
+    input, select, textarea { width:100%; background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:var(--radius-sm); padding:8px 10px; font-size:.85rem; }
+    input:focus, select:focus, textarea:focus { outline:none; border-color:var(--accent); }
+    textarea { resize:vertical; min-height:60px; }
+
+    /* Buttons */
+    .btn { padding:8px 14px; border-radius:var(--radius-sm); border:1px solid var(--accent); background:var(--accent-dim); color:var(--accent-light); cursor:pointer; font-size:.82rem; font-weight:600; transition:all .15s; white-space:nowrap; }
+    .btn:hover { background:var(--accent); color:#fff; }
+    .btn:disabled { opacity:.5; cursor:not-allowed; }
+    .btn-danger { background:transparent; color:var(--negative); border-color:#7f1d1d; }
+    .btn-danger:hover { background:rgba(248,113,113,.15); }
+    .btn-secondary { background:transparent; color:var(--text-muted); border-color:var(--border); }
+    .btn-secondary:hover { color:var(--text); background:var(--surface2); }
+    .btn-sm { padding:5px 10px; font-size:.75rem; }
+
+    /* Badges */
+    .badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:.7rem; font-weight:600; }
+    .badge-pending { background:rgba(251,191,36,.15); color:var(--warning); }
+    .badge-accepted { background:rgba(74,222,128,.15); color:var(--positive); }
+    .badge-revoked { background:rgba(248,113,113,.15); color:var(--negative); }
+    .badge-expired { background:rgba(90,95,114,.2); color:var(--text-dim); }
+    .badge-system { background:rgba(96,165,250,.15); color:var(--info); }
+
+    /* Members */
     .member { border-top:1px solid var(--border); padding:16px 0; display:grid; grid-template-columns:1.2fr .8fr 2fr auto; gap:14px; align-items:start; }
     .member:first-child { border-top:0; }
-    .name { font-weight:700; }
-    .features { display:grid; grid-template-columns:repeat(2,minmax(130px,1fr)); gap:8px; }
-    .feature { display:grid; grid-template-columns:1fr 90px; align-items:center; gap:6px; font-size:.8rem; color:var(--muted); }
-    @media (max-width:800px){ .grid,.member{grid-template-columns:1fr}.features{grid-template-columns:1fr} }
+    .member-name { font-weight:700; }
+    .member-meta { font-size:.78rem; color:var(--text-muted); }
+    .features-grid { display:grid; grid-template-columns:repeat(2,minmax(130px,1fr)); gap:6px; }
+    .feature-item { display:grid; grid-template-columns:1fr 90px; align-items:center; gap:4px; font-size:.78rem; color:var(--text-muted); }
+    .feature-item select { padding:4px 6px; font-size:.78rem; }
+
+    /* Invite list */
+    .invite-row { border-top:1px solid var(--border); padding:14px 0; display:grid; grid-template-columns:1.2fr .7fr .6fr .6fr auto; gap:12px; align-items:center; }
+    .invite-row:first-child { border-top:0; }
+    .invite-url { font-size:.72rem; color:var(--text-dim); word-break:break-all; cursor:pointer; padding:4px 6px; background:var(--surface2); border-radius:var(--radius-sm); margin-top:4px; }
+    .invite-url:hover { color:var(--accent-light); }
+
+    /* Roles */
+    .role-card { border-top:1px solid var(--border); padding:14px 0; }
+    .role-card:first-child { border-top:0; }
+    .role-header { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+    .role-name { font-weight:700; }
+    .role-desc { font-size:.82rem; color:var(--text-muted); margin-bottom:8px; }
+    .scopes-grid { display:grid; grid-template-columns:repeat(3,minmax(140px,1fr)); gap:6px; }
+    .scope-item { display:grid; grid-template-columns:1fr 80px; align-items:center; gap:4px; font-size:.78rem; color:var(--text-muted); }
+    .scope-item select { padding:4px 6px; font-size:.78rem; }
+
+    /* Scope toggle */
+    .scope-toggle { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+    .scope-toggle label { font-size:.78rem; color:var(--text-muted); cursor:pointer; display:flex; align-items:center; gap:4px; }
+
+    .empty-state { text-align:center; padding:32px 16px; color:var(--text-muted); }
+    .loading { color:var(--text-dim); padding:24px; text-align:center; }
+    .btn-row { display:flex; gap:8px; flex-wrap:wrap; }
+
+    .toast { position:fixed; bottom:24px; right:24px; background:var(--surface3); border:1px solid var(--border2); border-radius:var(--radius); padding:12px 20px; font-size:.85rem; z-index:1000; display:none; color:var(--text); }
+
+    @media (max-width:800px) {
+      .member { grid-template-columns:1fr; }
+      .features-grid { grid-template-columns:1fr; }
+      .invite-row { grid-template-columns:1fr; gap:6px; }
+      .scopes-grid { grid-template-columns:1fr; }
+      .form-grid { grid-template-columns:1fr; }
+    }
   </style>
 </head>
 <body>
   <header><h1>Users</h1></header>
   <main>
-    <h1>Users & Access</h1>
-    <div class="muted">Add users, assign roles, and override access by feature. Owner/admin has full control.</div>
+    <div class="page-title">Users &amp; Access</div>
+    <div class="page-sub">Manage members, invitations, and custom roles for your workspace.</div>
 
-    <section class="panel">
-      <h2 style="margin-top:0;font-size:1rem">Add user</h2>
-      <div class="grid">
-        <input id="new-email" type="email" placeholder="email@example.com" />
-        <input id="new-name" placeholder="Display name" />
-        <select id="new-role">
-          <option value="reviewer">Reviewer</option>
-          <option value="manager">Manager</option>
-          <option value="accountant">Accountant</option>
-          <option value="admin">Admin</option>
-          <option value="agent">Agent</option>
-        </select>
-        <button onclick="addUser()">Add / Invite</button>
-      </div>
-    </section>
+    <nav class="tabs">
+      <button class="active" data-tab="members">Members</button>
+      <button data-tab="invitations">Invitations</button>
+      <button data-tab="roles">Roles</button>
+    </nav>
 
-    <section class="panel">
-      <h2 style="margin-top:0;font-size:1rem">Workspace members</h2>
-      <div id="members" class="muted">Loading…</div>
-    </section>
+    <!-- ═══ Tab 1: Members ═══ -->
+    <div id="tab-members" class="tab-content active">
+      <section class="panel">
+        <div class="panel-title">Add Member</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Email</label>
+            <input id="add-email" type="email" placeholder="email@example.com" />
+          </div>
+          <div class="form-group">
+            <label>Display Name</label>
+            <input id="add-name" placeholder="Display name" />
+          </div>
+          <div class="form-group">
+            <label>Role</label>
+            <select id="add-role">
+              <option value="reviewer">Reviewer</option>
+              <option value="manager">Manager</option>
+              <option value="accountant">Accountant</option>
+              <option value="admin">Admin</option>
+              <option value="agent">Agent</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>&nbsp;</label>
+            <button class="btn" id="btn-add-member">Add Member</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">Workspace Members</div>
+        <div id="members-list" class="loading">Loading…</div>
+      </section>
+    </div>
+
+    <!-- ═══ Tab 2: Invitations ═══ -->
+    <div id="tab-invitations" class="tab-content">
+      <section class="panel">
+        <div class="panel-title">Send Invitation</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Email</label>
+            <input id="inv-email" type="email" placeholder="email@example.com" />
+          </div>
+          <div class="form-group" id="inv-role-group">
+            <label>Role</label>
+            <select id="inv-role"></select>
+          </div>
+          <div class="form-group">
+            <label>Expires in (days)</label>
+            <input id="inv-expiry" type="number" value="7" min="1" max="90" />
+          </div>
+          <div class="form-group">
+            <label>&nbsp;</label>
+            <button class="btn" id="btn-send-invite">Send Invite</button>
+          </div>
+        </div>
+        <div class="scope-toggle">
+          <label><input type="checkbox" id="inv-custom-toggle" /> Use custom scopes instead of role</label>
+        </div>
+        <div id="inv-custom-scopes" style="display:none">
+          <div class="scopes-grid" id="inv-scopes-grid"></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">All Invitations</div>
+        <div id="invites-list" class="loading">Loading…</div>
+      </section>
+    </div>
+
+    <!-- ═══ Tab 3: Roles ═══ -->
+    <div id="tab-roles" class="tab-content">
+      <section class="panel">
+        <div class="panel-title">Create Custom Role</div>
+        <div class="form-grid" style="margin-bottom:12px">
+          <div class="form-group">
+            <label>Name</label>
+            <input id="role-name" placeholder="e.g. Cleaner" />
+          </div>
+          <div class="form-group" style="grid-column:span 2">
+            <label>Description</label>
+            <input id="role-desc" placeholder="What this role can do" />
+          </div>
+        </div>
+        <div class="scopes-grid" id="role-scopes-grid" style="margin-bottom:12px"></div>
+        <button class="btn" id="btn-create-role">Create Role</button>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">Workspace Roles</div>
+        <div id="roles-list" class="loading">Loading…</div>
+      </section>
+    </div>
   </main>
+
+  <div class="toast" id="toast"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/app-shell.js"></script>
   <script>
-    const FEATURES = ['dashboard','tasks','finances','bookings','expenses','mileage','imports','properties','users','settings'];
+    /* ── Constants ─────────────────────────────────────────────────────── */
+    const FEATURES = ['dashboard','tasks','finances','bookings','expenses','mileage','imports','properties','users','settings','cleaning','operations'];
     const LEVELS = ['none','read','write','admin'];
+    const INVITE_BASE = 'https://kengs-landing-frontend.pages.dev/register/';
+    const STATUS_CLASSES = { pending:'badge-pending', accepted:'badge-accepted', revoked:'badge-revoked', expired:'badge-expired' };
+
     let workspaceId = null;
     let members = [];
+    let invites = [];
+    let roles = [];
 
+    /* ── Init ──────────────────────────────────────────────────────────── */
     document.addEventListener('DOMContentLoaded', async () => {
       const session = await Auth.requireLogin();
       if (!session) return;
       workspaceId = await Auth.getWorkspaceId();
-      await loadMembers();
+
+      initTabs();
+      initEventListeners();
+      buildScopeGrids();
+      await Promise.all([loadMembers(), loadInvites(), loadRoles()]);
     });
 
+    /* ── Tabs ──────────────────────────────────────────────────────────── */
+    function initTabs() {
+      document.querySelectorAll('nav.tabs button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('nav.tabs button').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+          btn.classList.add('active');
+          document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+        });
+      });
+    }
+
+    /* ── Event Listeners ──────────────────────────────────────────────── */
+    function initEventListeners() {
+      document.getElementById('btn-add-member').addEventListener('click', addMember);
+      document.getElementById('btn-send-invite').addEventListener('click', sendInvite);
+      document.getElementById('btn-create-role').addEventListener('click', createRole);
+
+      const toggle = document.getElementById('inv-custom-toggle');
+      toggle.addEventListener('change', () => {
+        document.getElementById('inv-role-group').style.display = toggle.checked ? 'none' : '';
+        document.getElementById('inv-custom-scopes').style.display = toggle.checked ? '' : 'none';
+      });
+    }
+
+    /* ── Scope grids for forms ────────────────────────────────────────── */
+    function buildScopeGrids() {
+      const ids = ['inv-scopes-grid', 'role-scopes-grid'];
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        el.innerHTML = FEATURES.map(f =>
+          '<div class="scope-item">' + esc(f) +
+          '<select data-scope="' + esc(f) + '">' +
+          LEVELS.map(l => '<option value="' + l + '">' + l + '</option>').join('') +
+          '</select></div>'
+        ).join('');
+      });
+    }
+
+    function readScopes(containerId) {
+      const scopes = {};
+      document.getElementById(containerId).querySelectorAll('[data-scope]').forEach(s => {
+        if (s.value && s.value !== 'none') scopes[s.dataset.scope] = s.value;
+      });
+      return scopes;
+    }
+
+    /* ── Utility ───────────────────────────────────────────────────────── */
+    function esc(s) {
+      const d = document.createElement('div');
+      d.textContent = s || '';
+      return d.innerHTML;
+    }
+
+    function toast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.style.display = 'block';
+      setTimeout(() => { el.style.display = 'none'; }, 2500);
+    }
+
+    function fmtDate(iso) {
+      if (!iso) return '—';
+      return new Date(iso).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+    }
+
+    /* ════════════════════════════════════════════════════════════════════
+       MEMBERS
+       ════════════════════════════════════════════════════════════════════ */
     async function loadMembers() {
-      const res = await Auth.apiFetch(`/workspaces/${workspaceId}/members`);
-      if (!res.ok) { document.getElementById('members').textContent = await res.text(); return; }
-      members = (await res.json()).data || [];
+      const root = document.getElementById('members-list');
+      const res = await Auth.apiFetch('/workspaces/' + workspaceId + '/members');
+      if (!res.ok) { root.textContent = 'Failed to load members.'; return; }
+      members = ((await res.json()).data) || [];
       renderMembers();
     }
 
     function renderMembers() {
-      const root = document.getElementById('members');
-      if (!members.length) { root.textContent = 'No members yet.'; return; }
+      const root = document.getElementById('members-list');
+      if (!members.length) { root.className = 'empty-state'; root.textContent = 'No members yet.'; return; }
       root.className = '';
-      root.innerHTML = members.map(m => `
-        <div class="member" data-id="${m.id}">
-          <div><div class="name">${esc(m.display_name || m.email || m.user_id)}</div><div class="muted">${esc(m.email || m.user_id || '')}</div></div>
-          <select data-field="role">
-            ${['owner','admin','manager','reviewer','accountant','agent'].map(r => `<option value="${r}" ${m.role===r?'selected':''}>${r}</option>`).join('')}
-          </select>
-          <div class="features">
-            ${FEATURES.map(f => `<label class="feature">${f}<select data-feature="${f}">${LEVELS.map(l => `<option value="${l}" ${(m.feature_access||{})[f]===l?'selected':''}>${l}</option>`).join('')}</select></label>`).join('')}
-          </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap"><button onclick="saveMember('${m.id}')">Save</button><button class="danger" onclick="removeMember('${m.id}')">Remove</button></div>
-        </div>`).join('');
+      root.innerHTML = '';
+      members.forEach(m => {
+        const row = document.createElement('div');
+        row.className = 'member';
+        row.setAttribute('data-id', m.id);
+
+        // Info
+        const info = document.createElement('div');
+        const nameEl = document.createElement('div');
+        nameEl.className = 'member-name';
+        nameEl.textContent = m.display_name || m.email || m.user_id;
+        info.appendChild(nameEl);
+        const meta = document.createElement('div');
+        meta.className = 'member-meta';
+        meta.textContent = m.email || m.user_id || '';
+        if (m.role_id) { meta.textContent += ' · role_id: ' + m.role_id; }
+        info.appendChild(meta);
+        row.appendChild(info);
+
+        // Role select
+        const roleSelect = document.createElement('select');
+        roleSelect.setAttribute('data-field', 'role');
+        ['owner','admin','manager','reviewer','accountant','agent'].forEach(r => {
+          const opt = document.createElement('option');
+          opt.value = r; opt.textContent = r;
+          if (m.role === r) opt.selected = true;
+          roleSelect.appendChild(opt);
+        });
+        row.appendChild(roleSelect);
+
+        // Feature access
+        const featDiv = document.createElement('div');
+        featDiv.className = 'features-grid';
+        FEATURES.forEach(f => {
+          const item = document.createElement('label');
+          item.className = 'feature-item';
+          item.textContent = f;
+          const sel = document.createElement('select');
+          sel.setAttribute('data-feature', f);
+          LEVELS.forEach(l => {
+            const opt = document.createElement('option');
+            opt.value = l; opt.textContent = l;
+            if ((m.feature_access || {})[f] === l) opt.selected = true;
+            sel.appendChild(opt);
+          });
+          item.appendChild(sel);
+          featDiv.appendChild(item);
+        });
+        row.appendChild(featDiv);
+
+        // Actions
+        const actions = document.createElement('div');
+        actions.className = 'btn-row';
+        const saveBtn = document.createElement('button');
+        saveBtn.className = 'btn btn-sm';
+        saveBtn.textContent = 'Save';
+        saveBtn.addEventListener('click', () => saveMember(m.id));
+        actions.appendChild(saveBtn);
+        const rmBtn = document.createElement('button');
+        rmBtn.className = 'btn btn-sm btn-danger';
+        rmBtn.textContent = 'Remove';
+        rmBtn.addEventListener('click', () => removeMember(m.id));
+        actions.appendChild(rmBtn);
+        row.appendChild(actions);
+
+        root.appendChild(row);
+      });
     }
 
-    async function addUser() {
-      const email = document.getElementById('new-email').value.trim();
-      const display_name = document.getElementById('new-name').value.trim();
-      const role = document.getElementById('new-role').value;
+    async function addMember() {
+      const email = document.getElementById('add-email').value.trim();
+      const display_name = document.getElementById('add-name').value.trim();
+      const role = document.getElementById('add-role').value;
       if (!email && !display_name) return alert('Email or display name required');
-      const res = await Auth.apiFetch(`/workspaces/${workspaceId}/members`, { method:'POST', body: JSON.stringify({ email: email || undefined, display_name: display_name || email, role }) });
+      const body = { email: email || undefined, display_name: display_name || email, role };
+      const res = await Auth.apiFetch('/workspaces/' + workspaceId + '/members', { method:'POST', body: JSON.stringify(body) });
       if (!res.ok) return alert(await res.text());
-      document.getElementById('new-email').value = ''; document.getElementById('new-name').value = '';
+      document.getElementById('add-email').value = '';
+      document.getElementById('add-name').value = '';
+      toast('Member added');
       await loadMembers();
     }
 
     async function saveMember(id) {
-      const row = document.querySelector(`.member[data-id="${id}"]`);
+      const row = document.querySelector('.member[data-id="' + id + '"]');
       const feature_access = {};
       row.querySelectorAll('[data-feature]').forEach(s => { if (s.value) feature_access[s.dataset.feature] = s.value; });
       const role = row.querySelector('[data-field="role"]').value;
-      const res = await Auth.apiFetch(`/workspaces/${workspaceId}/members/${id}`, { method:'PATCH', body: JSON.stringify({ role, feature_access }) });
+      const res = await Auth.apiFetch('/workspaces/' + workspaceId + '/members/' + id, { method:'PATCH', body: JSON.stringify({ role, feature_access }) });
       if (!res.ok) return alert(await res.text());
-      if (window.showToast) showToast('Member saved');
+      toast('Member saved');
       await loadMembers();
     }
 
     async function removeMember(id) {
       if (!confirm('Remove this member?')) return;
-      const res = await Auth.apiFetch(`/workspaces/${workspaceId}/members/${id}`, { method:'DELETE' });
+      const res = await Auth.apiFetch('/workspaces/' + workspaceId + '/members/' + id, { method:'DELETE' });
       if (!res.ok) return alert(await res.text());
+      toast('Member removed');
       await loadMembers();
     }
 
-    function esc(s){ const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+    /* ════════════════════════════════════════════════════════════════════
+       INVITATIONS
+       ════════════════════════════════════════════════════════════════════ */
+    async function loadInvites() {
+      const root = document.getElementById('invites-list');
+      const res = await Auth.apiFetch('/invites?workspace_id=' + workspaceId);
+      if (!res.ok) { root.textContent = 'Failed to load invitations.'; return; }
+      invites = ((await res.json()).data) || [];
+      renderInvites();
+    }
+
+    function renderInvites() {
+      const root = document.getElementById('invites-list');
+      if (!invites.length) { root.className = 'empty-state'; root.textContent = 'No invitations yet.'; return; }
+      root.className = '';
+      root.innerHTML = '';
+
+      // Header row
+      const hdr = document.createElement('div');
+      hdr.className = 'invite-row';
+      hdr.style.fontWeight = '600';
+      hdr.style.fontSize = '.75rem';
+      hdr.style.color = 'var(--text-muted)';
+      hdr.style.textTransform = 'uppercase';
+      hdr.style.letterSpacing = '.4px';
+      hdr.style.borderTop = 'none';
+      ['Email','Role / Scopes','Status','Dates','Actions'].forEach(t => {
+        const c = document.createElement('div');
+        c.textContent = t;
+        hdr.appendChild(c);
+      });
+      root.appendChild(hdr);
+
+      invites.forEach(inv => {
+        const row = document.createElement('div');
+        row.className = 'invite-row';
+
+        // Email + invite URL
+        const emailCol = document.createElement('div');
+        const emailText = document.createElement('div');
+        emailText.textContent = inv.email;
+        emailCol.appendChild(emailText);
+        if (inv.status === 'pending' && inv.token) {
+          const urlDiv = document.createElement('div');
+          urlDiv.className = 'invite-url';
+          urlDiv.textContent = INVITE_BASE + '?token=' + inv.token;
+          urlDiv.title = 'Click to copy';
+          urlDiv.addEventListener('click', () => {
+            navigator.clipboard.writeText(INVITE_BASE + '?token=' + inv.token).then(() => toast('Link copied'));
+          });
+          emailCol.appendChild(urlDiv);
+        }
+        row.appendChild(emailCol);
+
+        // Role / Scopes
+        const roleCol = document.createElement('div');
+        roleCol.style.fontSize = '.82rem';
+        const roleName = inv.role_id ? (roles.find(r => r.id === inv.role_id)?.name || 'Custom') : null;
+        if (roleName) {
+          roleCol.textContent = roleName;
+        } else if (inv.custom_scopes && Object.keys(inv.custom_scopes).length) {
+          roleCol.textContent = Object.entries(inv.custom_scopes).map(([k,v]) => k + ':' + v).join(', ');
+          roleCol.style.fontSize = '.72rem';
+        } else {
+          roleCol.textContent = '—';
+        }
+        row.appendChild(roleCol);
+
+        // Status badge
+        const statusCol = document.createElement('div');
+        const badge = document.createElement('span');
+        badge.className = 'badge ' + (STATUS_CLASSES[inv.status] || '');
+        badge.textContent = inv.status || 'unknown';
+        statusCol.appendChild(badge);
+        row.appendChild(statusCol);
+
+        // Dates
+        const dateCol = document.createElement('div');
+        dateCol.style.fontSize = '.78rem';
+        dateCol.style.color = 'var(--text-muted)';
+        const sent = document.createElement('div');
+        sent.textContent = 'Sent: ' + fmtDate(inv.created_at);
+        dateCol.appendChild(sent);
+        const exp = document.createElement('div');
+        exp.textContent = 'Expires: ' + fmtDate(inv.expires_at);
+        dateCol.appendChild(exp);
+        row.appendChild(dateCol);
+
+        // Actions
+        const actCol = document.createElement('div');
+        actCol.className = 'btn-row';
+        if (inv.status === 'pending') {
+          const revokeBtn = document.createElement('button');
+          revokeBtn.className = 'btn btn-sm btn-danger';
+          revokeBtn.textContent = 'Revoke';
+          revokeBtn.addEventListener('click', () => revokeInvite(inv.id));
+          actCol.appendChild(revokeBtn);
+
+          const resendBtn = document.createElement('button');
+          resendBtn.className = 'btn btn-sm btn-secondary';
+          resendBtn.textContent = 'Resend';
+          resendBtn.addEventListener('click', () => resendInvite(inv.id));
+          actCol.appendChild(resendBtn);
+        }
+        row.appendChild(actCol);
+
+        root.appendChild(row);
+      });
+    }
+
+    async function sendInvite() {
+      const email = document.getElementById('inv-email').value.trim();
+      if (!email) return alert('Email is required');
+      const useCustom = document.getElementById('inv-custom-toggle').checked;
+      const expires_in_days = parseInt(document.getElementById('inv-expiry').value, 10) || 7;
+
+      const body = { workspace_id: workspaceId, email, expires_in_days };
+      if (useCustom) {
+        body.custom_scopes = readScopes('inv-scopes-grid');
+      } else {
+        const roleId = document.getElementById('inv-role').value;
+        if (!roleId) return alert('Please select a role or use custom scopes');
+        body.role_id = roleId;
+      }
+
+      const btn = document.getElementById('btn-send-invite');
+      btn.disabled = true;
+      const res = await Auth.apiFetch('/invites', { method:'POST', body: JSON.stringify(body) });
+      btn.disabled = false;
+      if (!res.ok) return alert(await res.text());
+      document.getElementById('inv-email').value = '';
+      toast('Invitation sent');
+      await loadInvites();
+    }
+
+    async function revokeInvite(id) {
+      if (!confirm('Revoke this invitation?')) return;
+      const res = await Auth.apiFetch('/invites/' + id + '/revoke', { method:'PATCH' });
+      if (!res.ok) return alert(await res.text());
+      toast('Invitation revoked');
+      await loadInvites();
+    }
+
+    async function resendInvite(id) {
+      const res = await Auth.apiFetch('/invites/' + id + '/resend', { method:'POST' });
+      if (!res.ok) return alert(await res.text());
+      toast('Invitation resent');
+      await loadInvites();
+    }
+
+    /* ════════════════════════════════════════════════════════════════════
+       ROLES
+       ════════════════════════════════════════════════════════════════════ */
+    async function loadRoles() {
+      const root = document.getElementById('roles-list');
+      const res = await Auth.apiFetch('/invites/roles?workspace_id=' + workspaceId);
+      if (!res.ok) { root.textContent = 'Failed to load roles.'; return; }
+      roles = ((await res.json()).data) || [];
+      renderRoles();
+      populateRoleDropdowns();
+    }
+
+    function populateRoleDropdowns() {
+      const sel = document.getElementById('inv-role');
+      sel.innerHTML = '';
+      roles.forEach(r => {
+        const opt = document.createElement('option');
+        opt.value = r.id;
+        opt.textContent = r.name + (r.is_system ? ' (system)' : '');
+        sel.appendChild(opt);
+      });
+    }
+
+    function renderRoles() {
+      const root = document.getElementById('roles-list');
+      if (!roles.length) { root.className = 'empty-state'; root.textContent = 'No roles defined yet.'; return; }
+      root.className = '';
+      root.innerHTML = '';
+
+      roles.forEach(r => {
+        const card = document.createElement('div');
+        card.className = 'role-card';
+        card.setAttribute('data-role-id', r.id);
+
+        // Header
+        const header = document.createElement('div');
+        header.className = 'role-header';
+        const nameEl = document.createElement('span');
+        nameEl.className = 'role-name';
+        nameEl.textContent = r.name;
+        header.appendChild(nameEl);
+        if (r.is_system) {
+          const sysBadge = document.createElement('span');
+          sysBadge.className = 'badge badge-system';
+          sysBadge.textContent = '🔒 System';
+          header.appendChild(sysBadge);
+        }
+        card.appendChild(header);
+
+        // Description
+        if (r.description) {
+          const desc = document.createElement('div');
+          desc.className = 'role-desc';
+          desc.textContent = r.description;
+          card.appendChild(desc);
+        }
+
+        // Scopes grid
+        const scopes = r.scopes || {};
+        const grid = document.createElement('div');
+        grid.className = 'scopes-grid';
+        FEATURES.forEach(f => {
+          const item = document.createElement('div');
+          item.className = 'scope-item';
+          item.textContent = f;
+          if (r.is_system) {
+            const val = document.createElement('span');
+            val.style.fontSize = '.78rem';
+            val.textContent = scopes[f] || 'none';
+            item.appendChild(val);
+          } else {
+            const sel = document.createElement('select');
+            sel.setAttribute('data-scope', f);
+            LEVELS.forEach(l => {
+              const opt = document.createElement('option');
+              opt.value = l; opt.textContent = l;
+              if (scopes[f] === l) opt.selected = true;
+              sel.appendChild(opt);
+            });
+            item.appendChild(sel);
+          }
+          grid.appendChild(item);
+        });
+        card.appendChild(grid);
+
+        // Actions for custom roles
+        if (!r.is_system) {
+          const actions = document.createElement('div');
+          actions.className = 'btn-row';
+          actions.style.marginTop = '10px';
+          const saveBtn = document.createElement('button');
+          saveBtn.className = 'btn btn-sm';
+          saveBtn.textContent = 'Save';
+          saveBtn.addEventListener('click', () => updateRole(r.id));
+          actions.appendChild(saveBtn);
+          const delBtn = document.createElement('button');
+          delBtn.className = 'btn btn-sm btn-danger';
+          delBtn.textContent = 'Delete';
+          delBtn.addEventListener('click', () => deleteRole(r.id));
+          actions.appendChild(delBtn);
+          card.appendChild(actions);
+        }
+
+        root.appendChild(card);
+      });
+    }
+
+    async function createRole() {
+      const name = document.getElementById('role-name').value.trim();
+      const description = document.getElementById('role-desc').value.trim();
+      if (!name) return alert('Role name is required');
+      const scopes = readScopes('role-scopes-grid');
+      const body = { workspace_id: workspaceId, name, description, scopes };
+      const btn = document.getElementById('btn-create-role');
+      btn.disabled = true;
+      const res = await Auth.apiFetch('/invites/roles', { method:'POST', body: JSON.stringify(body) });
+      btn.disabled = false;
+      if (!res.ok) return alert(await res.text());
+      document.getElementById('role-name').value = '';
+      document.getElementById('role-desc').value = '';
+      // Reset scope dropdowns
+      document.getElementById('role-scopes-grid').querySelectorAll('select').forEach(s => s.value = 'none');
+      toast('Role created');
+      await loadRoles();
+    }
+
+    async function updateRole(id) {
+      const card = document.querySelector('.role-card[data-role-id="' + id + '"]');
+      const scopes = {};
+      card.querySelectorAll('[data-scope]').forEach(s => {
+        if (s.value) scopes[s.dataset.scope] = s.value;
+      });
+      const res = await Auth.apiFetch('/invites/roles/' + id, { method:'PATCH', body: JSON.stringify({ scopes }) });
+      if (!res.ok) return alert(await res.text());
+      toast('Role updated');
+      await loadRoles();
+    }
+
+    async function deleteRole(id) {
+      if (!confirm('Delete this role? Members using it will lose their role assignment.')) return;
+      const res = await Auth.apiFetch('/invites/roles/' + id, { method:'DELETE' });
+      if (!res.ok) return alert(await res.text());
+      toast('Role deleted');
+      await loadRoles();
+    }
   </script>
 </body>
 </html>

@@ -10,6 +10,7 @@ class QueryBuilder implements PromiseLike<QueryResult> {
   neq(...args: unknown[]) { this.calls.push({ method: 'neq', args }); return this }
   is(...args: unknown[]) { this.calls.push({ method: 'is', args }); return this }
   in(...args: unknown[]) { this.calls.push({ method: 'in', args }); return this }
+  ilike(...args: unknown[]) { this.calls.push({ method: 'ilike', args }); return this }
   gte(...args: unknown[]) { this.calls.push({ method: 'gte', args }); return this }
   lte(...args: unknown[]) { this.calls.push({ method: 'lte', args }); return this }
   gt(...args: unknown[]) { this.calls.push({ method: 'gt', args }); return this }

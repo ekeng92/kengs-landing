@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <title>Cleaning Checklist — Keng's Landing</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green: #1a3a2a;
+      --green-light: #e8f5e9;
+      --green-dim: rgba(26,58,42,.08);
+      --blue: #1565c0;
+      --blue-light: #e3f2fd;
+      --brown: #795548;
+      --brown-light: #efebe9;
+      --text: #1a1a1a;
+      --text-muted: #666;
+      --text-dim: #999;
+      --border: #e0e0e0;
+      --surface: #fff;
+      --bg: #f5f5f5;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --shadow: 0 2px 12px rgba(0,0,0,.08);
+      --check-size: 24px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 15px;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Loading / Error States ── */
+    .state-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+      text-align: center;
+    }
+    .state-screen .icon { font-size: 48px; margin-bottom: 16px; }
+    .state-screen h2 { font-size: 1.2rem; margin-bottom: 8px; }
+    .state-screen p { color: var(--text-muted); font-size: .9rem; max-width: 320px; }
+
+    #loading-screen .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--green);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      margin-bottom: 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── App Shell ── */
+    .app { display: none; max-width: 600px; margin: 0 auto; padding: 0 0 100px; }
+    .app.active { display: block; }
+
+    /* ── Header ── */
+    .header {
+      background: var(--green);
+      color: #fff;
+      padding: 20px 20px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header h1 { font-size: 1.15rem; font-weight: 700; }
+    .header .subtitle { font-size: .82rem; opacity: .8; margin-top: 2px; }
+    .header-meta {
+      display: flex; gap: 12px; margin-top: 10px;
+      font-size: .78rem; opacity: .7;
+    }
+
+    /* ── Tip ── */
+    .tip {
+      background: #fff8e1;
+      border-left: 4px solid #f5c400;
+      padding: 10px 16px;
+      font-size: .85rem;
+      font-weight: 600;
+      color: #555;
+      margin: 0;
+    }
+
+    /* ── Section Label ── */
+    .section-label {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #fff;
+      padding: 8px 20px;
+      margin: 0;
+    }
+    .sl-turnover { background: var(--green); }
+    .sl-weekly { background: var(--blue); }
+    .sl-monthly { background: var(--brown); }
+
+    /* ── Group ── */
+    .group { padding: 0 16px; }
+    .group-title {
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--text-dim);
+      padding: 12px 0 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── Checklist Item ── */
+    .item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(0,0,0,.04);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: background .15s;
+    }
+    .item:active { background: var(--green-dim); }
+
+    .item input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: var(--check-size);
+      height: var(--check-size);
+      min-width: var(--check-size);
+      border: 2.5px solid #ccc;
+      border-radius: 6px;
+      margin-top: 1px;
+      cursor: pointer;
+      position: relative;
+      transition: all .2s;
+      background: #fff;
+    }
+
+    .item input[type="checkbox"]:checked {
+      background: var(--green);
+      border-color: var(--green);
+    }
+
+    .item input[type="checkbox"]:checked::after {
+      content: '';
+      position: absolute;
+      left: 6px; top: 2px;
+      width: 7px; height: 13px;
+      border: solid #fff;
+      border-width: 0 2.5px 2.5px 0;
+      transform: rotate(45deg);
+    }
+
+    .item-text {
+      flex: 1;
+      font-size: .92rem;
+      line-height: 1.4;
+    }
+
+    .item.checked .item-text {
+      color: var(--text-muted);
+      text-decoration: line-through;
+      text-decoration-color: rgba(0,0,0,.2);
+    }
+
+    .item-hint {
+      font-size: .78rem;
+      color: var(--text-muted);
+      display: block;
+      margin-top: 2px;
+    }
+
+    .item-note {
+      color: var(--green);
+      font-weight: 600;
+    }
+
+    /* ── Progress Bar ── */
+    .progress-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 12px 16px;
+      z-index: 200;
+      display: none;
+    }
+    .progress-bar.active { display: block; }
+
+    .progress-track {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--green);
+      border-radius: 3px;
+      transition: width .3s ease;
+      width: 0;
+    }
+
+    .progress-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .progress-text {
+      font-size: .82rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .btn-submit {
+      background: var(--green);
+      color: #fff;
+      border: none;
+      padding: 10px 28px;
+      border-radius: var(--radius-sm);
+      font-size: .9rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity .15s;
+    }
+    .btn-submit:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-submit:active:not(:disabled) { opacity: .8; }
+
+    /* ── Notes ── */
+    .notes-section {
+      padding: 16px;
+      background: var(--surface);
+      margin: 0;
+    }
+    .notes-label {
+      font-size: .78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+    .notes-textarea {
+      width: 100%;
+      min-height: 80px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      font-size: .9rem;
+      font-family: inherit;
+      resize: vertical;
+      outline: none;
+      transition: border-color .15s;
+    }
+    .notes-textarea:focus { border-color: var(--green); }
+
+    /* ── Success Screen ── */
+    #success-screen {
+      display: none;
+    }
+    #success-screen.active { display: flex; }
+    .success-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 32px 24px;
+      box-shadow: var(--shadow);
+      text-align: center;
+      max-width: 360px;
+    }
+    .success-card .icon { font-size: 64px; margin-bottom: 12px; }
+    .success-card h2 { color: var(--green); margin-bottom: 8px; }
+    .success-card p { color: var(--text-muted); font-size: .9rem; margin-bottom: 4px; }
+    .success-summary {
+      display: flex; gap: 16px; justify-content: center;
+      margin-top: 16px;
+    }
+    .summary-stat {
+      text-align: center;
+    }
+    .summary-stat .num {
+      font-size: 1.8rem; font-weight: 700; color: var(--green);
+    }
+    .summary-stat .label {
+      font-size: .72rem; color: var(--text-dim); text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loading -->
+  <div id="loading-screen" class="state-screen">
+    <div class="spinner"></div>
+    <h2>Loading checklist…</h2>
+  </div>
+
+  <!-- Error -->
+  <div id="error-screen" class="state-screen" style="display:none">
+    <div class="icon">🔗</div>
+    <h2 id="error-title">Invalid Link</h2>
+    <p id="error-message">This cleaning link is not valid or has expired. Please contact the property owner for a new link.</p>
+  </div>
+
+  <!-- Main App -->
+  <div id="app" class="app">
+
+    <div class="header">
+      <h1 id="header-title">Cleaning Checklist</h1>
+      <div class="subtitle" id="header-subtitle">360 County Road</div>
+      <div class="header-meta">
+        <span id="header-cleaner"></span>
+        <span id="header-date"></span>
+      </div>
+    </div>
+
+    <div class="tip">
+      ⭐ START LAUNDRY FIRST — strip all beds and start the washer before anything else.
+    </div>
+
+    <!-- ═══ TURNOVER ═══ -->
+    <div class="section-label sl-turnover" id="section-turnover">Every Guest Turnover</div>
+
+    <div class="group">
+      <div class="group-title">Laundry &amp; Linens</div>
+      <label class="item" data-key="turnover.laundry.strip_beds" data-section="turnover">
+        <input type="checkbox" />
+        <div class="item-text">Strip all beds — put sheets &amp; pillowcases in washer <span class="item-hint">Start now!</span></div>
+      </label>
+      <label class="item" data-key="turnover.laundry.remake_beds" data-section="turnover">
+        <input type="checkbox" />
+        <div class="item-text">Remake all beds with fresh linens</div>
+      </label>
+      <label class="item" data-key="turnover.laundry.bath_towels" data-section="turnover">
+        <input type="checkbox" />
+        <div class="item-text">Fresh bath towels, hand towels, washcloths in every bath</div>
+      </label>
+      <label class="item" data-key="turnover.laundry.kitchen_towels" data-section="turnover">
+        <input type="checkbox" />
+        <div class="item-text">Fresh kitchen towels</div>
+      </label>
+      <label class="item" data-key="turnover.laundry.wash_dry" data-section="turnover">
+        <input type="checkbox" />
+        <div class="item-text">Wash &amp; dry all used linens before leaving</div>
+      </label>
+    </div>
+
+    <div class="group">
+      <div class="group-title">Bedrooms</div>
+      <label class="item" data-key="turnover.bedrooms.dust" data-section="turnover">
+        <input type="checkbox" />
+        <div class="item-text">Dust furniture &amp; nightstands</div>
+      </label>
+      <label class="item" data-key="turnover.bedrooms.check_under" data-section="turnover">
+        <input type="checkbox" />
+        <div class="item-text">Check under beds for left-behind items</div>
+      </label>
+    </div>
+
+    <div class="group">
+      <div class="group-title">Bathrooms (each one)</div>
+      <label class="item" data-key="turnover.bathrooms.toilet" data-section="turnover">
+        <input type="checkbox" />
+        <div class="item-text">Scrub toilet — bowl, seat, base &amp; handle</div>
+      </label>
+      <label class="item" data-key="turnover.bathrooms.sink" data-section="turnover">
+        <input type="checkbox" />
+        <div class="item-text">Clean sink &amp; faucet</div>
+      </label>
+      <label class="item" data-key="turnover.bathrooms.mirror" data-section="turnover">
+        <input type="checkbox" />
+        <div class="item-text">Wipe mirror (streak-free)</div>
+      </label>
+      <label class="item" data-key="turnover.bathrooms.shower" data-section="turnover">
+        <input type="checkbox" />
+        <div class="item-text">Check shower is clean &amp; clear of debris <span class="item-hint">Light spray with soap/vinegar mix &amp; rinse is usually enough</span></div>
+      </label>
+      <label class="item" data-key="turnover.bathrooms.restock" data-section="turnover">
+        <input type="checkbox" />
+        <div class="item-text">Restock: toilet paper, soap, shampoo, conditioner, body wash</div>
+      </label>
+    </div>
+
+    <div class="group">
+      <div class="group-title">Kitchen</div>
+      <label class="item" data-key="turnover.kitchen.counters" data-section="turnover">
+        <input type="checkbox" />
+        <div class="item-text">Wipe countertops &amp; backsplash</div>
+      </label>
+      <label class="item" data-key="turnover.kitchen.microwave_stove" data-section="turnover">
+        <input type="checkbox" />
+        <div class="item-text">Clean microwave &amp; stovetop</div>
+      </label>
+      <label class="item" data-key="turnover.kitchen.fridge" data-section="turnover">
+        <input type="checkbox" />
+        <div class="item-text">Clear fridge of leftover food; wipe shelves &amp; drawers</div>
+      </label>
+      <label class="item" data-key="turnover.kitchen.dishes" data-section="turnover">
+        <input type="checkbox" />
+        <div class="item-text">Dishes — wash, dry, and put away</div>
+      </label>
+      <label class="item" data-key="turnover.kitchen.restock" data-section="turnover">
+        <input type="checkbox" />
+        <div class="item-text">Restock: paper towels, dish soap, sponge, trash bags</div>
+      </label>
+    </div>
+
+    <div class="group">
+      <div class="group-title">All Areas</div>
+      <label class="item" data-key="turnover.all.trash" data-section="turnover">
+        <input type="checkbox" />
+        <div class="item-text">Empty ALL trash cans, replace liners</div>
+      </label>
+      <label class="item" data-key="turnover.all.roborock" data-section="turnover">
+        <input type="checkbox" />
+        <div class="item-text">Roborock — empty dirty mop water bin &amp; refill clean water bin</div>
+      </label>
+      <label class="item" data-key="turnover.all.thermostat" data-section="turnover">
+        <input type="checkbox" />
+        <div class="item-text">Check thermostat is on the default setting</div>
+      </label>
+      <label class="item" data-key="turnover.all.walkthrough" data-section="turnover">
+        <input type="checkbox" />
+        <div class="item-text">Walk-through — note any damage or missing items below</div>
+      </label>
+    </div>
+
+    <div class="group">
+      <div class="group-title">Outdoor &amp; Hot Tub</div>
+      <label class="item" data-key="turnover.outdoor.patio" data-section="turnover">
+        <input type="checkbox" />
+        <div class="item-text">Clear patio of trash &amp; wipe patio furniture</div>
+      </label>
+      <label class="item" data-key="turnover.outdoor.hottub_tablets" data-section="turnover">
+        <input type="checkbox" />
+        <div class="item-text">Hot tub floater — <span class="item-note">always keep at least 2 solid tablets.</span> Add 1–2 if count is low</div>
+      </label>
+      <label class="item" data-key="turnover.outdoor.hottub_skim" data-section="turnover">
+        <input type="checkbox" />
+        <div class="item-text">Hot tub — skim water surface &amp; check water level</div>
+      </label>
+    </div>
+
+    <!-- ═══ WEEKLY ═══ -->
+    <div class="section-label sl-weekly" id="section-weekly">Weekly / As Needed</div>
+
+    <div class="group">
+      <label class="item" data-key="weekly.mouse_traps" data-section="weekly">
+        <input type="checkbox" />
+        <div class="item-text">Check mouse traps — reset or replace as needed <span class="item-hint">Note any catches below</span></div>
+      </label>
+      <label class="item" data-key="weekly.blow_patio" data-section="weekly">
+        <input type="checkbox" />
+        <div class="item-text">Blow off patio, steps &amp; carport <span class="item-hint">Leaf blower or broom — sandy/dusty area</span></div>
+      </label>
+      <label class="item" data-key="weekly.hottub_shock" data-section="weekly">
+        <input type="checkbox" />
+        <div class="item-text">Hot tub — add one shock dose <span class="item-hint">Also do after every guest</span></div>
+      </label>
+      <label class="item" data-key="weekly.hottub_scrub" data-section="weekly">
+        <input type="checkbox" />
+        <div class="item-text">Hot tub — lightly scrub sides &amp; waterline with brush</div>
+      </label>
+      <label class="item" data-key="weekly.water_jugs" data-section="weekly">
+        <input type="checkbox" />
+        <div class="item-text">5-gallon water jugs — at least 1 full jug in reserve?</div>
+      </label>
+      <label class="item" data-key="weekly.supplies_check" data-section="weekly">
+        <input type="checkbox" />
+        <div class="item-text">Supplies check — see separate Supplies Inventory sheet</div>
+      </label>
+    </div>
+
+    <!-- ═══ MONTHLY ═══ -->
+    <div class="section-label sl-monthly" id="section-monthly">Monthly / As Needed — Pick 1–2 each visit</div>
+
+    <div class="group">
+      <label class="item" data-key="monthly.roborock_mop_tray" data-section="monthly">
+        <input type="checkbox" />
+        <div class="item-text">Roborock — rinse mop tray &amp; put back</div>
+      </label>
+      <label class="item" data-key="monthly.roborock_dirt_bag" data-section="monthly">
+        <input type="checkbox" />
+        <div class="item-text">Roborock — check dirt bag; replace if getting full</div>
+      </label>
+      <label class="item" data-key="monthly.roborock_mop_pads" data-section="monthly">
+        <input type="checkbox" />
+        <div class="item-text">Roborock — swap in clean spare mop pads; put dirty pads in wash</div>
+      </label>
+      <label class="item" data-key="monthly.roborock_filter" data-section="monthly">
+        <input type="checkbox" />
+        <div class="item-text">Roborock — swap in clean spare filter; rinse old one, top rack of dishwasher</div>
+      </label>
+      <label class="item" data-key="monthly.roborock_brushes" data-section="monthly">
+        <input type="checkbox" />
+        <div class="item-text">Roborock — clear main brush &amp; side brush of hair; wipe sensors</div>
+      </label>
+      <label class="item" data-key="monthly.shower_deep" data-section="monthly">
+        <input type="checkbox" />
+        <div class="item-text">Scrub shower walls &amp; floor — all bathrooms</div>
+      </label>
+      <label class="item" data-key="monthly.bathroom_floors" data-section="monthly">
+        <input type="checkbox" />
+        <div class="item-text">Spot clean bathroom floors behind toilets &amp; in corners <span class="item-hint">Where Roborock can't reach</span></div>
+      </label>
+      <label class="item" data-key="monthly.switches_handles" data-section="monthly">
+        <input type="checkbox" />
+        <div class="item-text">Wipe light switches &amp; door handles throughout home</div>
+      </label>
+      <label class="item" data-key="monthly.patio_cushions" data-section="monthly">
+        <input type="checkbox" />
+        <div class="item-text">Patio cushions — vacuum or wipe down as needed</div>
+      </label>
+      <label class="item" data-key="monthly.baseboards" data-section="monthly">
+        <input type="checkbox" />
+        <div class="item-text">Wipe baseboards in all rooms &amp; hallways</div>
+      </label>
+      <label class="item" data-key="monthly.ceiling_fans" data-section="monthly">
+        <input type="checkbox" />
+        <div class="item-text">Wipe ceiling fans &amp; light fixtures</div>
+      </label>
+      <label class="item" data-key="monthly.oven_deep" data-section="monthly">
+        <input type="checkbox" />
+        <div class="item-text">Deep clean oven interior <span class="item-hint">Every few months depending on use</span></div>
+      </label>
+    </div>
+
+    <!-- ═══ NOTES ═══ -->
+    <div class="notes-section">
+      <div class="notes-label">Issues Found / Notes for the Owners</div>
+      <textarea class="notes-textarea" id="notes" placeholder="Any damage, missing supplies, maintenance needed…"></textarea>
+    </div>
+
+  </div><!-- /app -->
+
+  <!-- Progress / Submit Bar -->
+  <div class="progress-bar" id="progress-bar">
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+    <div class="progress-info">
+      <span class="progress-text" id="progress-text">0 / 0 items</span>
+      <button class="btn-submit" id="btn-submit" onclick="submitChecklist()">Submit ✓</button>
+    </div>
+  </div>
+
+  <!-- Success -->
+  <div id="success-screen" class="state-screen">
+    <div class="success-card">
+      <div class="icon">✅</div>
+      <h2>Cleaning Complete!</h2>
+      <p>Thank you, <span id="success-name"></span>.</p>
+      <p style="color:var(--text-dim);font-size:.8rem">Submitted <span id="success-time"></span></p>
+      <div class="success-summary">
+        <div class="summary-stat">
+          <div class="num" id="success-checked">0</div>
+          <div class="label">Completed</div>
+        </div>
+        <div class="summary-stat">
+          <div class="num" id="success-total">0</div>
+          <div class="label">Total Items</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = window.location.hostname === 'localhost'
+      ? 'http://localhost:8787'
+      : 'https://kengs-landing-api.kengs-landing.workers.dev'
+
+    let sessionId = null
+    let cleanerName = ''
+    let token = ''
+
+    // ── Init ──
+    async function init() {
+      const params = new URLSearchParams(window.location.search)
+      token = params.get('t') || ''
+
+      if (!token) {
+        showError('Missing Link', 'No cleaning token provided. Please use the link sent to you by the property owner.')
+        return
+      }
+
+      // Check for saved session in localStorage
+      const saved = localStorage.getItem('kl_clean_' + token)
+      if (saved) {
+        try {
+          const state = JSON.parse(saved)
+          // If saved session is less than 12 hours old and not submitted, restore it
+          if (state.opened_at && (Date.now() - new Date(state.opened_at).getTime()) < 12 * 60 * 60 * 1000 && !state.submitted) {
+            sessionId = state.session_id
+            cleanerName = state.cleaner_name
+            restoreChecks(state.checks || {})
+            if (state.notes) document.getElementById('notes').value = state.notes
+            showApp(state.property_name, state.cleaner_name)
+            return
+          }
+        } catch {}
+      }
+
+      try {
+        const res = await fetch(API_BASE + '/clean/' + encodeURIComponent(token))
+        const data = await res.json()
+
+        if (!res.ok) {
+          showError('Invalid Link', data.error || 'This link is not valid.')
+          return
+        }
+
+        sessionId = data.session_id
+        cleanerName = data.cleaner_name
+
+        // Save session start to localStorage
+        saveState({ opened_at: data.opened_at, property_name: data.property_name, cleaner_name: data.cleaner_name })
+
+        showApp(data.property_name, data.cleaner_name)
+
+      } catch (err) {
+        showError('Connection Error', 'Could not connect to the server. Please check your internet connection and try again.')
+      }
+    }
+
+    function showApp(propertyName, cleanerName) {
+      document.getElementById('loading-screen').style.display = 'none'
+      document.getElementById('app').classList.add('active')
+      document.getElementById('progress-bar').classList.add('active')
+
+      document.getElementById('header-subtitle').textContent = propertyName || 'Property'
+      document.getElementById('header-cleaner').textContent = '👤 ' + (cleanerName || '')
+      document.getElementById('header-date').textContent = '📅 ' + new Date().toLocaleDateString()
+
+      updateProgress()
+    }
+
+    function showError(title, message) {
+      document.getElementById('loading-screen').style.display = 'none'
+      document.getElementById('error-screen').style.display = 'flex'
+      document.getElementById('error-title').textContent = title
+      document.getElementById('error-message').textContent = message
+    }
+
+    // ── Checkbox Handling ──
+    document.addEventListener('change', (e) => {
+      if (e.target.type !== 'checkbox') return
+
+      const item = e.target.closest('.item')
+      if (!item) return
+
+      if (e.target.checked) {
+        item.classList.add('checked')
+        item.dataset.checkedAt = new Date().toISOString()
+      } else {
+        item.classList.remove('checked')
+        delete item.dataset.checkedAt
+      }
+
+      updateProgress()
+      saveState()
+    })
+
+    function updateProgress() {
+      const items = document.querySelectorAll('.item')
+      const checked = document.querySelectorAll('.item.checked')
+      const total = items.length
+      const done = checked.length
+      const pct = total > 0 ? Math.round((done / total) * 100) : 0
+
+      document.getElementById('progress-fill').style.width = pct + '%'
+      document.getElementById('progress-text').textContent = done + ' / ' + total + ' items'
+      document.getElementById('btn-submit').disabled = done === 0
+    }
+
+    // ── Local Storage ──
+    function saveState(extra) {
+      const checks = {}
+      document.querySelectorAll('.item').forEach(item => {
+        const key = item.dataset.key
+        const cb = item.querySelector('input[type="checkbox"]')
+        if (cb.checked) {
+          checks[key] = item.dataset.checkedAt || new Date().toISOString()
+        }
+      })
+
+      const state = {
+        session_id: sessionId,
+        checks,
+        notes: document.getElementById('notes').value,
+        ...(extra || {}),
+        ...( JSON.parse(localStorage.getItem('kl_clean_' + token) || '{}') ),
+        ...{ checks, notes: document.getElementById('notes').value, session_id: sessionId },
+      }
+
+      if (extra) Object.assign(state, extra)
+
+      localStorage.setItem('kl_clean_' + token, JSON.stringify(state))
+    }
+
+    function restoreChecks(checks) {
+      Object.entries(checks).forEach(([key, checkedAt]) => {
+        const item = document.querySelector('.item[data-key="' + key + '"]')
+        if (!item) return
+        const cb = item.querySelector('input[type="checkbox"]')
+        cb.checked = true
+        item.classList.add('checked')
+        item.dataset.checkedAt = checkedAt
+      })
+    }
+
+    // ── Submit ──
+    async function submitChecklist() {
+      const btn = document.getElementById('btn-submit')
+      btn.disabled = true
+      btn.textContent = 'Submitting…'
+
+      const items = []
+      document.querySelectorAll('.item').forEach(item => {
+        const key = item.dataset.key
+        const section = item.dataset.section
+        const label = item.querySelector('.item-text')?.textContent?.trim() || ''
+        const cb = item.querySelector('input[type="checkbox"]')
+        items.push({
+          key,
+          label,
+          section,
+          checked: cb.checked,
+          checked_at: item.dataset.checkedAt || null,
+        })
+      })
+
+      const notes = document.getElementById('notes').value.trim()
+
+      // Collect client metadata
+      const clientMeta = {
+        screen_size: window.screen.width + 'x' + window.screen.height,
+        language: navigator.language || '',
+        connection_type: navigator.connection?.effectiveType || '',
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || '',
+        referrer: document.referrer || '',
+      }
+
+      // Try geolocation (non-blocking)
+      try {
+        const pos = await new Promise((resolve, reject) => {
+          if (!navigator.geolocation) return reject()
+          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000, enableHighAccuracy: false })
+        })
+        clientMeta.latitude = pos.coords.latitude
+        clientMeta.longitude = pos.coords.longitude
+        clientMeta.geo_accuracy = pos.coords.accuracy
+      } catch {}
+
+      try {
+        const res = await fetch(API_BASE + '/clean/' + encodeURIComponent(token) + '/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            session_id: sessionId,
+            items,
+            notes: notes || undefined,
+            client_metadata: clientMeta,
+          }),
+        })
+
+        const data = await res.json()
+
+        if (!res.ok) {
+          alert('Error: ' + (data.error || 'Could not submit. Please try again.'))
+          btn.disabled = false
+          btn.textContent = 'Submit ✓'
+          return
+        }
+
+        // Mark as submitted in localStorage
+        const state = JSON.parse(localStorage.getItem('kl_clean_' + token) || '{}')
+        state.submitted = true
+        localStorage.setItem('kl_clean_' + token, JSON.stringify(state))
+
+        // Show success
+        document.getElementById('app').classList.remove('active')
+        document.getElementById('progress-bar').classList.remove('active')
+        document.getElementById('success-screen').classList.add('active')
+        document.getElementById('success-screen').style.display = 'flex'
+        document.getElementById('success-name').textContent = cleanerName
+        document.getElementById('success-time').textContent = new Date().toLocaleTimeString()
+        document.getElementById('success-checked').textContent = data.summary?.checked || 0
+        document.getElementById('success-total').textContent = data.summary?.total_items || 0
+
+      } catch (err) {
+        alert('Connection error. Please check your internet and try again.')
+        btn.disabled = false
+        btn.textContent = 'Submit ✓'
+      }
+    }
+
+    // ── Start ──
+    init()
+  </script>
+
+</body>
+</html>
