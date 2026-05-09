@@ -312,6 +312,48 @@ export const UpdatePropertyTaskBody = z.object({
   message: 'At least one field must be provided for update',
 })
 
+// ─── CSV Format Templates ─────────────────────────────────────────────────────
+
+export const csvEntityType = z.enum(['booking', 'expense'])
+export const csvAmountSign = z.enum(['negative_is_debit', 'separate_columns', 'always_positive'])
+export const csvDateFormat = z.enum(['auto', 'MM/DD/YYYY', 'YYYY-MM-DD', 'DD/MM/YYYY', 'M/D/YYYY'])
+
+export const CsvTemplateListQuery = z.object({
+  workspace_id: z.string().min(1, 'workspace_id is required'),
+  entity_type: csvEntityType.optional(),
+  ...paginationParams,
+})
+
+export const CreateCsvTemplateBody = z.object({
+  workspace_id: z.string().min(1, 'workspace_id is required'),
+  name: z.string().min(1, 'name is required').max(200),
+  entity_type: csvEntityType,
+  header_fingerprint: z.string().max(128).nullable().optional(),
+  column_map: z.record(z.string(), z.string()),
+  row_filter: z.object({
+    column: z.string(),
+    include: z.array(z.string()),
+  }).nullable().optional(),
+  amount_sign: csvAmountSign.optional().default('negative_is_debit'),
+  date_format: csvDateFormat.optional().default('auto'),
+  is_builtin: z.boolean().optional().default(false),
+})
+
+export const UpdateCsvTemplateBody = z.object({
+  name: z.string().min(1).max(200).optional(),
+  entity_type: csvEntityType.optional(),
+  header_fingerprint: z.string().max(128).nullable().optional(),
+  column_map: z.record(z.string(), z.string()).optional(),
+  row_filter: z.object({
+    column: z.string(),
+    include: z.array(z.string()),
+  }).nullable().optional(),
+  amount_sign: csvAmountSign.optional(),
+  date_format: csvDateFormat.optional(),
+}).refine(obj => Object.keys(obj).length > 0, {
+  message: 'At least one field must be provided for update',
+})
+
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 
 /** Format Zod errors into a client-friendly message */
