@@ -13,6 +13,7 @@ import { mileageRouter } from './routes/mileage'
 import { cleanPublicRouter, cleaningAdminRouter } from './routes/cleaning'
 import { invitePublicRouter, inviteAdminRouter } from './routes/invites'
 import { propertyTasksRouter } from './routes/property-tasks'
+import { csvTemplatesRouter } from './routes/csv-templates'
 
 export const app = new Hono<{ Bindings: Env }>()
 
@@ -45,6 +46,7 @@ app.route('/clean', cleanPublicRouter)
 app.route('/cleaning', cleaningAdminRouter)
 app.route('/invites/accept', invitePublicRouter)
 app.route('/invites', inviteAdminRouter)
+app.route('/csv-templates', csvTemplatesRouter)
 app.route('/property-tasks', propertyTasksRouter)
 
 export default {
