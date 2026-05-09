@@ -227,7 +227,8 @@
       initTabs();
       initEventListeners();
       buildScopeGrids();
-      await Promise.all([loadMembers(), loadInvites(), loadRoles()]);
+      await loadRoles();
+      await Promise.all([loadMembers(), loadInvites()]);
     });
 
     /* ── Tabs ──────────────────────────────────────────────────────────── */
