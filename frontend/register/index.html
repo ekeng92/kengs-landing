@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <title>Accept Invite — Keng's Landing</title>
+  <style>
+    :root {
+      --bg: #0f1117; --surface: #1a1d27; --surface2: #222633;
+      --border: #2e3345; --border2: #3d4255;
+      --text: #e2e4ea; --text-muted: #8b90a0; --text-dim: #5a5f72;
+      --accent: #2f7c55; --accent-light: #4ade80;
+      --negative: #f87171;
+      --radius: 10px; --radius-sm: 6px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg); color: var(--text);
+      font-size: 14px; line-height: 1.5;
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 40px 36px; width: 100%; max-width: 440px;
+    }
+    .logo {
+      font-size: 1.25rem; font-weight: 700; color: var(--accent-light);
+      margin-bottom: 4px;
+    }
+    .subtitle {
+      font-size: 0.82rem; color: var(--text-muted); margin-bottom: 28px;
+    }
+
+    /* Invite banner */
+    .invite-banner {
+      background: rgba(74,222,128,.08); border: 1px solid rgba(74,222,128,.2);
+      border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 24px;
+      font-size: 0.85rem; color: var(--text);
+    }
+    .invite-banner strong { color: var(--accent-light); }
+    .invite-detail { color: var(--text-muted); font-size: 0.8rem; margin-top: 4px; }
+
+    /* Form fields */
+    label {
+      display: block; font-size: 0.78rem; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; margin-top: 16px;
+    }
+    label:first-of-type { margin-top: 0; }
+    input[type="text"], input[type="password"], input[type="email"] {
+      width: 100%; padding: 9px 12px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: var(--surface2);
+      color: var(--text); font-size: 0.9rem; outline: none;
+      transition: border-color .15s;
+    }
+    input:focus { border-color: var(--accent); }
+    input.invalid { border-color: var(--negative); }
+    .field-hint {
+      font-size: 0.75rem; color: var(--text-dim); margin-top: 4px;
+    }
+    .field-error {
+      font-size: 0.75rem; color: var(--negative); margin-top: 4px; display: none;
+    }
+
+    /* Name row */
+    .name-row { display: flex; gap: 12px; }
+    .name-row .field { flex: 1; }
+
+    /* Buttons */
+    .btn-primary {
+      width: 100%; margin-top: 24px; padding: 10px 16px;
+      background: var(--accent); border: none; border-radius: var(--radius-sm);
+      color: #fff; font-size: 0.9rem; font-weight: 600; cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-primary:hover { background: var(--accent-light); color: #000; }
+    .btn-primary:disabled { opacity: 0.6; cursor: default; }
+    .btn-secondary {
+      width: 100%; margin-top: 12px; padding: 10px 16px;
+      background: transparent; border: 1px solid var(--border2);
+      border-radius: var(--radius-sm);
+      color: var(--text-muted); font-size: 0.85rem; cursor: pointer;
+      transition: all .15s;
+    }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--text); }
+    .btn-secondary:disabled { opacity: 0.6; cursor: default; }
+
+    /* Divider */
+    .divider {
+      display: flex; align-items: center; gap: 12px;
+      margin-top: 20px; font-size: 0.78rem; color: var(--text-dim);
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+
+    /* Messages */
+    .error-msg {
+      margin-top: 16px; padding: 10px 14px;
+      background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.3);
+      border-radius: var(--radius-sm); color: var(--negative); font-size: 0.83rem;
+      display: none;
+    }
+    .success-msg {
+      margin-top: 16px; padding: 10px 14px;
+      background: rgba(74,222,128,.1); border: 1px solid rgba(74,222,128,.3);
+      border-radius: var(--radius-sm); color: var(--accent-light); font-size: 0.83rem;
+      display: none;
+    }
+
+    /* Loading spinner */
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent-light);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      margin: 40px auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text {
+      text-align: center; color: var(--text-muted); font-size: 0.85rem;
+    }
+
+    /* State screens */
+    .state-error {
+      text-align: center; padding: 20px 0;
+    }
+    .state-error .icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .state-error h2 {
+      font-size: 1.1rem; font-weight: 600; margin-bottom: 8px;
+    }
+    .state-error p {
+      color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px;
+    }
+    .state-error a {
+      color: var(--accent-light); text-decoration: none;
+      font-size: 0.85rem;
+    }
+    .state-error a:hover { text-decoration: underline; }
+
+    /* Email notice */
+    .email-notice {
+      text-align: center; padding: 16px 0;
+    }
+    .email-notice .icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .email-notice h2 {
+      font-size: 1.1rem; font-weight: 600; margin-bottom: 8px;
+    }
+    .email-notice p {
+      color: var(--text-muted); font-size: 0.85rem;
+    }
+
+    /* Hidden utility */
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">Keng's Landing</div>
+    <div class="subtitle">Accept Your Invitation</div>
+
+    <!-- State: Loading -->
+    <div id="state-loading">
+      <div class="spinner"></div>
+      <div class="loading-text">Validating your invitation…</div>
+    </div>
+
+    <!-- State: Error (invalid/expired token) -->
+    <div id="state-error" class="hidden">
+      <div class="state-error">
+        <div class="icon" id="error-icon">🔗</div>
+        <h2 id="error-title">Invalid Invitation</h2>
+        <p id="error-detail">This invitation link is not valid or has expired.</p>
+        <a href="../login.html">Go to Sign In</a>
+      </div>
+    </div>
+
+    <!-- State: Registration Form -->
+    <div id="state-form" class="hidden">
+      <div class="invite-banner" id="invite-banner">
+        <!-- Populated dynamically -->
+      </div>
+
+      <div class="name-row">
+        <div class="field">
+          <label for="first-name">First Name</label>
+          <input type="text" id="first-name" placeholder="Jane" autocomplete="given-name" required />
+        </div>
+        <div class="field">
+          <label for="last-name">Last Name</label>
+          <input type="text" id="last-name" placeholder="Doe" autocomplete="family-name" required />
+        </div>
+      </div>
+
+      <div id="password-section">
+        <label for="reg-password">Password</label>
+        <input type="password" id="reg-password" placeholder="min 8 characters" autocomplete="new-password" aria-describedby="password-hint" />
+        <div class="field-hint" id="password-hint">At least 8 characters</div>
+        <div class="field-error" id="password-error"></div>
+
+        <label for="reg-confirm">Confirm Password</label>
+        <input type="password" id="reg-confirm" placeholder="re-enter password" autocomplete="new-password" />
+        <div class="field-error" id="confirm-error"></div>
+      </div>
+
+      <button class="btn-primary" id="btn-register">Create Account</button>
+
+      <div class="divider">or</div>
+
+      <button class="btn-secondary" id="btn-magic-link">Use Email Link Instead</button>
+
+      <div class="error-msg" id="form-error"></div>
+    </div>
+
+    <!-- State: Magic link sent -->
+    <div id="state-magic-link" class="hidden">
+      <div class="email-notice">
+        <div class="icon">📧</div>
+        <h2>Check Your Email</h2>
+        <p id="magic-link-detail">We've sent a sign-in link to your email address. Click the link to complete your registration.</p>
+      </div>
+    </div>
+
+    <!-- State: Success (password flow) -->
+    <div id="state-success" class="hidden">
+      <div class="success-msg" style="display:block;">
+        Account created! Redirecting to sign in…
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    // ── Globals ──
+    const API = Auth.API;
+    let inviteToken = null;
+    let inviteData = null;
+
+    // ── Helpers ──
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function show(id) { document.getElementById(id).classList.remove('hidden'); }
+    function hide(id) { document.getElementById(id).classList.add('hidden'); }
+
+    function showFormError(msg) {
+      const el = document.getElementById('form-error');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+    function hideFormError() {
+      document.getElementById('form-error').style.display = 'none';
+    }
+
+    function setFieldError(inputId, errorId, msg) {
+      const input = document.getElementById(inputId);
+      const error = document.getElementById(errorId);
+      if (msg) {
+        input.classList.add('invalid');
+        error.textContent = msg;
+        error.style.display = 'block';
+      } else {
+        input.classList.remove('invalid');
+        error.style.display = 'none';
+      }
+    }
+
+    // ── Init ──
+    async function init() {
+      inviteToken = new URLSearchParams(location.search).get('token');
+
+      if (!inviteToken) {
+        hide('state-loading');
+        show('state-error');
+        document.getElementById('error-title').textContent = 'Missing Invitation';
+        document.getElementById('error-detail').textContent = 'No invitation token was provided. Please use the link from your invitation email.';
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API}/invites/accept/${encodeURIComponent(inviteToken)}`);
+
+        if (!res.ok) {
+          hide('state-loading');
+          show('state-error');
+
+          if (res.status === 410) {
+            document.getElementById('error-icon').textContent = '⏰';
+            document.getElementById('error-title').textContent = 'Invitation Expired';
+            document.getElementById('error-detail').textContent = 'This invitation has expired. Please ask the workspace admin to send a new one.';
+          } else if (res.status === 409) {
+            document.getElementById('error-icon').textContent = '👤';
+            document.getElementById('error-title').textContent = 'Already Registered';
+            document.getElementById('error-detail').textContent = 'An account with this email already exists. Please sign in instead.';
+          } else {
+            document.getElementById('error-title').textContent = 'Invalid Invitation';
+            document.getElementById('error-detail').textContent = 'This invitation link is not valid. Please check your email for the correct link.';
+          }
+          return;
+        }
+
+        const json = await res.json();
+        inviteData = json.data;
+
+        // Populate invite banner (XSS-safe via escapeHtml)
+        const banner = document.getElementById('invite-banner');
+        banner.innerHTML =
+          `You've been invited to <strong>${escapeHtml(inviteData.workspace_name)}</strong>` +
+          (inviteData.invited_by_name ? ` by <strong>${escapeHtml(inviteData.invited_by_name)}</strong>` : '') +
+          ` as <strong>${escapeHtml(inviteData.role_name)}</strong>` +
+          `<div class="invite-detail">${escapeHtml(inviteData.email)}</div>`;
+
+        hide('state-loading');
+        show('state-form');
+
+        // Focus first field
+        document.getElementById('first-name').focus();
+
+      } catch (err) {
+        hide('state-loading');
+        show('state-error');
+        document.getElementById('error-title').textContent = 'Connection Error';
+        document.getElementById('error-detail').textContent = 'Unable to reach the server. Please check your connection and try again.';
+      }
+    }
+
+    // ── Validation ──
+    function validateForm() {
+      let valid = true;
+      hideFormError();
+
+      const firstName = document.getElementById('first-name').value.trim();
+      const lastName = document.getElementById('last-name').value.trim();
+      const password = document.getElementById('reg-password').value;
+      const confirm = document.getElementById('reg-confirm').value;
+
+      if (!firstName || !lastName) {
+        showFormError('First and last name are required.');
+        valid = false;
+      }
+
+      setFieldError('reg-password', 'password-error', null);
+      setFieldError('reg-confirm', 'confirm-error', null);
+
+      if (password.length < 8) {
+        setFieldError('reg-password', 'password-error', 'Password must be at least 8 characters.');
+        valid = false;
+      }
+
+      if (password !== confirm) {
+        setFieldError('reg-confirm', 'confirm-error', 'Passwords do not match.');
+        valid = false;
+      }
+
+      return valid;
+    }
+
+    // ── Password Registration ──
+    async function handleRegister() {
+      if (!validateForm()) return;
+
+      const btn = document.getElementById('btn-register');
+      const magicBtn = document.getElementById('btn-magic-link');
+      btn.disabled = true; btn.textContent = 'Creating account…';
+      magicBtn.disabled = true;
+      hideFormError();
+
+      try {
+        const res = await fetch(`${API}/invites/accept/${encodeURIComponent(inviteToken)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            first_name: document.getElementById('first-name').value.trim(),
+            last_name: document.getElementById('last-name').value.trim(),
+            password: document.getElementById('reg-password').value,
+          }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          const msg = err.error || err.message || 'Registration failed. Please try again.';
+          showFormError(msg);
+          btn.disabled = false; btn.textContent = 'Create Account';
+          magicBtn.disabled = false;
+          return;
+        }
+
+        // Success — redirect to login
+        hide('state-form');
+        show('state-success');
+        setTimeout(() => { location.href = '../login.html'; }, 2000);
+
+      } catch (err) {
+        showFormError('Unable to reach the server. Please try again.');
+        btn.disabled = false; btn.textContent = 'Create Account';
+        magicBtn.disabled = false;
+      }
+    }
+
+    // ── Magic Link Registration ──
+    async function handleMagicLink() {
+      const firstName = document.getElementById('first-name').value.trim();
+      const lastName = document.getElementById('last-name').value.trim();
+      hideFormError();
+
+      if (!firstName || !lastName) {
+        showFormError('Please enter your first and last name before requesting a magic link.');
+        return;
+      }
+
+      const btn = document.getElementById('btn-magic-link');
+      const regBtn = document.getElementById('btn-register');
+      btn.disabled = true; btn.textContent = 'Sending link…';
+      regBtn.disabled = true;
+
+      try {
+        const res = await fetch(`${API}/invites/accept/${encodeURIComponent(inviteToken)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            first_name: firstName,
+            last_name: lastName,
+            use_magic_link: true,
+          }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          const msg = err.error || err.message || 'Failed to send magic link. Please try again.';
+          showFormError(msg);
+          btn.disabled = false; btn.textContent = 'Use Email Link Instead';
+          regBtn.disabled = false;
+          return;
+        }
+
+        // Show email notice
+        hide('state-form');
+        show('state-magic-link');
+
+      } catch (err) {
+        showFormError('Unable to reach the server. Please try again.');
+        btn.disabled = false; btn.textContent = 'Use Email Link Instead';
+        regBtn.disabled = false;
+      }
+    }
+
+    // ── Event Listeners ──
+    document.getElementById('btn-register').addEventListener('click', handleRegister);
+    document.getElementById('btn-magic-link').addEventListener('click', handleMagicLink);
+
+    // Enter key submits password form
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      const formVisible = !document.getElementById('state-form').classList.contains('hidden');
+      if (formVisible) handleRegister();
+    });
+
+    // Clear field errors on input
+    document.getElementById('reg-password').addEventListener('input', () => {
+      setFieldError('reg-password', 'password-error', null);
+    });
+    document.getElementById('reg-confirm').addEventListener('input', () => {
+      setFieldError('reg-confirm', 'confirm-error', null);
+    });
+
+    // Boot
+    init();
+  </script>
+</body>
+</html>
