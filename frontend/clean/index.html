@@ -753,17 +753,6 @@
         referrer: document.referrer || '',
       }
 
-      // Try geolocation (non-blocking)
-      try {
-        const pos = await new Promise((resolve, reject) => {
-          if (!navigator.geolocation) return reject()
-          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000, enableHighAccuracy: false })
-        })
-        clientMeta.latitude = pos.coords.latitude
-        clientMeta.longitude = pos.coords.longitude
-        clientMeta.geo_accuracy = pos.coords.accuracy
-      } catch {}
-
       try {
         const res = await fetch(API_BASE + '/clean/' + encodeURIComponent(token) + '/submit', {
           method: 'POST',
