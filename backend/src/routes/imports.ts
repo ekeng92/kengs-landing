@@ -7,6 +7,8 @@ import type { ImportRowReviewStatus, ExpenseReviewState, DocumentationStatus } f
 import { parseCsvText, normalizeAirbnbRow, checkDedup, filterReservationRows } from '../../booking-ingest/airbnb-parser'
 import { parseBankCsv } from '../../expense-import/parse'
 import { promoteRow, recordClassificationEvent, tryAdvanceJobStatus } from '../../expense-import/promote'
+import { detectFormat, generateHeaderFingerprint, splitCsvRows } from '../lib/universal-csv-parser'
+import { DetectFormatBody, formatZodError } from '../lib/validation'
 
 type Bindings = Env
 type Variables = AuthVariables
@@ -862,4 +864,73 @@ importsRouter.post('/expenses/:expenseId/reclassify', async (c) => {
   })
 
   return c.json({ data: updatedExpense })
+})
+
+// ─── Format Detection (AEON-053) ─────────────────────────────────────────────
+
+/**
+ * Detect CSV format by matching headers against saved templates.
+ * Returns ranked template matches with confidence scores.
+ * Auto-selects and updates the job if exactly one match >= 0.95.
+ */
+importsRouter.post('/:jobId/detect-format', async (c) => {
+  const supabase = createSupabaseClient(c.env)
+  const jobId = c.req.param('jobId')
+
+  const raw = await c.req.json().catch(() => null)
+  if (!raw) return c.json({ error: 'Invalid JSON' }, 400)
+
+  const parsed = DetectFormatBody.safeParse(raw)
+  if (!parsed.success) return c.json({ error: formatZodError(parsed.error) }, 400)
+
+  // Verify job exists and get workspace
+  const { data: job, error: jobError } = await supabase
+    .from('import_jobs')
+    .select('workspace_id')
+    .eq('id', jobId)
+    .single()
+
+  if (jobError || !job) return c.json({ error: 'Import job not found' }, 404)
+
+  const workspaceId: string = job.workspace_id
+
+  // Load all templates for this workspace
+  const { data: templates, error: tmplError } = await supabase
+    .from('csv_format_templates')
+    .select('*')
+    .eq('workspace_id', workspaceId)
+
+  if (tmplError) return c.json({ error: tmplError.message }, 500)
+
+  const allTemplates = templates ?? []
+
+  // Run detection
+  const result = await detectFormat(parsed.data.csv, allTemplates)
+
+  // Build response
+  const responseMatches = result.matches.map((m) => ({
+    template_id: m.template.id,
+    template_name: m.template.name,
+    confidence: m.confidence,
+    matched_columns: m.matched_columns,
+    missing_columns: m.missing_columns,
+  }))
+
+  let autoSelected = false
+
+  // Auto-select if exactly one match with confidence >= 0.95
+  if (result.matches.length === 1 && result.matches[0]!.confidence >= 0.95) {
+    const selectedId = result.matches[0]!.template.id
+    await supabase
+      .from('import_jobs')
+      .update({ format_template_id: selectedId, updated_at: new Date().toISOString() })
+      .eq('id', jobId)
+    autoSelected = true
+  }
+
+  return c.json({
+    fingerprint: result.fingerprint,
+    matches: responseMatches,
+    auto_selected: autoSelected,
+  })
 })

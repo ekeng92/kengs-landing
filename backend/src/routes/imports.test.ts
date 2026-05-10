@@ -147,4 +147,102 @@ describe('imports route contracts', () => {
     await expect(res.json()).resolves.toEqual({ error: 'property_id is required' })
     expect(mock.tableCalls).toEqual([])
   })
+
+  // ─── detect-format ──────────────────────────────────────────────────────────
+
+  it('detect-format returns 404 when job not found', async () => {
+    const mock = createMockSupabase([
+      { data: null, error: { message: 'not found' } },
+    ])
+    const res = await app.request('/imports/job-1/detect-format', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ csv: 'Date,Amount\n01/01/2026,100' }),
+    }, { ...baseEnv, TEST_SUPABASE: mock.client })
+
+    expect(res.status).toBe(404)
+  })
+
+  it('detect-format returns empty matches when no templates match', async () => {
+    const mock = createMockSupabase([
+      { data: { workspace_id: 'workspace-1' }, error: null }, // job lookup
+      { data: [], error: null }, // templates lookup
+    ])
+    const res = await app.request('/imports/job-1/detect-format', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ csv: 'Foo,Bar\n1,2' }),
+    }, { ...baseEnv, TEST_SUPABASE: mock.client })
+
+    expect(res.status).toBe(200)
+    const json = await res.json() as { fingerprint: string; matches: unknown[]; auto_selected: boolean }
+    expect(json.fingerprint).toMatch(/^[0-9a-f]{32}$/)
+    expect(json.matches).toHaveLength(0)
+    expect(json.auto_selected).toBe(false)
+  })
+
+  it('detect-format returns matches when templates exist', async () => {
+    const mock = createMockSupabase([
+      { data: { workspace_id: 'workspace-1' }, error: null },
+      { data: [{
+        id: 'tmpl-1',
+        name: 'Chase Checking',
+        entity_type: 'expense',
+        column_map: { date: 'Date', amount: 'Amount', merchant: 'Description' },
+        amount_sign: 'negative_is_debit',
+        date_format: 'auto',
+        header_fingerprint: null,
+      }], error: null },
+    ])
+    const res = await app.request('/imports/job-1/detect-format', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ csv: 'Date,Amount,Description\n01/01/2026,100,Store' }),
+    }, { ...baseEnv, TEST_SUPABASE: mock.client })
+
+    expect(res.status).toBe(200)
+    const json = await res.json() as { fingerprint: string; matches: Array<{ template_id: string; confidence: number }>; auto_selected: boolean }
+    expect(json.matches).toHaveLength(1)
+    expect(json.matches[0]!.template_id).toBe('tmpl-1')
+    expect(json.matches[0]!.confidence).toBe(1)
+    expect(json.auto_selected).toBe(true)
+  })
+
+  it('detect-format rejects missing csv field', async () => {
+    const mock = createMockSupabase([])
+    const res = await app.request('/imports/job-1/detect-format', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    }, { ...baseEnv, TEST_SUPABASE: mock.client })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('detect-format auto-selects when single high-confidence match', async () => {
+    const mock = createMockSupabase([
+      { data: { workspace_id: 'workspace-1' }, error: null },
+      { data: [{
+        id: 'tmpl-1',
+        name: 'Chase',
+        entity_type: 'expense',
+        column_map: { date: 'Date', amount: 'Amount' },
+        amount_sign: 'negative_is_debit',
+        date_format: 'auto',
+        header_fingerprint: null,
+      }], error: null },
+      { data: null, error: null }, // update import_jobs
+    ])
+    const res = await app.request('/imports/job-1/detect-format', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ csv: 'Date,Amount\n01/01/2026,100' }),
+    }, { ...baseEnv, TEST_SUPABASE: mock.client })
+
+    expect(res.status).toBe(200)
+    const json = await res.json() as { auto_selected: boolean }
+    expect(json.auto_selected).toBe(true)
+    // Verify the update call was made to import_jobs
+    expect(mock.tableCalls).toContain('import_jobs')
+  })
 })
