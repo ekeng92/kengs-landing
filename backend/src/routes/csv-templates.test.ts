@@ -23,6 +23,7 @@ const sampleTemplate = {
   row_filter: null,
   amount_sign: 'negative_is_debit',
   date_format: 'auto',
+  source_url: null,
   is_builtin: false,
   created_at: '2026-05-08T12:00:00Z',
   updated_at: '2026-05-08T12:00:00Z',
