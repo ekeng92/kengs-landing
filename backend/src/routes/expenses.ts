@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { requireAuth, type AuthVariables } from '../lib/auth'
 import { createSupabaseClient } from '../lib/supabase'
+import { requireWorkspaceFeature } from '../lib/permissions'
 import type { Env } from '../types/env'
 import {
   ExpenseListQuery,
@@ -77,10 +78,23 @@ expensesRouter.post('/', async (c) => {
 /** Get a single expense */
 expensesRouter.get('/:id', async (c) => {
   const supabase = createSupabaseClient(c.env)
+  const id = c.req.param('id')
+
+  const { data: existing, error: existingError } = await supabase
+    .from('expenses')
+    .select('workspace_id')
+    .eq('id', id)
+    .single()
+
+  if (existingError || !existing) return c.json({ error: 'Not found' }, 404)
+
+  const forbidden = await requireWorkspaceFeature(c, existing.workspace_id, 'expenses', 'read')
+  if (forbidden) return forbidden
+
   const { data, error } = await supabase
     .from('expenses')
     .select('*')
-    .eq('id', c.req.param('id'))
+    .eq('id', id)
     .single()
 
   if (error) return c.json({ error: 'Not found' }, 404)

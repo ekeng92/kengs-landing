@@ -13,12 +13,16 @@
       --text: #e2e4ea; --text-muted: #8b90a0; --text-dim: #5a5f72;
       --accent: #2f7c55; --accent-light: #4ade80;
       --negative: #f87171;
-      --radius: 10px; --radius-sm: 6px;
+      --radius: 12px; --radius-sm: 8px;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: system-ui, -apple-system, sans-serif;
       background: var(--bg); color: var(--text);
+      background-image:
+        radial-gradient(ellipse at 50% 0%, rgba(47,124,85,.09) 0%, transparent 55%),
+        radial-gradient(ellipse at 80% 100%, rgba(47,124,85,.04) 0%, transparent 40%),
+        radial-gradient(circle at 20% 60%, rgba(74,222,128,.015) 0%, transparent 30%);
       font-size: 14px; line-height: 1.5;
       min-height: 100vh;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -26,45 +30,92 @@
     }
     .card {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 40px 36px; width: 100%; max-width: 400px;
+      border-radius: var(--radius); padding: 44px 40px 40px; width: 100%; max-width: 420px;
+      box-shadow:
+        0 1px 2px rgba(0,0,0,.2),
+        0 4px 16px rgba(0,0,0,.25),
+        0 12px 40px rgba(0,0,0,.3);
+      position: relative;
+      overflow: hidden;
     }
+    .card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-light));
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+    .header { text-align: center; margin-bottom: 32px; }
     .logo {
-      font-size: 1.25rem; font-weight: 700; color: var(--accent-light);
-      margin-bottom: 4px;
+      font-size: 1.6rem; font-weight: 700; color: var(--accent-light);
+      margin-bottom: 6px; letter-spacing: -0.3px;
+      text-shadow: 0 0 20px rgba(74,222,128,.15);
     }
     .subtitle {
-      font-size: 0.82rem; color: var(--text-muted); margin-bottom: 32px;
+      font-size: 0.82rem; color: var(--text-muted);
+      letter-spacing: 0.3px;
     }
     .tabs {
       display: flex; gap: 0; margin-bottom: 28px;
       border-bottom: 1px solid var(--border);
     }
     .tab-btn {
-      flex: 1; background: none; border: none; border-bottom: 2px solid transparent;
-      color: var(--text-muted); padding: 8px 12px; font-size: 0.85rem; cursor: pointer;
-      transition: all .15s; margin-bottom: -1px;
+      flex: 1; background: none; border: none; border-bottom: 2.5px solid transparent;
+      color: var(--text-muted); padding: 10px 12px; font-size: 0.88rem; cursor: pointer;
+      transition: color .25s ease, border-color .3s ease, background .2s ease, text-shadow .3s ease;
+      margin-bottom: -1px; font-weight: 500;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      position: relative;
     }
-    .tab-btn.active { color: var(--accent-light); border-bottom-color: var(--accent-light); }
+    .tab-btn:hover { color: var(--text); background: rgba(255,255,255,.03); }
+    .tab-btn.active {
+      color: var(--accent-light); border-bottom-color: var(--accent-light);
+      text-shadow: 0 0 12px rgba(74,222,128,.15);
+    }
     label {
-      display: block; font-size: 0.78rem; color: var(--text-muted);
-      text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; margin-top: 16px;
+      display: block; font-size: 0.75rem; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 7px; margin-top: 20px;
+      font-weight: 500;
     }
     label:first-of-type { margin-top: 0; }
     input[type="email"], input[type="password"] {
-      width: 100%; padding: 9px 12px; border-radius: var(--radius-sm);
+      width: 100%; padding: 11px 14px; border-radius: var(--radius-sm);
       border: 1px solid var(--border); background: var(--surface2);
       color: var(--text); font-size: 0.9rem; outline: none;
-      transition: border-color .15s;
+      transition: border-color .2s, box-shadow .2s, background .2s;
     }
-    input:focus { border-color: var(--accent); }
+    input[type="email"]:hover, input[type="password"]:hover {
+      border-color: var(--border2);
+      background: #262a38;
+    }
+    @keyframes focus-pulse {
+      0%   { box-shadow: 0 0 0 3px rgba(47,124,85,.2); }
+      50%  { box-shadow: 0 0 0 4px rgba(47,124,85,.12); }
+      100% { box-shadow: 0 0 0 3px rgba(47,124,85,.2); }
+    }
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(47,124,85,.2);
+      background: var(--surface2);
+      animation: focus-pulse 2s ease-in-out infinite;
+    }
+    input::placeholder { color: var(--text-dim); }
     .btn-primary {
-      width: 100%; margin-top: 24px; padding: 10px 16px;
-      background: var(--accent); border: none; border-radius: var(--radius-sm);
-      color: #fff; font-size: 0.9rem; font-weight: 600; cursor: pointer;
-      transition: background .15s;
+      width: 100%; margin-top: 28px; padding: 13px 16px;
+      background: linear-gradient(135deg, var(--accent), #348f62);
+      border: none; border-radius: var(--radius-sm);
+      color: #fff; font-size: 0.92rem; font-weight: 600; cursor: pointer;
+      transition: background .2s, transform .1s, box-shadow .2s;
+      box-shadow: 0 2px 8px rgba(47,124,85,.3);
+      letter-spacing: 0.2px;
     }
-    .btn-primary:hover { background: var(--accent-light); color: #000; }
-    .btn-primary:disabled { opacity: 0.6; cursor: default; }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #37926a, #3da87a);
+      box-shadow: 0 4px 18px rgba(47,124,85,.4);
+      transform: translateY(-1px);
+    }
+    .btn-primary:active { transform: translateY(0); box-shadow: 0 2px 6px rgba(47,124,85,.25); }
+    .btn-primary:disabled { opacity: 0.6; cursor: default; transform: none; box-shadow: none; background: var(--accent); }
     .error-msg {
       margin-top: 16px; padding: 10px 14px;
       background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.3);
@@ -77,12 +128,24 @@
       border-radius: var(--radius-sm); color: var(--accent-light); font-size: 0.83rem;
       display: none;
     }
+    .footer {
+      text-align: center; margin-top: 36px; font-size: 0.72rem; color: var(--text-dim);
+      letter-spacing: 0.3px; opacity: 0.6;
+      transition: opacity .3s ease;
+    }
+    .footer:hover { opacity: 0.85; }
+    @media (max-width: 480px) {
+      .card { padding: 36px 28px 32px; }
+      .logo { font-size: 1.35rem; }
+    }
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="logo">Keng's Landing</div>
-    <div class="subtitle">STR Finance Operations</div>
+    <div class="header">
+      <div class="logo">Keng's Landing</div>
+      <div class="subtitle">STR Finance Operations</div>
+    </div>
 
     <div class="tabs">
       <button class="tab-btn active" id="tab-signin" onclick="showTab('signin')">Sign In</button>
@@ -110,6 +173,8 @@
     <div class="error-msg" id="error-msg"></div>
     <div class="success-msg" id="success-msg"></div>
   </div>
+
+  <div class="footer">© 2026 Keng's Landing LLC</div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="js/auth.js"></script>

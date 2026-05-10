@@ -10,6 +10,7 @@ const baseEnv = {
   SUPABASE_SERVICE_ROLE_KEY: 'test-service-role-key',
   DEV_BYPASS_AUTH: 'true',
   DEV_USER_ID: TEST_USER,
+  DEV_WORKSPACE_ID: TEST_WORKSPACE,
 }
 
 const sampleExpense = {
@@ -80,12 +81,22 @@ describe('expenses route contracts', () => {
   })
 
   it('gets a single expense by ID', async () => {
-    const mock = createMockSupabase([{ data: sampleExpense, error: null }])
+    const mock = createMockSupabase([
+      { data: { workspace_id: TEST_WORKSPACE }, error: null },
+      { data: sampleExpense, error: null },
+    ])
     const res = await app.request('/expenses/exp-001', {}, { ...baseEnv, TEST_SUPABASE: mock.client })
 
     expect(res.status).toBe(200)
     const json: any = await res.json()
     expect(json.data).toEqual(sampleExpense)
+  })
+
+  it('forbids an expense from another workspace', async () => {
+    const mock = createMockSupabase([{ data: { workspace_id: 'other-workspace' }, error: null }])
+    const res = await app.request('/expenses/exp-001', {}, { ...baseEnv, TEST_SUPABASE: mock.client })
+
+    expect(res.status).toBe(403)
   })
 
   it('returns 404 for non-existent expense', async () => {

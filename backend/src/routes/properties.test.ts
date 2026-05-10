@@ -10,6 +10,7 @@ const baseEnv = {
   SUPABASE_SERVICE_ROLE_KEY: 'test-service-role-key',
   DEV_BYPASS_AUTH: 'true',
   DEV_USER_ID: TEST_USER,
+  DEV_WORKSPACE_ID: TEST_WORKSPACE,
 }
 
 const sampleProperty = {
@@ -67,12 +68,22 @@ describe('properties route contracts', () => {
   })
 
   it('gets a single property by ID', async () => {
-    const mock = createMockSupabase([{ data: sampleProperty, error: null }])
+    const mock = createMockSupabase([
+      { data: { workspace_id: TEST_WORKSPACE }, error: null },
+      { data: sampleProperty, error: null },
+    ])
     const res = await app.request('/properties/prop-001', {}, { ...baseEnv, TEST_SUPABASE: mock.client })
 
     expect(res.status).toBe(200)
     const json: any = await res.json()
     expect(json.data).toEqual(sampleProperty)
+  })
+
+  it('forbids a property from another workspace', async () => {
+    const mock = createMockSupabase([{ data: { workspace_id: 'other-workspace' }, error: null }])
+    const res = await app.request('/properties/prop-001', {}, { ...baseEnv, TEST_SUPABASE: mock.client })
+
+    expect(res.status).toBe(403)
   })
 
   it('returns 404 for non-existent property', async () => {

@@ -7,6 +7,7 @@ const baseEnv = {
   SUPABASE_SERVICE_ROLE_KEY: 'test-service-role-key',
   DEV_BYPASS_AUTH: 'true',
   DEV_USER_ID: 'user-1',
+  DEV_WORKSPACE_ID: 'workspace-1',
 }
 
 const sampleJob = {
@@ -83,6 +84,42 @@ describe('imports route contracts', () => {
         status: 'uploaded',
       })],
     })
+  })
+
+  it('gets an import job by id when it belongs to the workspace', async () => {
+    const mock = createMockSupabase([
+      { data: { workspace_id: 'workspace-1' }, error: null },
+      { data: sampleJob, error: null },
+    ])
+    const res = await app.request('/imports/job-1', {}, { ...baseEnv, TEST_SUPABASE: mock.client })
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual({ data: sampleJob })
+  })
+
+  it('forbids an import job from another workspace', async () => {
+    const mock = createMockSupabase([{ data: { workspace_id: 'other-workspace' }, error: null }])
+    const res = await app.request('/imports/job-1', {}, { ...baseEnv, TEST_SUPABASE: mock.client })
+
+    expect(res.status).toBe(403)
+  })
+
+  it('lists import rows only after workspace authorization', async () => {
+    const mock = createMockSupabase([
+      { data: { workspace_id: 'workspace-1' }, error: null },
+      { data: [{ id: 'row-1', import_job_id: 'job-1' }], error: null },
+    ])
+    const res = await app.request('/imports/job-1/rows', {}, { ...baseEnv, TEST_SUPABASE: mock.client })
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual({ data: [{ id: 'row-1', import_job_id: 'job-1' }] })
+  })
+
+  it('forbids row access for another workspace', async () => {
+    const mock = createMockSupabase([{ data: { workspace_id: 'other-workspace' }, error: null }])
+    const res = await app.request('/imports/job-1/rows', {}, { ...baseEnv, TEST_SUPABASE: mock.client })
+
+    expect(res.status).toBe(403)
   })
 
   it('requires csv before parsing expense imports', async () => {

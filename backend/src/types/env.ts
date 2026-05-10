@@ -11,4 +11,7 @@ export interface Env {
   DB_PASSWORD?: string
   /** Test-only injection point for route contract tests. */
   TEST_SUPABASE?: unknown
+  RESEND_API_KEY?: string
+  EMAIL_FROM?: string
+  FRONTEND_BASE_URL?: string
 }

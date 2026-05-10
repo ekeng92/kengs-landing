@@ -22,7 +22,7 @@ app.use(
   '*',
   cors({
     origin: [
-      'https://kengs-landing-frontend.pages.dev',
+      'https://kengs-landing.pages.dev',
       'http://localhost:8788',
       'http://localhost:3000',
     ],
