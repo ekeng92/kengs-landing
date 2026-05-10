@@ -358,6 +358,14 @@ export const UpdateCsvTemplateBody = z.object({
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 
+// ─── Format Detection ─────────────────────────────────────────────────────────
+
+export const DetectFormatBody = z.object({
+  csv: z.string().min(1, 'csv is required'),
+})
+
+// ─── Shared helpers ───────────────────────────────────────────────────────────
+
 /** Format Zod errors into a client-friendly message */
 export function formatZodError(err: z.ZodError): string {
   return err.issues.map(e => `${e.path.join('.')}: ${e.message}`).join('; ')
