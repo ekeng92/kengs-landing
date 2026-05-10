@@ -1,0 +1,27 @@
+{
+  "name": "kengs-landing",
+  "version": "1.0.0",
+  "description": "AI-powered financial operations system for a short-term rental business. Built as a real working system for Keng's Landing properties, with the goal of proving out a product that any Airbnb/VRBO host could use.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ekeng92/kengs-landing.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ekeng92/kengs-landing/issues"
+  },
+  "homepage": "https://github.com/ekeng92/kengs-landing#readme",
+  "devDependencies": {
+    "cypress": "^15.14.2"
+  }
+}

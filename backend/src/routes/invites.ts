@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { requireAuth, type AuthVariables } from '../lib/auth'
 import { createSupabaseClient } from '../lib/supabase'
 import { requireWorkspaceFeature, validFeatureAccess, type FeatureAccess } from '../lib/permissions'
+import { sendTransactionalEmail } from '../lib/email'
 import type { Env } from '../types/env'
 
 type Bindings = Env
@@ -10,6 +11,71 @@ type Variables = AuthVariables
 // ─── Email validation ─────────────────────────────────────────────────────────
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+const FRONTEND_BASE = 'https://kengs-landing.pages.dev'
+
+async function sendInviteEmails(params: {
+  env: Env
+  supabase: ReturnType<typeof createSupabaseClient>
+  workspaceId: string
+  inviteEmail: string
+  inviterUserId: string
+  token: string
+  expiresAt: string
+}) {
+  if (!params.env.RESEND_API_KEY || !params.env.EMAIL_FROM) {
+    return
+  }
+
+  const frontendBase = params.env.FRONTEND_BASE_URL || FRONTEND_BASE
+  const inviteUrl = `${frontendBase}/register/?token=${params.token}`
+
+  const { data: workspace } = await params.supabase
+    .from('workspaces')
+    .select('name')
+    .eq('id', params.workspaceId)
+    .single()
+
+  const workspaceName = workspace?.name || 'Keng\'s Landing'
+
+  const inviteeSubject = `You're invited to join ${workspaceName}`
+  const inviteeText = [
+    `You're invited to join ${workspaceName}.`,
+    '',
+    `Email: ${params.inviteEmail}`,
+    `Invite link: ${inviteUrl}`,
+    `Expires: ${params.expiresAt}`,
+  ].join('\n')
+  const inviteeHtml = `<p>You're invited to join <strong>${workspaceName}</strong>.</p><p>Email: ${params.inviteEmail}</p><p><a href="${inviteUrl}">${inviteUrl}</a></p><p>Expires: ${params.expiresAt}</p>`
+
+  await sendTransactionalEmail(params.env, {
+    to: params.inviteEmail,
+    subject: inviteeSubject,
+    text: inviteeText,
+    html: inviteeHtml,
+  })
+
+  const { data: inviter } = await params.supabase.auth.admin.getUserById(params.inviterUserId)
+  const inviterEmail = inviter?.user?.email
+  if (!inviterEmail) return
+
+  const inviterSubject = `Invite sent to ${params.inviteEmail}`
+  const inviterText = [
+    `Your access grant was successfully sent for ${workspaceName}.`,
+    '',
+    `Invitee email: ${params.inviteEmail}`,
+    `Invite link: ${inviteUrl}`,
+    `Expires: ${params.expiresAt}`,
+  ].join('\n')
+  const inviterHtml = `<p>Your access grant was successfully sent for <strong>${workspaceName}</strong>.</p><p>Invitee email: ${params.inviteEmail}</p><p><a href="${inviteUrl}">${inviteUrl}</a></p><p>Expires: ${params.expiresAt}</p>`
+
+  await sendTransactionalEmail(params.env, {
+    to: inviterEmail,
+    subject: inviterSubject,
+    text: inviterText,
+    html: inviterHtml,
+  })
+}
 
 // ─── Public routes (no auth — token-based invite acceptance) ──────────────────
 
@@ -466,6 +532,16 @@ inviteAdminRouter.post('/', async (c) => {
 
   if (error) return c.json({ error: 'Failed to create invite' }, 500)
 
+  await sendInviteEmails({
+    env: c.env,
+    supabase,
+    workspaceId: body.workspace_id,
+    inviteEmail: email,
+    inviterUserId: userId,
+    token,
+    expiresAt,
+  }).catch((emailErr) => console.warn('invite email send failed:', emailErr))
+
   return c.json({
     data: {
       ...data,
@@ -563,6 +639,20 @@ inviteAdminRouter.post('/:id/resend', async (c) => {
     .single()
 
   if (error) return c.json({ error: 'Failed to resend invite' }, 500)
+
+  const inviteEmail = (data as { email?: string } | null)?.email
+  const workspaceId = invite.workspace_id
+  if (inviteEmail) {
+    await sendInviteEmails({
+      env: c.env,
+      supabase,
+      workspaceId,
+      inviteEmail,
+      inviterUserId: c.get('userId'),
+      token: newToken,
+      expiresAt,
+    }).catch((emailErr) => console.warn('invite resend email failed:', emailErr))
+  }
 
   return c.json({
     data: {

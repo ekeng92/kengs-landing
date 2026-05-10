@@ -7,6 +7,7 @@ const baseEnv = {
   SUPABASE_SERVICE_ROLE_KEY: 'test-service-role-key',
   DEV_BYPASS_AUTH: 'true',
   DEV_USER_ID: 'user-1',
+  DEV_WORKSPACE_ID: 'workspace-1',
 }
 
 const sampleTrip = {
@@ -59,12 +60,22 @@ describe('mileage route contracts', () => {
   })
 
   it('gets a single mileage trip by id', async () => {
-    const mock = createMockSupabase([{ data: sampleTrip, error: null }])
+    const mock = createMockSupabase([
+      { data: { workspace_id: 'workspace-1' }, error: null },
+      { data: sampleTrip, error: null },
+    ])
     const res = await app.request('/mileage/trip-1', {}, { ...baseEnv, TEST_SUPABASE: mock.client })
 
     expect(res.status).toBe(200)
     await expect(res.json()).resolves.toEqual({ data: sampleTrip })
-    expect(mock.tableCalls).toEqual(['mileage_trips'])
+    expect(mock.tableCalls).toEqual(['mileage_trips', 'mileage_trips'])
+  })
+
+  it('forbids a mileage trip from another workspace', async () => {
+    const mock = createMockSupabase([{ data: { workspace_id: 'other-workspace' }, error: null }])
+    const res = await app.request('/mileage/trip-1', {}, { ...baseEnv, TEST_SUPABASE: mock.client })
+
+    expect(res.status).toBe(403)
   })
 
   it('creates a mileage trip with auto-calculated deduction', async () => {

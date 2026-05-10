@@ -11,63 +11,152 @@
   <title>Keng's Landing — Operations Hub</title>
   <link rel="stylesheet" href="css/app-shell.css" />
   <style>
-    .hero { margin-bottom: 32px; }
-    .hero h1 { font-size: 1.4rem; font-weight: 700; margin-bottom: 6px; }
-    .hero p { color: var(--text-muted); font-size: 0.88rem; max-width: 540px; }
+    /* ── Hub Layout ─────────────────────────────────────────────── */
+    .hub-wrap { max-width: 840px; margin: 0 auto; }
 
-    .section-label {
-      font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1px;
-      color: var(--text-dim); font-weight: 600; margin-bottom: 12px;
+    /* ── Hero ───────────────────────────────────────────────────── */
+    .hero { margin-bottom: 36px; }
+    .hero h1 {
+      font-size: 1.5rem; font-weight: 700; margin-bottom: 8px;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,.72) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      color: var(--text-muted); font-size: 0.9rem;
+      max-width: 540px; line-height: 1.55;
     }
 
+    /* ── Section Labels ────────────────────────────────────────── */
+    .section-label {
+      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.2px;
+      color: var(--text-dim); font-weight: 600; margin-bottom: 14px;
+      padding-bottom: 8px; padding-left: 10px;
+      border-bottom: 1px solid var(--border);
+      border-left: 2px solid var(--accent, #22c55e);
+    }
+
+    /* ── Card Grid ─────────────────────────────────────────────── */
     .card-grid {
       display: grid; grid-template-columns: 1fr;
-      gap: 12px; margin-bottom: 36px;
+      gap: 10px; margin-bottom: 40px;
     }
+
+    /* ── Cards ──────────────────────────────────────────────────── */
     .card {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 16px;
+      border-radius: var(--radius); padding: 18px 20px;
       text-decoration: none; color: inherit;
-      transition: border-color .15s, background .15s, transform .1s;
-      display: flex; align-items: center; gap: 14px;
+      display: flex; align-items: center; gap: 16px;
       cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,.12), 0 0 0 0 transparent;
+      transition: border-color .2s ease, background .2s ease, box-shadow .25s ease, transform .12s ease;
       -webkit-tap-highlight-color: transparent;
+      position: relative;
     }
+    .card::before {
+      content: ''; position: absolute; left: 0; top: 8px; bottom: 8px;
+      width: 3px; border-radius: 0 3px 3px 0;
+      background: var(--card-accent, var(--accent, #22c55e));
+      opacity: 0; transition: opacity .25s ease;
+    }
+    .card:hover::before { opacity: 1; }
     .card:active { transform: scale(0.98); }
-    .card:hover { border-color: var(--border2); background: var(--surface2); }
-    .card-icon {
-      width: 42px; height: 42px; border-radius: var(--radius-sm);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.15rem; flex-shrink: 0;
+    .card:hover {
+      border-color: rgba(255,255,255,.12); background: var(--surface2);
+      box-shadow: 0 8px 24px rgba(0,0,0,.3), 0 0 0 1px rgba(255,255,255,.05);
+      transform: translateY(-2px);
     }
-    .card-icon.green { background: var(--accent-dim); }
-    .card-icon.blue { background: rgba(37,99,235,.2); }
-    .card-icon.purple { background: rgba(124,58,237,.2); }
-    .card-icon.orange { background: rgba(217,119,6,.2); }
+
+    .card-icon {
+      width: 46px; height: 46px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.25rem; flex-shrink: 0;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+      transition: transform .25s ease, box-shadow .25s ease;
+    }
+    .card:hover .card-icon {
+      transform: scale(1.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 2px 8px rgba(0,0,0,.2);
+    }
+    .card-icon.green  { background: var(--accent-dim); }
+    .card-icon.blue   { background: rgba(37,99,235,.18); }
+    .card-icon.purple { background: rgba(124,58,237,.18); }
+    .card-icon.orange { background: rgba(217,119,6,.18); }
+
     .card-body { flex: 1; min-width: 0; }
-    .card-title { font-weight: 600; font-size: 0.92rem; }
-    .card-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; margin-top: 2px; }
+    .card-title {
+      font-weight: 600; font-size: 0.95rem;
+      transition: color .15s ease;
+    }
+    .card:hover .card-title { color: #fff; }
+    .card-desc {
+      font-size: 0.78rem; color: var(--text-muted);
+      line-height: 1.5; margin-top: 4px;
+    }
+
     .card-tag {
       display: inline-block; padding: 2px 8px; border-radius: 999px;
       font-size: 0.62rem; font-weight: 600; text-transform: uppercase;
-      letter-spacing: 0.4px; margin-top: 4px;
+      letter-spacing: 0.5px; margin-top: 7px;
+      border: 1px solid transparent;
     }
-    .tag-live { background: var(--accent-dim); color: var(--accent-light); }
-    .tag-tool { background: rgba(37,99,235,.15); color: var(--blue-light); }
-    .tag-doc { background: rgba(124,58,237,.15); color: var(--purple-light); }
-    .tag-ops { background: rgba(217,119,6,.15); color: var(--orange-light); }
+    .tag-live { background: var(--accent-dim); color: var(--accent-light); border-color: rgba(34,197,94,.15); }
+    .tag-tool { background: rgba(37,99,235,.15); color: var(--blue-light); border-color: rgba(37,99,235,.12); }
+    .tag-doc  { background: rgba(124,58,237,.15); color: var(--purple-light); border-color: rgba(124,58,237,.12); }
+    .tag-ops  { background: rgba(217,119,6,.15); color: var(--orange-light); border-color: rgba(217,119,6,.12); }
 
-    .card-chevron { color: var(--text-dim); font-size: 1.1rem; flex-shrink: 0; }
+    .card-chevron {
+      color: var(--text-dim); flex-shrink: 0;
+      font-size: 0.85rem; font-weight: 300;
+      transition: transform .2s ease, color .2s ease, opacity .2s ease;
+      opacity: 0.5;
+    }
+    .card:hover .card-chevron {
+      transform: translateX(3px);
+      color: var(--accent-light, #4ade80);
+      opacity: 1;
+    }
 
-    @media (min-width: 768px) {
+    /* ── Entrance Animation ──────────────────────────────────── */
+    @keyframes card-enter {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .card {
+      animation: card-enter .4s ease both;
+    }
+    .card:nth-child(1) { animation-delay: .05s; }
+    .card:nth-child(2) { animation-delay: .1s; }
+    .card:nth-child(3) { animation-delay: .15s; }
+    .card:nth-child(4) { animation-delay: .2s; }
+
+    /* ── Per-section accent colors ─────────────────────────────── */
+    .card-grid:nth-of-type(1) .card { --card-accent: #22c55e; }
+    .card-grid:nth-of-type(1) .card:nth-child(3) { --card-accent: #2563eb; }
+    .card-grid:nth-of-type(1) .card:nth-child(4) { --card-accent: #7c3aed; }
+    .card-grid:nth-of-type(2) .card:nth-child(1) { --card-accent: #d97706; }
+    .card-grid:nth-of-type(2) .card:nth-child(2) { --card-accent: #7c3aed; }
+
+    /* ── Tablet (≥600px) ───────────────────────────────────────── */
+    @media (min-width: 600px) {
       .card-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
-      .hero h1 { font-size: 1.6rem; }
+      .hero h1 { font-size: 1.65rem; }
+    }
+
+    /* ── Desktop (≥1024px) ─────────────────────────────────────── */
+    @media (min-width: 1024px) {
+      .hero h1 { font-size: 1.8rem; }
+      .hero { margin-bottom: 44px; }
     }
   </style>
 </head>
 <body>
 
   <div class="app-content">
+    <div class="hub-wrap">
     <div class="hero">
       <h1>What would you like to do?</h1>
       <p>Finance tracking, booking imports, and operations for Keng's Landing properties.</p>
@@ -133,6 +222,7 @@
         </div>
         <span class="card-chevron">›</span>
       </a>
+    </div>
     </div>
   </div>
 

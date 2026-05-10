@@ -115,11 +115,15 @@ cleanPublicRouter.post('/:token/submit', async (c) => {
     session_id,
     items,
     notes,
+    completed_by,
+    cleaned_date,
     client_metadata,
   } = body as {
     session_id: string
     items: Array<{ key: string; label: string; section: string; checked: boolean; checked_at?: string }>
     notes?: string
+    completed_by?: string
+    cleaned_date?: string
     client_metadata?: {
       screen_size?: string
       language?: string
@@ -161,6 +165,8 @@ cleanPublicRouter.post('/:token/submit', async (c) => {
     submitted_at: now,
     status: 'submitted',
     notes: notes || null,
+    completed_by: completed_by || null,
+    cleaned_date: cleaned_date || null,
   }
 
   if (client_metadata) {

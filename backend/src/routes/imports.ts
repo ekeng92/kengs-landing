@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { requireAuth, type AuthVariables } from '../lib/auth'
 import { createSupabaseClient } from '../lib/supabase'
+import { requireWorkspaceFeature } from '../lib/permissions'
 import type { Env } from '../types/env'
 import type { ImportRowReviewStatus, ExpenseReviewState, DocumentationStatus } from '../types/schema'
 import { parseCsvText, normalizeAirbnbRow, checkDedup, filterReservationRows } from '../../booking-ingest/airbnb-parser'
@@ -75,10 +76,23 @@ importsRouter.get('/', async (c) => {
 /** Get import job status and summary counts */
 importsRouter.get('/:jobId', async (c) => {
   const supabase = createSupabaseClient(c.env)
+  const jobId = c.req.param('jobId')
+
+  const { data: existing, error: existingError } = await supabase
+    .from('import_jobs')
+    .select('workspace_id')
+    .eq('id', jobId)
+    .single()
+
+  if (existingError || !existing) return c.json({ error: 'Not found' }, 404)
+
+  const forbidden = await requireWorkspaceFeature(c, existing.workspace_id, 'imports', 'read')
+  if (forbidden) return forbidden
+
   const { data, error } = await supabase
     .from('import_jobs')
     .select('*')
-    .eq('id', c.req.param('jobId'))
+    .eq('id', jobId)
     .single()
 
   if (error) return c.json({ error: 'Not found' }, 404)
@@ -92,12 +106,24 @@ importsRouter.get('/:jobId', async (c) => {
  */
 importsRouter.get('/:jobId/rows', async (c) => {
   const supabase = createSupabaseClient(c.env)
+  const jobId = c.req.param('jobId')
   const reviewStatus = c.req.query('review_status') as ImportRowReviewStatus | undefined
+
+  const { data: existing, error: existingError } = await supabase
+    .from('import_jobs')
+    .select('workspace_id')
+    .eq('id', jobId)
+    .single()
+
+  if (existingError || !existing) return c.json({ error: 'Not found' }, 404)
+
+  const forbidden = await requireWorkspaceFeature(c, existing.workspace_id, 'imports', 'read')
+  if (forbidden) return forbidden
 
   let query = supabase
     .from('import_rows')
     .select('*')
-    .eq('import_job_id', c.req.param('jobId'))
+    .eq('import_job_id', jobId)
 
   if (reviewStatus) query = query.eq('review_status', reviewStatus)
 
@@ -114,6 +140,20 @@ importsRouter.get('/:jobId/rows', async (c) => {
  */
 importsRouter.patch('/:jobId/rows/:rowId', async (c) => {
   const supabase = createSupabaseClient(c.env)
+  const jobId = c.req.param('jobId')
+  const rowId = c.req.param('rowId')
+
+  const { data: existing, error: existingError } = await supabase
+    .from('import_jobs')
+    .select('workspace_id')
+    .eq('id', jobId)
+    .single()
+
+  if (existingError || !existing) return c.json({ error: 'Not found' }, 404)
+
+  const forbidden = await requireWorkspaceFeature(c, existing.workspace_id, 'imports', 'write')
+  if (forbidden) return forbidden
+
   const body = await c.req.json<{
     review_status?: ImportRowReviewStatus
     normalized_payload?: Record<string, unknown>
@@ -122,8 +162,8 @@ importsRouter.patch('/:jobId/rows/:rowId', async (c) => {
   const { data, error } = await supabase
     .from('import_rows')
     .update({ ...body, updated_at: new Date().toISOString() })
-    .eq('id', c.req.param('rowId'))
-    .eq('import_job_id', c.req.param('jobId'))
+    .eq('id', rowId)
+    .eq('import_job_id', jobId)
     .select()
     .single()
 

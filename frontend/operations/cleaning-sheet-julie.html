@@ -6,15 +6,17 @@
   <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
   <title>Keng's Landing — Cleaning Sheet (Julie)</title>
   <style>
-    /* ============================
-       PAGE SETUP
-    ============================ */
-    @page {
-      size: letter portrait;
-      margin: 0.45in 0.45in 0.4in;
-    }
-
+    @page { size: letter portrait; margin: 0.45in 0.45in 0.4in; }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green: #1a3a2a;
+      --green2: #22553d;
+      --blue: #1565c0;
+      --brown: #795548;
+      --border: #e7e7e7;
+      --muted: #777;
+    }
 
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
@@ -22,6 +24,23 @@
       color: #111;
       background: #f2f2f2;
       padding: 18px;
+    }
+
+    .print-bar,
+    .submit-bar {
+      max-width: 7.5in;
+      margin: 0 auto 12px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .submit-bar {
+      margin: 12px auto 0;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      justify-content: space-between;
     }
 
     .page {
@@ -33,48 +52,38 @@
       box-shadow: 0 2px 12px rgba(0,0,0,.10);
     }
 
-    /* ============================
-       HEADER
-    ============================ */
     .header {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
-      border-bottom: 2.5px solid #1a3a2a;
+      border-bottom: 2.5px solid var(--green);
       padding-bottom: 7px;
       margin-bottom: 8px;
       gap: 12px;
+      flex-wrap: wrap;
     }
 
     .header h1 {
       font-size: 15px;
       font-weight: 700;
-      color: #1a3a2a;
+      color: var(--green);
       white-space: nowrap;
     }
 
-    .header-sub {
-      font-size: 10px;
-      color: #666;
-      margin-top: 1px;
-    }
+    .header-sub { font-size: 10px; color: #666; margin-top: 1px; }
 
     .header-fields {
       display: flex;
       gap: 14px;
-      align-items: center;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
 
-    .hf {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 10px;
-    }
-
+    .hf { display: flex; align-items: center; gap: 6px; font-size: 10px; }
     .hf label { color: #555; font-weight: 600; white-space: nowrap; }
-
-    .hf input {
+    .hf input,
+    .hf textarea {
       border: none;
       border-bottom: 1.2px solid #aaa;
       font-size: 10px;
@@ -82,12 +91,13 @@
       padding: 1px 3px;
       background: transparent;
       outline: none;
-      width: 100px;
+      width: 100%;
+      min-width: 96px;
     }
 
-    /* ============================
-       TIP BAR
-    ============================ */
+    .hf input[type="date"] { min-width: 130px; }
+    .hf .wide { min-width: 160px; }
+
     .tip-bar {
       background: #fff8e1;
       border-left: 3px solid #f5c400;
@@ -99,9 +109,6 @@
       border-radius: 0 3px 3px 0;
     }
 
-    /* ============================
-       SECTION HEADERS
-    ============================ */
     .section-label {
       font-size: 9.5px;
       font-weight: 700;
@@ -113,13 +120,10 @@
       margin-bottom: 6px;
     }
 
-    .sl-turnover  { background: #1a3a2a; }
-    .sl-weekly    { background: #1565c0; }
-    .sl-monthly   { background: #795548; }
+    .sl-turnover { background: var(--green); }
+    .sl-weekly   { background: var(--blue); }
+    .sl-monthly  { background: var(--brown); }
 
-    /* ============================
-       TWO-COLUMN TURNOVER LAYOUT
-    ============================ */
     .two-col {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -127,13 +131,7 @@
       margin-bottom: 7px;
     }
 
-    /* ============================
-       SUBSECTION GROUPS
-    ============================ */
-    .group {
-      margin-bottom: 6px;
-    }
-
+    .group { margin-bottom: 6px; }
     .group-title {
       font-size: 9.5px;
       font-weight: 700;
@@ -145,9 +143,6 @@
       margin-bottom: 3px;
     }
 
-    /* ============================
-       CHECKLIST ROWS
-    ============================ */
     .item {
       display: flex;
       align-items: flex-start;
@@ -161,57 +156,18 @@
       height: 12px;
       margin-top: 1px;
       flex-shrink: 0;
-      accent-color: #1a3a2a;
+      accent-color: var(--green);
       cursor: pointer;
     }
 
-    .item-text {
-      flex: 1;
-      font-size: 10.5px;
-      line-height: 1.35;
-    }
+    .item-text { flex: 1; font-size: 10.5px; line-height: 1.35; }
+    .item-hint { font-size: 9px; color: #888; }
+    .item-note { font-size: 9.5px; color: var(--green); font-weight: 600; }
 
-    .item-hint {
-      font-size: 9px;
-      color: #888;
-      margin-top: 0;
-    }
+    .single-section { margin-bottom: 6px; }
+    .horiz-items { display: flex; flex-wrap: wrap; gap: 0 16px; }
+    .horiz-items .item { min-width: 48%; flex: 1 1 48%; }
 
-    .item-note {
-      font-size: 9.5px;
-      color: #1a3a2a;
-      font-weight: 600;
-    }
-
-    /* inline initials blank */
-    .init {
-      font-size: 9px;
-      color: #bbb;
-      white-space: nowrap;
-      margin-top: 1px;
-    }
-
-    /* ============================
-       WEEKLY + MONTHLY (single col, compact)
-    ============================ */
-    .single-section {
-      margin-bottom: 6px;
-    }
-
-    .horiz-items {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0 16px;
-    }
-
-    .horiz-items .item {
-      min-width: 48%;
-      flex: 1 1 48%;
-    }
-
-    /* ============================
-       NOTES FOOTER
-    ============================ */
     .notes-section {
       border-top: 1.5px solid #eee;
       padding-top: 5px;
@@ -227,10 +183,17 @@
       margin-bottom: 3px;
     }
 
-    .notes-line {
-      border-bottom: 1px solid #ddd;
-      height: 18px;
-      margin-bottom: 3px;
+    .notes-input {
+      width: 100%;
+      min-height: 88px;
+      resize: vertical;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 8px 10px;
+      font: inherit;
+      line-height: 1.4;
+      background: #fff;
+      outline: none;
     }
 
     .doc-footer {
@@ -238,28 +201,6 @@
       color: #ccc;
       text-align: right;
       margin-top: 4px;
-    }
-
-    /* ============================
-       PRINT STYLES
-    ============================ */
-    @media print {
-      body { background: white; padding: 0; font-size: 10px; }
-      .page { box-shadow: none; border-radius: 0; padding: 0; max-width: 100%; }
-      .no-print { display: none !important; }
-      .item { break-inside: avoid; }
-      .two-col { break-inside: avoid; }
-    }
-
-    /* ============================
-       PRINT BUTTON
-    ============================ */
-    .print-bar {
-      max-width: 7.5in;
-      margin: 0 auto 12px;
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
     }
 
     .btn {
@@ -270,170 +211,312 @@
       border-radius: 5px;
       cursor: pointer;
       font-family: inherit;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
 
-    .btn-print { background: #1a3a2a; color: #fff; }
+    .btn-print { background: var(--green); color: #fff; }
     .btn-clear { background: #eee; color: #333; }
+    .btn-submit { background: #1565c0; color: #fff; min-width: 150px; }
+    .btn-submit:disabled { opacity: .65; cursor: not-allowed; }
+    .btn-link { color: var(--green); font-weight: 700; font-size: 12px; text-decoration: none; }
+
+    .status-line { font-size: 10px; color: var(--muted); }
+
+    @media (max-width: 760px) {
+      body { padding: 10px; }
+      .page { padding: 14px 14px 12px; }
+      .two-col { grid-template-columns: 1fr; }
+      .horiz-items .item { min-width: 100%; flex-basis: 100%; }
+      .header { align-items: stretch; }
+      .header-fields { justify-content: flex-start; }
+      .hf { width: 100%; }
+      .hf input, .hf textarea { min-width: 0; }
+      .hf input[type="date"], .hf .wide { width: 100%; }
+      .submit-bar { flex-direction: column; align-items: stretch; }
+      .submit-bar .right { display: flex; flex-direction: column; gap: 8px; }
+      .btn-submit { width: 100%; }
+    }
+
+    @media print {
+      body { background: white; padding: 0; font-size: 10px; }
+      .page { box-shadow: none; border-radius: 0; padding: 0; max-width: 100%; }
+      .no-print { display: none !important; }
+      .item, .two-col { break-inside: avoid; }
+    }
   </style>
 </head>
 <body>
-
   <div class="print-bar no-print">
-    <a href="/operations/" style="text-decoration:none;color:#1a3a2a;font-weight:600;font-size:13px">‹ Operations</a>
+    <a href="/operations/" class="btn-link">‹ Operations</a>
     <span style="flex:1"></span>
+    <a href="/cleaning/" class="btn-link">History</a>
     <button class="btn btn-clear" onclick="clearAll()">Clear All</button>
     <button class="btn btn-print" onclick="window.print()">🖨 Print</button>
   </div>
 
   <div class="page">
-
-    <!-- HEADER -->
     <div class="header">
       <div>
         <h1>Keng's Landing — Cleaning Sheet</h1>
-        <div class="header-sub">360 County Road</div>
+        <div class="header-sub" id="property-name">360 County Road</div>
       </div>
       <div class="header-fields">
         <div class="hf">
-          <label>Date cleaned:</label>
-          <input type="date" />
+          <label for="date-cleaned">Date cleaned:</label>
+          <input id="date-cleaned" type="date" />
         </div>
         <div class="hf">
-          <label>Done by:</label>
-          <input type="text" placeholder="Name" style="width:80px" />
+          <label for="done-by">Done by:</label>
+          <input id="done-by" class="wide" type="text" placeholder="Name" />
         </div>
       </div>
     </div>
 
-    <!-- TIP -->
-    <div class="tip-bar">
-      ⭐ START LAUNDRY FIRST — strip all beds and start the washer before anything else so it runs while you clean.
-    </div>
+    <div class="tip-bar">⭐ START LAUNDRY FIRST — strip all beds and start the washer before anything else so it runs while you clean.</div>
 
-    <!-- ================================
-         TURNOVER SECTION (2 columns)
-    ================================= -->
     <div class="section-label sl-turnover">Every Guest Turnover</div>
-
     <div class="two-col">
-
-      <!-- LEFT COLUMN -->
       <div>
-
         <div class="group">
           <div class="group-title">Laundry &amp; Linens</div>
-          <div class="item"><input type="checkbox" /><div class="item-text">Strip all beds — put sheets &amp; pillowcases in washer <span class="item-hint">(start now!)</span></div></div>
-          <div class="item"><input type="checkbox" /><div class="item-text">Remake all beds with fresh linens</div></div>
-          <div class="item"><input type="checkbox" /><div class="item-text">Fresh bath towels, hand towels, washcloths in every bath</div></div>
-          <div class="item"><input type="checkbox" /><div class="item-text">Fresh kitchen towels</div></div>
-          <div class="item"><input type="checkbox" /><div class="item-text">Wash &amp; dry all used linens before leaving</div></div>
+          <label class="item" data-key="turnover.laundry.strip_beds" data-section="turnover"><input type="checkbox" /><div class="item-text">Strip all beds — put sheets &amp; pillowcases in washer <span class="item-hint">(start now!)</span></div></label>
+          <label class="item" data-key="turnover.laundry.remake_beds" data-section="turnover"><input type="checkbox" /><div class="item-text">Remake all beds with fresh linens</div></label>
+          <label class="item" data-key="turnover.laundry.bath_towels" data-section="turnover"><input type="checkbox" /><div class="item-text">Fresh bath towels, hand towels, washcloths in every bath</div></label>
+          <label class="item" data-key="turnover.laundry.kitchen_towels" data-section="turnover"><input type="checkbox" /><div class="item-text">Fresh kitchen towels</div></label>
+          <label class="item" data-key="turnover.laundry.wash_dry" data-section="turnover"><input type="checkbox" /><div class="item-text">Wash &amp; dry all used linens before leaving</div></label>
         </div>
 
         <div class="group">
           <div class="group-title">Bedrooms</div>
-          <div class="item"><input type="checkbox" /><div class="item-text">Dust furniture &amp; nightstands</div></div>
-          <div class="item"><input type="checkbox" /><div class="item-text">Check under beds for left-behind items</div></div>
+          <label class="item" data-key="turnover.bedrooms.dust" data-section="turnover"><input type="checkbox" /><div class="item-text">Dust furniture &amp; nightstands</div></label>
+          <label class="item" data-key="turnover.bedrooms.check_under" data-section="turnover"><input type="checkbox" /><div class="item-text">Check under beds for left-behind items</div></label>
         </div>
 
         <div class="group">
           <div class="group-title">Bathrooms (each one)</div>
-          <div class="item"><input type="checkbox" /><div class="item-text">Scrub toilet — bowl, seat, base &amp; handle</div></div>
-          <div class="item"><input type="checkbox" /><div class="item-text">Clean sink &amp; faucet</div></div>
-          <div class="item"><input type="checkbox" /><div class="item-text">Wipe mirror (streak-free)</div></div>
-          <div class="item"><input type="checkbox" /><div class="item-text">Check shower is clean &amp; clear of debris <span class="item-hint">(light spray with soap/vinegar mix &amp; rinse is usually enough — full wipe-down only if needed)</span></div></div>
-          <div class="item"><input type="checkbox" /><div class="item-text">Restock: toilet paper, soap, shampoo, conditioner, body wash</div></div>
+          <label class="item" data-key="turnover.bathrooms.toilet" data-section="turnover"><input type="checkbox" /><div class="item-text">Scrub toilet — bowl, seat, base &amp; handle</div></label>
+          <label class="item" data-key="turnover.bathrooms.sink" data-section="turnover"><input type="checkbox" /><div class="item-text">Clean sink &amp; faucet</div></label>
+          <label class="item" data-key="turnover.bathrooms.mirror" data-section="turnover"><input type="checkbox" /><div class="item-text">Wipe mirror (streak-free)</div></label>
+          <label class="item" data-key="turnover.bathrooms.shower" data-section="turnover"><input type="checkbox" /><div class="item-text">Check shower is clean &amp; clear of debris <span class="item-hint">(light spray with soap/vinegar mix &amp; rinse is usually enough — full wipe-down only if needed)</span></div></label>
+          <label class="item" data-key="turnover.bathrooms.restock" data-section="turnover"><input type="checkbox" /><div class="item-text">Restock: toilet paper, soap, shampoo, conditioner, body wash</div></label>
         </div>
+      </div>
 
-      </div><!-- /left col -->
-
-      <!-- RIGHT COLUMN -->
       <div>
-
         <div class="group">
           <div class="group-title">Kitchen</div>
-          <div class="item"><input type="checkbox" /><div class="item-text">Wipe countertops &amp; backsplash</div></div>
-          <div class="item"><input type="checkbox" /><div class="item-text">Clean microwave &amp; stovetop</div></div>
-          <div class="item"><input type="checkbox" /><div class="item-text">Clear fridge of leftover food; wipe shelves &amp; drawers</div></div>
-          <div class="item"><input type="checkbox" /><div class="item-text">Dishes — wash, dry, and put away</div></div>
-          <div class="item"><input type="checkbox" /><div class="item-text">Restock: paper towels, dish soap, sponge, trash bags</div></div>
+          <label class="item" data-key="turnover.kitchen.counters" data-section="turnover"><input type="checkbox" /><div class="item-text">Wipe countertops &amp; backsplash</div></label>
+          <label class="item" data-key="turnover.kitchen.microwave_stove" data-section="turnover"><input type="checkbox" /><div class="item-text">Clean microwave &amp; stovetop</div></label>
+          <label class="item" data-key="turnover.kitchen.fridge" data-section="turnover"><input type="checkbox" /><div class="item-text">Clear fridge of leftover food; wipe shelves &amp; drawers</div></label>
+          <label class="item" data-key="turnover.kitchen.dishes" data-section="turnover"><input type="checkbox" /><div class="item-text">Dishes — wash, dry, and put away</div></label>
+          <label class="item" data-key="turnover.kitchen.restock" data-section="turnover"><input type="checkbox" /><div class="item-text">Restock: paper towels, dish soap, sponge, trash bags</div></label>
         </div>
 
         <div class="group">
           <div class="group-title">All Areas</div>
-          <div class="item"><input type="checkbox" /><div class="item-text">Empty ALL trash cans, replace liners</div></div>
-          <div class="item"><input type="checkbox" /><div class="item-text">Roborock — empty dirty mop water bin &amp; refill clean water bin</div></div>
-          <div class="item"><input type="checkbox" /><div class="item-text">Check thermostat is on the default setting</div></div>
-          <div class="item"><input type="checkbox" /><div class="item-text">Walk-through — note any damage or missing items below</div></div>
+          <label class="item" data-key="turnover.all.trash" data-section="turnover"><input type="checkbox" /><div class="item-text">Empty ALL trash cans, replace liners</div></label>
+          <label class="item" data-key="turnover.all.roborock" data-section="turnover"><input type="checkbox" /><div class="item-text">Roborock — empty dirty mop water bin &amp; refill clean water bin</div></label>
+          <label class="item" data-key="turnover.all.thermostat" data-section="turnover"><input type="checkbox" /><div class="item-text">Check thermostat is on the default setting</div></label>
+          <label class="item" data-key="turnover.all.walkthrough" data-section="turnover"><input type="checkbox" /><div class="item-text">Walk-through — note any damage or missing items below</div></label>
         </div>
 
         <div class="group">
           <div class="group-title">Outdoor &amp; Hot Tub</div>
-          <div class="item"><input type="checkbox" /><div class="item-text">Clear patio of trash &amp; wipe patio furniture</div></div>
-          <div class="item"><input type="checkbox" /><div class="item-text">Hot tub floater — <span class="item-note">always keep at least 2 solid tablets.</span> Add 1–2 if count is low or existing tablets are mostly dissolved.</div></div>
-          <div class="item"><input type="checkbox" /><div class="item-text">Hot tub — skim water surface &amp; check water level</div></div>
+          <label class="item" data-key="turnover.outdoor.patio" data-section="turnover"><input type="checkbox" /><div class="item-text">Clear patio of trash &amp; wipe patio furniture</div></label>
+          <label class="item" data-key="turnover.outdoor.hottub_tablets" data-section="turnover"><input type="checkbox" /><div class="item-text">Hot tub floater — <span class="item-note">always keep at least 2 solid tablets.</span> Add 1–2 if count is low or existing tablets are mostly dissolved.</div></label>
+          <label class="item" data-key="turnover.outdoor.hottub_skim" data-section="turnover"><input type="checkbox" /><div class="item-text">Hot tub — skim water surface &amp; check water level</div></label>
         </div>
+      </div>
+    </div>
 
-      </div><!-- /right col -->
-    </div><!-- /two-col -->
-
-
-    <!-- ================================
-         WEEKLY SECTION
-    ================================= -->
     <div class="single-section">
       <div class="section-label sl-weekly">Weekly / As Needed</div>
       <div class="horiz-items">
-        <div class="item"><input type="checkbox" /><div class="item-text">Check mouse traps — reset or replace as needed <span class="item-hint">(note any catches below)</span></div></div>
-        <div class="item"><input type="checkbox" /><div class="item-text">Blow off patio, steps &amp; carport <span class="item-hint">(leaf blower or broom — sandy/dusty area, do often)</span></div></div>
-        <div class="item"><input type="checkbox" /><div class="item-text">Hot tub — add one shock dose <span class="item-hint">(also do after every guest)</span></div></div>
-        <div class="item"><input type="checkbox" /><div class="item-text">Hot tub — lightly scrub sides &amp; waterline with brush</div></div>
-        <div class="item"><input type="checkbox" /><div class="item-text">5-gallon water jugs — at least 1 full jug in reserve?</div></div>
-        <div class="item"><input type="checkbox" /><div class="item-text">Supplies check — see separate Supplies Inventory sheet</div></div>
+        <label class="item" data-key="weekly.mouse_traps" data-section="weekly"><input type="checkbox" /><div class="item-text">Check mouse traps — reset or replace as needed <span class="item-hint">(note any catches below)</span></div></label>
+        <label class="item" data-key="weekly.blow_patio" data-section="weekly"><input type="checkbox" /><div class="item-text">Blow off patio, steps &amp; carport <span class="item-hint">(leaf blower or broom — sandy/dusty area, do often)</span></div></label>
+        <label class="item" data-key="weekly.hottub_shock" data-section="weekly"><input type="checkbox" /><div class="item-text">Hot tub — add one shock dose <span class="item-hint">(also do after every guest)</span></div></label>
+        <label class="item" data-key="weekly.hottub_scrub" data-section="weekly"><input type="checkbox" /><div class="item-text">Hot tub — lightly scrub sides &amp; waterline with brush</div></label>
+        <label class="item" data-key="weekly.water_jugs" data-section="weekly"><input type="checkbox" /><div class="item-text">5-gallon water jugs — at least 1 full jug in reserve?</div></label>
+        <label class="item" data-key="weekly.supplies_check" data-section="weekly"><input type="checkbox" /><div class="item-text">Supplies check — see separate Supplies Inventory sheet</div></label>
       </div>
     </div>
 
-
-    <!-- ================================
-         MONTHLY SECTION
-    ================================= -->
     <div class="single-section">
       <div class="section-label sl-monthly">Monthly / As Needed — Pick 1–2 each visit to spread the work out</div>
       <div class="horiz-items">
-        <div class="item"><input type="checkbox" /><div class="item-text">Roborock — rinse mop tray &amp; put back</div></div>
-        <div class="item"><input type="checkbox" /><div class="item-text">Roborock — check dirt bag; replace if getting full</div></div>
-        <div class="item"><input type="checkbox" /><div class="item-text">Roborock — swap in clean spare mop pads; put dirty pads in wash</div></div>
-        <div class="item"><input type="checkbox" /><div class="item-text">Roborock — swap in clean spare filter; rinse old one in sink, then top rack of dishwasher</div></div>
-        <div class="item"><input type="checkbox" /><div class="item-text">Roborock — clear main brush &amp; side brush of hair; wipe sensors</div></div>
-        <div class="item"><input type="checkbox" /><div class="item-text">Scrub shower walls &amp; floor — all bathrooms</div></div>
-        <div class="item"><input type="checkbox" /><div class="item-text">Spot clean bathroom floors behind toilets &amp; in corners <span class="item-hint">(where Roborock can't reach)</span></div></div>
-        <div class="item"><input type="checkbox" /><div class="item-text">Wipe light switches &amp; door handles throughout home</div></div>
-        <div class="item"><input type="checkbox" /><div class="item-text">Patio cushions — vacuum or wipe down as needed</div></div>
-        <div class="item"><input type="checkbox" /><div class="item-text">Wipe baseboards in all rooms &amp; hallways</div></div>
-        <div class="item"><input type="checkbox" /><div class="item-text">Wipe ceiling fans &amp; light fixtures</div></div>
-        <div class="item"><input type="checkbox" /><div class="item-text">Deep clean oven interior <span class="item-hint">(as needed — every few months to yearly depending on use)</span></div></div>
+        <label class="item" data-key="monthly.roborock_mop_tray" data-section="monthly"><input type="checkbox" /><div class="item-text">Roborock — rinse mop tray &amp; put back</div></label>
+        <label class="item" data-key="monthly.roborock_dirt_bag" data-section="monthly"><input type="checkbox" /><div class="item-text">Roborock — check dirt bag; replace if getting full</div></label>
+        <label class="item" data-key="monthly.roborock_mop_pads" data-section="monthly"><input type="checkbox" /><div class="item-text">Roborock — swap in clean spare mop pads; put dirty pads in wash</div></label>
+        <label class="item" data-key="monthly.roborock_filter" data-section="monthly"><input type="checkbox" /><div class="item-text">Roborock — swap in clean spare filter; rinse old one in sink, then top rack of dishwasher</div></label>
+        <label class="item" data-key="monthly.roborock_brushes" data-section="monthly"><input type="checkbox" /><div class="item-text">Roborock — clear main brush &amp; side brush of hair; wipe sensors</div></label>
+        <label class="item" data-key="monthly.shower_deep" data-section="monthly"><input type="checkbox" /><div class="item-text">Scrub shower walls &amp; floor — all bathrooms</div></label>
+        <label class="item" data-key="monthly.bathroom_floors" data-section="monthly"><input type="checkbox" /><div class="item-text">Spot clean bathroom floors behind toilets &amp; in corners <span class="item-hint">(where Roborock can't reach)</span></div></label>
+        <label class="item" data-key="monthly.switches_handles" data-section="monthly"><input type="checkbox" /><div class="item-text">Wipe light switches &amp; door handles throughout home</div></label>
+        <label class="item" data-key="monthly.patio_cushions" data-section="monthly"><input type="checkbox" /><div class="item-text">Patio cushions — vacuum or wipe down as needed</div></label>
+        <label class="item" data-key="monthly.baseboards" data-section="monthly"><input type="checkbox" /><div class="item-text">Wipe baseboards in all rooms &amp; hallways</div></label>
+        <label class="item" data-key="monthly.ceiling_fans" data-section="monthly"><input type="checkbox" /><div class="item-text">Wipe ceiling fans &amp; light fixtures</div></label>
+        <label class="item" data-key="monthly.oven_deep" data-section="monthly"><input type="checkbox" /><div class="item-text">Deep clean oven interior <span class="item-hint">(as needed — every few months to yearly depending on use)</span></div></label>
       </div>
     </div>
 
-
-    <!-- NOTES -->
     <div class="notes-section">
       <div class="notes-label">Issues Found / Notes for the Owners</div>
-      <div class="notes-line"></div>
-      <div class="notes-line"></div>
-      <div class="notes-line"></div>
+      <textarea id="notes" class="notes-input" placeholder="Type any damage, missing items, maintenance notes, or follow-up here..."></textarea>
     </div>
 
-    <div class="doc-footer">Keng's Landing LLC · Cleaning Sheet v1.0 · April 2026</div>
+    <div class="submit-bar no-print">
+      <div>
+        <div class="status-line" id="status-line">Ready to submit to cleaning history.</div>
+      </div>
+      <div class="right">
+        <button class="btn btn-submit" id="submit-btn" onclick="submitChecklist()">Submit to History</button>
+      </div>
+    </div>
 
-  </div><!-- /page -->
+    <div class="doc-footer">Keng's Landing LLC · Cleaning Sheet v2.0 · May 2026</div>
+  </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../js/auth.js"></script>
   <script>
-    function clearAll() {
-      if (!confirm('Clear all checkboxes and fields?')) return;
-      document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-      document.querySelectorAll('input[type="text"], input[type="date"]').forEach(inp => inp.value = '');
-    }
-  </script>
+    const API_BASE = window.location.hostname === 'localhost'
+      ? 'http://localhost:8787'
+      : 'https://kengs-landing-api.kengs-landing.workers.dev'
 
+    const LIST_NAME_HINT = 'Julie'
+    let token = ''
+    let sessionId = null
+    let cleanerName = ''
+    let workspaceId = ''
+
+    async function boot() {
+      try {
+        const session = await Auth.requireLogin()
+        if (!session) return
+        workspaceId = await Auth.getWorkspaceId()
+
+        token = new URLSearchParams(window.location.search).get('token')
+          || new URLSearchParams(window.location.search).get('t')
+          || ''
+
+        if (!token) {
+          const linksRes = await Auth.apiFetch('/cleaning/links?workspace_id=' + encodeURIComponent(workspaceId))
+          const linksJson = linksRes.ok ? await linksRes.json() : { data: [] }
+          const link = (linksJson.data || []).find((l) => {
+            const name = (l.cleaner_name || '').toLowerCase()
+            return name.includes(LIST_NAME_HINT.toLowerCase()) && l.is_active !== false
+          })
+          if (link?.token) token = link.token
+        }
+
+        if (!token) throw new Error('No Julie cleaning link found')
+
+        const listRes = await fetch(API_BASE + '/clean/' + encodeURIComponent(token) + '/list')
+        if (listRes.ok) {
+          const listData = await listRes.json()
+          document.getElementById('property-name').textContent = listData.list?.name || '360 County Road'
+          hydrateFromList(listData.items || [])
+        }
+
+        const openRes = await fetch(API_BASE + '/clean/' + encodeURIComponent(token))
+        const openJson = await openRes.json()
+        if (!openRes.ok) throw new Error(openJson.error || 'Failed to open cleaning session')
+
+        sessionId = openJson.session_id
+        cleanerName = openJson.cleaner_name || 'Julie'
+        document.getElementById('done-by').value = cleanerName
+        document.getElementById('status-line').textContent = 'Session opened. Your changes will be saved on submit.'
+      } catch (err) {
+        document.getElementById('status-line').textContent = err.message || 'Failed to load cleaning sheet.'
+      }
+    }
+
+    function hydrateFromList(items) {
+      if (!Array.isArray(items) || !items.length) return
+      const map = new Map(items.map((i) => [i.item_key, i]))
+      document.querySelectorAll('.item[data-key]').forEach((row) => {
+        const item = map.get(row.dataset.key)
+        if (!item) return
+        const text = row.querySelector('.item-text')
+        if (item.item_label && text) text.childNodes[0].nodeValue = item.item_label + ' '
+      })
+    }
+
+    function clearAll() {
+      if (!confirm('Clear all checkboxes and fields?')) return
+      document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false)
+      document.querySelectorAll('#done-by, #date-cleaned, #notes').forEach(inp => inp.value = '')
+      document.getElementById('status-line').textContent = 'Cleared.'
+    }
+
+    function buildItems() {
+      return [...document.querySelectorAll('.item[data-key]')].map((row) => {
+        const cb = row.querySelector('input[type="checkbox"]')
+        return {
+          key: row.dataset.key,
+          label: row.querySelector('.item-text')?.textContent?.trim() || '',
+          section: row.dataset.section || 'turnover',
+          checked: cb?.checked || false,
+          checked_at: cb?.checked ? new Date().toISOString() : null,
+        }
+      })
+    }
+
+    async function submitChecklist() {
+      const btn = document.getElementById('submit-btn')
+      const notes = document.getElementById('notes').value.trim()
+      const doneBy = document.getElementById('done-by').value.trim()
+      const cleanedDate = document.getElementById('date-cleaned').value || null
+
+      if (!token || !sessionId) {
+        alert('Cleaning session is not ready yet.')
+        return
+      }
+
+      btn.disabled = true
+      btn.textContent = 'Submitting…'
+
+      try {
+        const res = await fetch(API_BASE + '/clean/' + encodeURIComponent(token) + '/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            session_id: sessionId,
+            items: buildItems(),
+            notes: notes || undefined,
+            completed_by: doneBy || undefined,
+            cleaned_date: cleanedDate || undefined,
+            client_metadata: {
+              screen_size: window.screen.width + 'x' + window.screen.height,
+              language: navigator.language || '',
+              connection_type: navigator.connection?.effectiveType || '',
+              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || '',
+              referrer: document.referrer || '',
+            },
+          }),
+        })
+
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Could not submit.')
+
+        document.getElementById('status-line').textContent = 'Saved to backend history.'
+        btn.textContent = 'Submitted ✓'
+        btn.disabled = true
+        alert('Cleaning sheet submitted.')
+      } catch (err) {
+        btn.disabled = false
+        btn.textContent = 'Submit to History'
+        alert(err.message || 'Connection error. Please try again.')
+      }
+    }
+
+    window.clearAll = clearAll
+    window.submitChecklist = submitChecklist
+    boot()
+  </script>
 </body>
 </html>

@@ -19,7 +19,7 @@ ${input:focus:General environment health, task board grooming, and the next high
 
 ## Task Board Protocol
 
-The **deployed task board** is the canonical record of work — not markdown, not a file in the repo. Tasks are managed through the API and visible on the Kanban at `kengs-landing-frontend.pages.dev/tasks/`.
+The **deployed task board** is the canonical record of work — not markdown, not a file in the repo. Tasks are managed through the API and visible on the Kanban at `kengs-landing.pages.dev/tasks/`.
 
 ### How agents interact with the task board
 

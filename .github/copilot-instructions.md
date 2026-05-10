@@ -13,7 +13,7 @@ Also serves as a test domain for a potential product: an STR finance tool any Ai
 | Layer | Stack | Deployed URL |
 |-------|-------|-------------|
 | **Backend** | Hono.js on Cloudflare Workers, TypeScript strict | `https://kengs-landing-api.kengs-landing.workers.dev` |
-| **Frontend** | Vanilla HTML/JS on Cloudflare Pages | `https://kengs-landing-frontend.pages.dev` |
+| **Frontend** | Vanilla HTML/JS on Cloudflare Pages | `https://kengs-landing.pages.dev` |
 | **Database** | Supabase Postgres (21+ migrations) | `db.ubfvhzepyizfjmghkhyh.supabase.co` |
 | **Auth** | Supabase JWT (`Authorization: Bearer`) + `X-API-Key` for agents |
 | **CI** | GitHub Actions — typecheck + vitest + migration checks on PR/push |
@@ -34,7 +34,7 @@ Also serves as a test domain for a potential product: an STR finance tool any Ai
 
 ## Task Management
 
-- **Canonical task board**: Deployed Kanban at `kengs-landing-frontend.pages.dev/tasks/`, backed by Supabase `tasks` table
+- **Canonical task board**: Deployed Kanban at `kengs-landing.pages.dev/tasks/`, backed by Supabase `tasks` table
 - **ALL work must be a task.** Any request related to Kengs Landing — whether from the SAGE, a shift prompt, or discovered during development — must be created on the task board BEFORE work begins. The board is the single source of truth for work state
 - **`business/finances/TASKS.md` is DEPRECATED** — snapshot for offline reference only, do NOT add new tasks there
 - Task workflow: `backlog → todo → in_progress → review → done` (review = work complete, pushed, deployed, needs SAGE acceptance)
