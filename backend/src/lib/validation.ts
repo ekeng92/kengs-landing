@@ -336,6 +336,7 @@ export const CreateCsvTemplateBody = z.object({
   }).nullable().optional(),
   amount_sign: csvAmountSign.optional().default('negative_is_debit'),
   date_format: csvDateFormat.optional().default('auto'),
+  source_url: z.string().url().max(2000).nullable().optional(),
   is_builtin: z.boolean().optional().default(false),
 })
 
@@ -350,6 +351,7 @@ export const UpdateCsvTemplateBody = z.object({
   }).nullable().optional(),
   amount_sign: csvAmountSign.optional(),
   date_format: csvDateFormat.optional(),
+  source_url: z.string().url().max(2000).nullable().optional(),
 }).refine(obj => Object.keys(obj).length > 0, {
   message: 'At least one field must be provided for update',
 })

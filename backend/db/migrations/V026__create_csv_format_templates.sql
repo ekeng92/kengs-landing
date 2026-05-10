@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS csv_format_templates (
   row_filter JSONB,
   amount_sign TEXT NOT NULL DEFAULT 'negative_is_debit' CHECK (amount_sign IN ('negative_is_debit', 'separate_columns', 'always_positive')),
   date_format TEXT NOT NULL DEFAULT 'auto' CHECK (date_format IN ('auto', 'MM/DD/YYYY', 'YYYY-MM-DD', 'DD/MM/YYYY', 'M/D/YYYY')),
+  source_url TEXT,
   is_builtin BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
