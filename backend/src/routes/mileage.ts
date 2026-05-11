@@ -170,6 +170,9 @@ mileageRouter.patch('/:id', async (c) => {
 
   if (!existing) return c.json({ error: 'Not found' }, 404)
 
+  const forbidden = await requireWorkspaceFeature(c, existing.workspace_id, 'mileage', 'write')
+  if (forbidden) return forbidden
+
   const patch: Record<string, unknown> = {
     updated_at: new Date().toISOString(),
   }
@@ -214,11 +217,25 @@ mileageRouter.delete('/:id', async (c) => {
   const supabase = createSupabaseClient(c.env)
   const id = c.req.param('id')
 
+  const { data: existing, error: existingError } = await supabase
+    .from('mileage_trips')
+    .select('workspace_id')
+    .eq('id', id)
+    .single()
+
+  if (existingError || !existing) return c.json({ error: 'Not found' }, 404)
+
+  const forbidden = await requireWorkspaceFeature(c, existing.workspace_id, 'mileage', 'write')
+  if (forbidden) return forbidden
+
   const { error } = await supabase
     .from('mileage_trips')
     .delete()
     .eq('id', id)
 
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) {
+    const mapped = mapDbError(error)
+    return c.json({ error: mapped.message }, mapped.status as any)
+  }
   return c.json({ success: true })
 })

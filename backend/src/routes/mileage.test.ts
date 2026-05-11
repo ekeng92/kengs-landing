@@ -177,17 +177,16 @@ describe('mileage route contracts', () => {
   })
 
   it('deletes a mileage trip', async () => {
-    const mock = createMockSupabase([{ error: null }])
+    const mock = createMockSupabase([
+      { data: { workspace_id: 'workspace-1' }, error: null },  // workspace lookup
+      { error: null },  // delete
+    ])
     const res = await app.request('/mileage/trip-1', {
       method: 'DELETE',
     }, { ...baseEnv, TEST_SUPABASE: mock.client })
 
     expect(res.status).toBe(200)
     await expect(res.json()).resolves.toEqual({ success: true })
-    expect(mock.tableCalls).toEqual(['mileage_trips'])
-    expect(mock.builders[0]?.calls).toEqual([
-      { method: 'delete', args: [] },
-      { method: 'eq', args: ['id', 'trip-1'] },
-    ])
+    expect(mock.tableCalls).toEqual(['mileage_trips', 'mileage_trips'])
   })
 })

@@ -4,12 +4,12 @@ import type { Env } from '../types/env'
 
 /** Timing-safe string comparison to prevent timing attacks on secret comparison */
 function timingSafeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false
   const encoder = new TextEncoder()
   const bufA = encoder.encode(a)
   const bufB = encoder.encode(b)
-  let result = 0
-  for (let i = 0; i < bufA.length; i++) {
+  const maxLen = Math.max(bufA.length, bufB.length)
+  let result = bufA.length ^ bufB.length
+  for (let i = 0; i < maxLen; i++) {
     result |= (bufA[i] ?? 0) ^ (bufB[i] ?? 0)
   }
   return result === 0

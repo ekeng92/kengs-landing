@@ -8,7 +8,7 @@ import { parseCsvText, normalizeAirbnbRow, checkDedup, filterReservationRows } f
 import { parseBankCsv } from '../../expense-import/parse'
 import { promoteRow, recordClassificationEvent, tryAdvanceJobStatus } from '../../expense-import/promote'
 import { detectFormat, generateHeaderFingerprint, splitCsvRows } from '../lib/universal-csv-parser'
-import { DetectFormatBody, formatZodError } from '../lib/validation'
+import { DetectFormatBody, formatZodError, mapDbError } from '../lib/validation'
 
 type Bindings = Env
 type Variables = AuthVariables
@@ -54,7 +54,7 @@ importsRouter.post('/', async (c) => {
     .select()
     .single()
 
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) { const mapped = mapDbError(error); return c.json({ error: mapped.message }, mapped.status as any) }
   return c.json({ data }, 201)
 })
 
@@ -71,7 +71,7 @@ importsRouter.get('/', async (c) => {
     .order('created_at', { ascending: false })
     .limit(50)
 
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) { const mapped = mapDbError(error); return c.json({ error: mapped.message }, mapped.status as any) }
   return c.json({ data })
 })
 
@@ -131,7 +131,7 @@ importsRouter.get('/:jobId/rows', async (c) => {
 
   const { data, error } = await query.order('row_index')
 
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) { const mapped = mapDbError(error); return c.json({ error: mapped.message }, mapped.status as any) }
   return c.json({ data })
 })
 
@@ -169,7 +169,7 @@ importsRouter.patch('/:jobId/rows/:rowId', async (c) => {
     .select()
     .single()
 
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) { const mapped = mapDbError(error); return c.json({ error: mapped.message }, mapped.status as any) }
   return c.json({ data })
 })
 
