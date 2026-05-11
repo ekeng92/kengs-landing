@@ -66,6 +66,48 @@ async function uploadFile(file) {
     jobId = jobData.data.id;
 
     const csvText = await file.text();
+    document.getElementById('upload-progress').style.display = 'none';
+
+    // Open the mapping wizard
+    var authHeaders = await Auth.getHeaders();
+    var token = authHeaders['Authorization'] ? authHeaders['Authorization'].replace('Bearer ', '') : '';
+
+    var wizard = new CsvMappingWizard({
+      entityType: 'booking',
+      csvText: csvText,
+      apiBase: API,
+      jobId: jobId,
+      getAuthToken: function () { return token; },
+      getWorkspaceId: function () { return WS_ID; },
+      onComplete: async function (result) {
+        if (result.autoSelected) {
+          showToast('Using template: ' + result.templateName);
+        } else if (result.templateName) {
+          showToast('Mapped with: ' + result.templateName);
+        }
+
+        bookingTemplateName = result.templateName || null;
+
+        // Proceed with normal parse
+        document.getElementById('upload-progress').style.display = 'block';
+        await parseBookingCsv(csvText);
+      },
+      onCancel: function () {
+        // User cancelled; job exists but no parse
+      },
+    });
+
+    wizard.open();
+  } catch (err) {
+    showToast(`Upload error: ${err.message}`);
+    document.getElementById('upload-progress').style.display = 'none';
+  }
+}
+
+var bookingTemplateName = null;
+
+async function parseBookingCsv(csvText) {
+  try {
     const parseRes = await fetch(`${API}/imports/${jobId}/parse-bookings`, {
       method: 'POST',
       headers: await Auth.jsonHeaders(),
@@ -80,7 +122,7 @@ async function uploadFile(file) {
     await loadRows();
     showReviewUI();
   } catch (err) {
-    showToast(`Upload error: ${err.message}`);
+    showToast(`Parse error: ${err.message}`);
   } finally {
     document.getElementById('upload-progress').style.display = 'none';
   }
@@ -228,7 +270,7 @@ async function promoteAll() {
 // Reset
 // ---------------------------------------------------------------------------
 function resetToUpload() {
-  jobId = null; rows = []; jobStatus = null;
+  jobId = null; rows = []; jobStatus = null; bookingTemplateName = null;
   document.getElementById('upload-section').style.display = 'block';
   document.getElementById('review-section').style.display = 'none';
   document.getElementById('completion-banner').style.display = 'none';
