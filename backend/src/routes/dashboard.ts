@@ -4,7 +4,7 @@ import { Hono } from 'hono'
 import { requireAuth, type AuthVariables } from '../lib/auth'
 import { createSupabaseClient } from '../lib/supabase'
 import type { Env } from '../types/env'
-import { DashboardMetricsQuery, DashboardExportQuery, formatZodError } from '../lib/validation'
+import { DashboardMetricsQuery, DashboardExportQuery, formatZodError, mapDbError } from '../lib/validation'
 
 type Bindings = Env
 type Variables = AuthVariables
@@ -119,7 +119,7 @@ dashboardRouter.get('/export/expenses', async (c: any) => {
   if (category) query = query.eq('category', category)
   if (reviewState) query = query.eq('review_state', reviewState)
   const { data, error } = await query
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) { const mapped = mapDbError(error); return c.json({ error: mapped.message }, mapped.status as any) }
   const fields = ['transaction_date','merchant_name','description','category','amount','payment_method','review_state','tax_period','documentation_status','property_code']
   const csv = [fields.join(',')].concat(data.map((e: any) => fields.map((f: string) => JSON.stringify(e[f] ?? '')).join(','))).join('\n')
   c.header('Content-Type', 'text/csv')
@@ -156,7 +156,7 @@ dashboardRouter.get('/export/bookings', async (c: any) => {
     .lte('check_out_date', dateTo)
   if (sourcePlatform) query = query.eq('source_platform', sourcePlatform)
   const { data, error } = await query
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) { const mapped = mapDbError(error); return c.json({ error: mapped.message }, mapped.status as any) }
   const fields = ['source_confirmation_code','guest_name','check_in_date','check_out_date','nights','gross_revenue_amount','cleaning_fee_amount','platform_fee_amount','tax_amount','net_payout_amount','source_platform','property_code']
   const csv = [fields.join(',')].concat(data.map((b: any) => fields.map((f: string) => JSON.stringify(b[f] ?? '')).join(','))).join('\n')
   c.header('Content-Type', 'text/csv')

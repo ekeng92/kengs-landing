@@ -95,7 +95,10 @@ describe('properties route contracts', () => {
 
   it('updates a property with PATCH', async () => {
     const updated = { ...sampleProperty, market: 'Travis County' }
-    const mock = createMockSupabase([{ data: updated, error: null }])
+    const mock = createMockSupabase([
+      { data: { workspace_id: TEST_WORKSPACE }, error: null },  // workspace lookup
+      { data: updated, error: null },  // update
+    ])
     const res = await app.request('/properties/prop-001', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },

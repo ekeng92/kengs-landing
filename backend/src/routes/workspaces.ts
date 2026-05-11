@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { requireAuth, type AuthVariables } from '../lib/auth'
 import { createSupabaseClient } from '../lib/supabase'
 import { requireWorkspaceFeature, validFeatureAccess, VALID_ROLES, type FeatureAccess } from '../lib/permissions'
+import { mapDbError } from '../lib/validation'
 import type { Env } from '../types/env'
 
 type Bindings = Env
@@ -21,7 +22,7 @@ workspacesRouter.get('/', async (c) => {
     .select('workspace_id, role, display_name, email, feature_access, workspaces(*)')
     .eq('user_id', userId)
 
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) { const mapped = mapDbError(error); return c.json({ error: mapped.message }, mapped.status as any) }
   return c.json({ data })
 })
 
@@ -63,7 +64,7 @@ workspacesRouter.get('/:id', async (c) => {
   if (!membership) return c.json({ error: 'Not found' }, 404)
 
   const { data, error } = await supabase.from('workspaces').select('*').eq('id', id).single()
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) { const mapped = mapDbError(error); return c.json({ error: mapped.message }, mapped.status as any) }
   return c.json({ data })
 })
 
@@ -83,7 +84,7 @@ workspacesRouter.patch('/:id', async (c) => {
     .select()
     .single()
 
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) { const mapped = mapDbError(error); return c.json({ error: mapped.message }, mapped.status as any) }
   return c.json({ data })
 })
 
@@ -107,7 +108,7 @@ workspacesRouter.get('/:id/profile', async (c) => {
 
   if (error) {
     if (error.code === 'PGRST116') return c.json({ error: 'Not a member of this workspace' }, 404)
-    return c.json({ error: error.message }, 500)
+    const mapped = mapDbError(error); return c.json({ error: mapped.message }, mapped.status as any)
   }
   return c.json({ data })
 })
@@ -141,7 +142,7 @@ workspacesRouter.patch('/:id/profile', async (c) => {
 
   if (error) {
     if (error.code === 'PGRST116') return c.json({ error: 'Not a member of this workspace' }, 404)
-    return c.json({ error: error.message }, 500)
+    const mapped = mapDbError(error); return c.json({ error: mapped.message }, mapped.status as any)
   }
   return c.json({ data })
 })
@@ -177,7 +178,7 @@ workspacesRouter.get('/:id/members', async (c) => {
       if (fallbackErr) return c.json({ error: fallbackErr.message }, 500)
       return c.json({ data: fallback })
     }
-    return c.json({ error: error.message }, 500)
+    const mapped = mapDbError(error); return c.json({ error: mapped.message }, mapped.status as any)
   }
   return c.json({ data })
 })
@@ -246,7 +247,7 @@ workspacesRouter.post('/:id/members', async (c) => {
     .select()
     .single()
 
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) { const mapped = mapDbError(error); return c.json({ error: mapped.message }, mapped.status as any) }
   return c.json({ data }, 201)
 })
 
@@ -289,7 +290,7 @@ workspacesRouter.patch('/:id/members/:memberId', async (c) => {
     .select()
     .single()
 
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) { const mapped = mapDbError(error); return c.json({ error: mapped.message }, mapped.status as any) }
   return c.json({ data })
 })
 
@@ -310,6 +311,6 @@ workspacesRouter.delete('/:id/members/:memberId', async (c) => {
     .eq('id', memberId)
     .eq('workspace_id', workspaceId)
 
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) { const mapped = mapDbError(error); return c.json({ error: mapped.message }, mapped.status as any) }
   return c.json({ success: true })
 })

@@ -176,6 +176,18 @@ bookingsRouter.post('/', async (c) => {
 /** Update editable fields on a booking (guest_name, notes, etc.) */
 bookingsRouter.patch('/:id', async (c) => {
   const supabase = createSupabaseClient(c.env)
+  const id = c.req.param('id')
+
+  const { data: existing, error: existingError } = await supabase
+    .from('bookings')
+    .select('workspace_id')
+    .eq('id', id)
+    .single()
+
+  if (existingError || !existing) return c.json({ error: 'Not found' }, 404)
+
+  const forbidden = await requireWorkspaceFeature(c, existing.workspace_id, 'bookings', 'write')
+  if (forbidden) return forbidden
 
   const raw = await c.req.json().catch(() => null)
   if (!raw) return c.json({ error: 'Invalid JSON' }, 400)
@@ -188,7 +200,7 @@ bookingsRouter.patch('/:id', async (c) => {
   const { data, error } = await supabase
     .from('bookings')
     .update({ ...body, updated_at: new Date().toISOString() })
-    .eq('id', c.req.param('id'))
+    .eq('id', id)
     .select()
     .single()
 
@@ -216,6 +228,9 @@ bookingsRouter.patch('/:id/commit', async (c) => {
     .single()
 
   if (!existing) return c.json({ error: 'Not found' }, 404)
+
+  const forbidden = await requireWorkspaceFeature(c, existing.workspace_id, 'bookings', 'write')
+  if (forbidden) return forbidden
   if (existing.status !== 'draft') {
     return c.json({ error: `Cannot commit booking with status: ${existing.status}` }, 422)
   }
@@ -264,6 +279,10 @@ bookingsRouter.patch('/:id/void', async (c) => {
     .single()
 
   if (!existing) return c.json({ error: 'Not found' }, 404)
+
+  const forbidden = await requireWorkspaceFeature(c, existing.workspace_id, 'bookings', 'write')
+  if (forbidden) return forbidden
+
   if (existing.status === 'voided') return c.json({ error: 'Already voided' }, 422)
 
   const now = new Date().toISOString()
@@ -274,7 +293,7 @@ bookingsRouter.patch('/:id/void', async (c) => {
     .select()
     .single()
 
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) { const mapped = mapDbError(error); return c.json({ error: mapped.message }, mapped.status as any) }
 
   await supabase.from('audit_events').insert({
     workspace_id: existing.workspace_id,

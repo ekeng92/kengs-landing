@@ -108,7 +108,10 @@ describe('expenses route contracts', () => {
 
   it('updates an expense with PATCH', async () => {
     const updated = { ...sampleExpense, review_state: 'Personal' }
-    const mock = createMockSupabase([{ data: updated, error: null }])
+    const mock = createMockSupabase([
+      { data: { workspace_id: TEST_WORKSPACE }, error: null },  // workspace lookup
+      { data: updated, error: null },  // update
+    ])
     const res = await app.request('/expenses/exp-001', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -122,7 +125,7 @@ describe('expenses route contracts', () => {
 
   it('commits a draft expense', async () => {
     const mock = createMockSupabase([
-      { data: { status: 'draft' }, error: null },  // SELECT existing
+      { data: { status: 'draft', workspace_id: TEST_WORKSPACE }, error: null },  // SELECT existing
       { data: { ...sampleExpense, status: 'committed' }, error: null },  // UPDATE
     ])
     const res = await app.request('/expenses/exp-001/commit', {
@@ -136,7 +139,7 @@ describe('expenses route contracts', () => {
 
   it('rejects committing a non-draft expense', async () => {
     const mock = createMockSupabase([
-      { data: { status: 'committed' }, error: null },
+      { data: { status: 'committed', workspace_id: TEST_WORKSPACE }, error: null },
     ])
     const res = await app.request('/expenses/exp-001/commit', {
       method: 'PATCH',

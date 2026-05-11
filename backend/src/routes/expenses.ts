@@ -107,6 +107,18 @@ expensesRouter.get('/:id', async (c) => {
  */
 expensesRouter.patch('/:id', async (c) => {
   const supabase = createSupabaseClient(c.env)
+  const id = c.req.param('id')
+
+  const { data: existing, error: existingError } = await supabase
+    .from('expenses')
+    .select('workspace_id')
+    .eq('id', id)
+    .single()
+
+  if (existingError || !existing) return c.json({ error: 'Not found' }, 404)
+
+  const forbidden = await requireWorkspaceFeature(c, existing.workspace_id, 'expenses', 'write')
+  if (forbidden) return forbidden
 
   const raw = await c.req.json().catch(() => null)
   if (!raw) return c.json({ error: 'Invalid JSON' }, 400)
@@ -119,7 +131,7 @@ expensesRouter.patch('/:id', async (c) => {
   const { data, error } = await supabase
     .from('expenses')
     .update({ ...body, updated_at: new Date().toISOString() })
-    .eq('id', c.req.param('id'))
+    .eq('id', id)
     .select()
     .single()
 
@@ -140,11 +152,14 @@ expensesRouter.patch('/:id/commit', async (c) => {
 
   const { data: existing } = await supabase
     .from('expenses')
-    .select('status')
+    .select('status, workspace_id')
     .eq('id', id)
     .single()
 
   if (!existing) return c.json({ error: 'Not found' }, 404)
+
+  const forbidden = await requireWorkspaceFeature(c, existing.workspace_id, 'expenses', 'write')
+  if (forbidden) return forbidden
   if (existing.status !== 'draft') {
     return c.json({ error: `Cannot commit expense with status: ${existing.status}` }, 422)
   }
@@ -156,6 +171,9 @@ expensesRouter.patch('/:id/commit', async (c) => {
     .select()
     .single()
 
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) {
+    const mapped = mapDbError(error)
+    return c.json({ error: mapped.message }, mapped.status as any)
+  }
   return c.json({ data })
 })

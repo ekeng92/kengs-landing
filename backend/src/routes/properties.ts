@@ -30,7 +30,7 @@ propertiesRouter.get('/', async (c) => {
     .eq('workspace_id', workspaceId)
     .order('name')
 
-  if (error) return c.json({ error: error.message }, 500)
+  if (error) { const mapped = mapDbError(error); return c.json({ error: mapped.message }, mapped.status as any) }
   return c.json({ data })
 })
 
@@ -83,6 +83,18 @@ propertiesRouter.get('/:id', async (c) => {
 /** Update a property */
 propertiesRouter.patch('/:id', async (c) => {
   const supabase = createSupabaseClient(c.env)
+  const id = c.req.param('id')
+
+  const { data: existing, error: existingError } = await supabase
+    .from('properties')
+    .select('workspace_id')
+    .eq('id', id)
+    .single()
+
+  if (existingError || !existing) return c.json({ error: 'Not found' }, 404)
+
+  const forbidden = await requireWorkspaceFeature(c, existing.workspace_id, 'properties', 'write')
+  if (forbidden) return forbidden
 
   const raw = await c.req.json().catch(() => null)
   if (!raw) return c.json({ error: 'Invalid JSON' }, 400)
@@ -95,7 +107,7 @@ propertiesRouter.patch('/:id', async (c) => {
   const { data, error } = await supabase
     .from('properties')
     .update({ ...body, updated_at: new Date().toISOString() })
-    .eq('id', c.req.param('id'))
+    .eq('id', id)
     .select()
     .single()
 
