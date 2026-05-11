@@ -32,6 +32,7 @@ const state = {
   jobId: null,
   jobStatus: null,
   jobFilename: null,
+  templateName: null,
   rows: [], // raw import_rows from API
   rowDecisions: {}, // rowId → { reviewState, category, propertyId }
 };
@@ -122,8 +123,42 @@ async function uploadFile(file) {
     jobId = jobData.data.id;
   }
 
-  // 2. Parse the CSV (POST /imports/:jobId/parse-expenses)
+  // 2. Read CSV text and open the mapping wizard
   const csvText = await file.text();
+  $('upload-progress').style.display = 'none';
+
+  const wizard = new CsvMappingWizard({
+    entityType: 'expense',
+    csvText: csvText,
+    apiBase: BACKEND_BASE,
+    jobId: jobId,
+    getAuthToken: getAuthToken,
+    getWorkspaceId: getWorkspaceId,
+    onComplete: async function (result) {
+      if (result.autoSelected) {
+        toast('Using template: ' + result.templateName);
+      } else if (result.templateName) {
+        toast('Mapped with: ' + result.templateName);
+      }
+
+      // Update state with template info
+      state.jobId = jobId;
+      state.jobFilename = file.name;
+      state.templateName = result.templateName || null;
+
+      // Proceed with normal parse flow
+      $('upload-progress').style.display = 'block';
+      await parseExpenseCsv(jobId, csvText);
+    },
+    onCancel: function () {
+      // User cancelled; job exists but no parse
+    },
+  });
+
+  wizard.open();
+}
+
+async function parseExpenseCsv(jobId, csvText) {
   const parseRes = await fetch(`${BACKEND_BASE}/imports/${jobId}/parse-expenses`, {
     method: 'POST',
     headers: {
@@ -140,9 +175,9 @@ async function uploadFile(file) {
   }
 
   const { summary } = parseData;
-  state.jobId = jobId;
   state.jobStatus = parseData.data.status;
-  state.jobFilename = file.name;
+
+  $('upload-progress').style.display = 'none';
 
   toast(
     `Import created. ${summary.flagged} rows need review. ${summary.approved} ready to promote.`
@@ -200,7 +235,8 @@ function updateJobStatusBar() {
   const flagged = state.rows.filter((r) => r.review_status === 'flagged').length;
   const approved = state.rows.filter((r) => r.review_status === 'approved').length;
   const total = state.rows.length;
-  $('job-meta').textContent = ` — ${total} rows · ${flagged} flagged · ${approved} approved`;
+  const tplLabel = state.templateName ? ` · Template: ${state.templateName}` : '';
+  $('job-meta').textContent = ` — ${total} rows · ${flagged} flagged · ${approved} approved${tplLabel}`;
 
   const pill = $('job-status-pill');
   pill.textContent = state.jobStatus ?? '—';
@@ -446,6 +482,7 @@ function resetToUpload() {
   state.jobId = null;
   state.jobStatus = null;
   state.jobFilename = null;
+  state.templateName = null;
   state.rows = [];
   state.rowDecisions = {};
   $('review-tbody').innerHTML = '';

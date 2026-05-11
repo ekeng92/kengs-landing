@@ -75,6 +75,13 @@ export interface UniversalParseResult {
 // ─── Shared Utilities ─────────────────────────────────────────────────────────
 
 /**
+ * Strip UTF-8 BOM (byte order mark) from the beginning of text.
+ */
+export function stripBom(text: string): string {
+  return text.charCodeAt(0) === 0xfeff ? text.slice(1) : text
+}
+
+/**
  * Normalize a raw string value: trim + collapse internal whitespace.
  */
 export function normalizeValue(raw: string): string {
@@ -678,7 +685,7 @@ export function universalParse(
   template: CsvFormatTemplate,
   opts: UniversalParseOptions = {}
 ): UniversalParseResult {
-  const allRows = splitCsvRows(csvText)
+  const allRows = splitCsvRows(stripBom(csvText))
   if (allRows.length < 2) {
     return { rows: [], summary: { total: 0, approved: 0, flagged: 0, rejected: 0, error_count: 0 } }
   }
@@ -763,7 +770,7 @@ export async function detectFormat(
   csvText: string,
   templates: CsvFormatTemplate[]
 ): Promise<FormatDetectionResult> {
-  const rows = splitCsvRows(csvText)
+  const rows = splitCsvRows(stripBom(csvText))
   if (rows.length === 0) {
     return { fingerprint: '', matches: [] }
   }

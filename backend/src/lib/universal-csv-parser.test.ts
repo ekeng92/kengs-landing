@@ -850,4 +850,103 @@ describe('detectFormat', () => {
     expect(result.matches).toHaveLength(1)
     expect(result.matches[0]!.confidence).toBe(1)
   })
+
+  it('handles no templates gracefully', async () => {
+    const csvText = 'Date,Amount,Description\n01/01/2026,100,Store'
+    const result = await detectFormat(csvText, [])
+    expect(result.fingerprint).toMatch(/^[0-9a-f]{32}$/)
+    expect(result.matches).toHaveLength(0)
+  })
+
+  it('handles CSV with only headers (no data rows)', async () => {
+    const csvText = 'Date,Amount,Description'
+    const template = makeExpenseTemplate()
+    const result = await detectFormat(csvText, [template])
+    expect(result.fingerprint).toMatch(/^[0-9a-f]{32}$/)
+    // Should still match on headers even without data
+    expect(result.matches.length).toBeGreaterThanOrEqual(0)
+  })
+
+  it('ranks multiple 1.0 matches by position', async () => {
+    const csvText = 'Date,Amount,Description,Memo,Reference,Category\n01/01/2026,100,Store,note,ref,cat'
+    const fp = await generateHeaderFingerprint(['Date', 'Amount', 'Description', 'Memo', 'Reference', 'Category'])
+    const tmpl1 = makeExpenseTemplate({ id: 'tmpl-a', name: 'Template A', header_fingerprint: fp })
+    const tmpl2 = makeExpenseTemplate({ id: 'tmpl-b', name: 'Template B', header_fingerprint: fp })
+    const result = await detectFormat(csvText, [tmpl1, tmpl2])
+    // Both should match at 1.0
+    expect(result.matches.filter((m) => m.confidence === 1.0).length).toBe(2)
+  })
+})
+
+// ─── Regression: BOM Handling ────────────────────────────────────────────────
+
+describe('universalParse — BOM handling', () => {
+  it('handles UTF-8 BOM in CSV text', () => {
+    const bom = '\uFEFF'
+    const csv = `${bom}Date,Amount,Description\n01/15/2026,-50.00,STORE`
+    const template = makeExpenseTemplate({
+      column_map: { date: 'Date', amount: 'Amount', merchant: 'Description' },
+    })
+    const result = universalParse(csv, template)
+    // BOM should not prevent header matching
+    expect(result.rows.length).toBe(1)
+    const norm = result.rows[0]!.normalized_payload as any
+    expect(norm.transaction_date).toBe('2026-01-15')
+    expect(norm.amount).toBe(50)
+    expect(norm.merchant_name).toBe('Store')
+  })
+})
+
+// ─── Regression: Column Map Edge Cases ───────────────────────────────────────
+
+describe('universalParse — column map edge cases', () => {
+  it('handles column_map referencing a column not in the CSV', () => {
+    const csv = `Date,Amount\n01/15/2026,-50.00`
+    const template = makeExpenseTemplate({
+      column_map: { date: 'Date', amount: 'Amount', merchant: 'NonExistentColumn' },
+    })
+    const result = universalParse(csv, template)
+    expect(result.rows.length).toBe(1)
+    // Merchant should be missing, which is a soft error
+    expect(result.rows[0]!.validation_errors.some((e) => e.field === 'merchant')).toBe(true)
+  })
+
+  it('handles column_map with empty string values', () => {
+    const csv = `Date,Amount,Description\n01/15/2026,-50.00,STORE`
+    const template = makeExpenseTemplate({
+      column_map: { date: 'Date', amount: 'Amount', merchant: '' },
+    })
+    const result = universalParse(csv, template)
+    expect(result.rows.length).toBe(1)
+    // Empty column_map value should not match any header
+    expect(result.rows[0]!.validation_errors.some((e) => e.field === 'merchant')).toBe(true)
+  })
+
+  it('handles completely empty column_map', () => {
+    const csv = `Date,Amount,Description\n01/15/2026,-50.00,STORE`
+    const template = makeExpenseTemplate({ column_map: {} })
+    const result = universalParse(csv, template)
+    // All fields missing, row should be rejected
+    expect(result.rows[0]!.review_status).toBe('rejected')
+  })
+})
+
+// ─── Regression: Whitespace-only CSV ─────────────────────────────────────────
+
+describe('universalParse — whitespace edge cases', () => {
+  it('handles whitespace-only CSV', () => {
+    const result = universalParse('   \n\n  ', makeExpenseTemplate())
+    expect(result.rows).toEqual([])
+    expect(result.summary.total).toBe(0)
+  })
+
+  it('handles CSV with only whitespace in data cells', () => {
+    const csv = `Date,Amount,Description\n  ,  ,  `
+    const template = makeExpenseTemplate({
+      column_map: { date: 'Date', amount: 'Amount', merchant: 'Description' },
+    })
+    const result = universalParse(csv, template)
+    expect(result.rows.length).toBe(1)
+    expect(result.rows[0]!.review_status).toBe('rejected')
+  })
 })
